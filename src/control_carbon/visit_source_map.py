@@ -11,18 +11,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Tuple
 
+from .provenance import SourceRef, provenance_manifest
+
 
 VISIT_SOURCE_REPOSITORY = "Sachitama2001/VISIT-matrix"
+VISIT_SOURCE_COMMIT = "3285bd8e131a932e338b59892751648fd9edcc7b"
 VISIT_SOURCE_ROOT = "visit_local"
-
-
-@dataclass(frozen=True)
-class SourceRef:
-    """Reference to an authoritative VISIT source location."""
-
-    path: str
-    symbol: str
-    role: str
 
 
 @dataclass(frozen=True)
@@ -55,65 +49,89 @@ class OutputVariable:
     sources: Tuple[SourceRef, ...]
 
 
-STRUCTURE = SourceRef(
+def _visit_source(
+    path: str, symbol: str, role: str, *, function: str | None = None
+) -> SourceRef:
+    return SourceRef(
+        path,
+        symbol,
+        role,
+        repository=VISIT_SOURCE_REPOSITORY,
+        commit=VISIT_SOURCE_COMMIT,
+        function=function,
+    )
+
+
+STRUCTURE = _visit_source(
     "visit_local/structure.h",
     "struct Pmas / struct Smas / struct Mass / struct Flux",
     "native state, parameter, and flux declarations",
 )
-RESTART = SourceRef(
+RESTART = _visit_source(
     "visit_local/experiment.c",
     "f_experiment",
     "restart variables and daily experiment loop",
+    function="f_experiment",
 )
-PLANT_PROCESS = SourceRef(
+PLANT_PROCESS = _visit_source(
     "visit_local/plant_proc.c",
     "plant_process",
     "daily plant carbon updates",
+    function="plant_process",
 )
-SOIL_PROCESS = SourceRef(
+SOIL_PROCESS = _visit_source(
     "visit_local/soil_proc.c",
     "f_cycle_soil",
     "daily litter/humus mass balance and heterotrophic respiration",
+    function="f_cycle_soil",
 )
-DAILY_SCHEME = SourceRef(
+DAILY_SCHEME = _visit_source(
     "visit_local/daily_scheme.c",
     "daily_scheme",
     "sequential ecosystem update and ecosystem diagnostics",
+    function="daily_scheme",
 )
-LOCATION_PROCESS = SourceRef(
+LOCATION_PROCESS = _visit_source(
     "visit_local/location_proc.c",
     "f_loct_proc",
     "daily meteorological/environmental forcing preparation",
+    function="f_loct_proc",
 )
-PHOTOSYNTHESIS = SourceRef(
+PHOTOSYNTHESIS = _visit_source(
     "visit_local/photosynthesis.c",
     "f_gpp / f_pc_sat",
     "daily GPP and photosynthetic environmental response",
+    function="f_gpp / f_pc_sat",
 )
-ECOPHYS = SourceRef(
+ECOPHYS = _visit_source(
     "visit_local/ecophysiology.c",
     "f_ecophysiology and helpers",
     "physiological coefficients, stomatal response, LAI relationships",
+    function="f_ecophysiology",
 )
-RESPIRATION = SourceRef(
+RESPIRATION = _visit_source(
     "visit_local/respiration.c",
     "f_rfm / f_rcm / f_rrm / f_rfg / f_rcg / f_rrg",
     "autotrophic maintenance and growth respiration",
+    function="f_rfm / f_rcm / f_rrm / f_rfg / f_rcg / f_rrg",
 )
-ALLOCATION = SourceRef(
+ALLOCATION = _visit_source(
     "visit_local/allocation.c",
     "f_allocation / reallocation_survival",
     "state- and regime-dependent allocation/reallocation",
+    function="f_allocation / reallocation_survival",
 )
-LITTERFALL = SourceRef(
+LITTERFALL = _visit_source(
     "visit_local/litterfall.c",
     "f_lf / f_lc / f_lr",
     "plant-to-litter turnover",
+    function="f_lf / f_lc / f_lr",
 )
-DECOMPOSITION = SourceRef(
+DECOMPOSITION = _visit_source(
     "visit_local/decomposition.c",
     "frl / frh",
     "temperature/moisture environmental scalars for decomposition",
+    function="frl / frh",
 )
 
 
@@ -212,3 +230,12 @@ VISIT_SOURCES: Tuple[SourceRef, ...] = (
 def source_paths() -> tuple[str, ...]:
     """Unique source paths used by the initial VISIT mapping."""
     return tuple(dict.fromkeys(ref.path for ref in VISIT_SOURCES))
+
+
+def visit_provenance_manifest() -> dict[str, object]:
+    """Return provenance for the initial source-grounded VISIT mapping."""
+    return provenance_manifest(
+        model="VISIT",
+        approximation_level="source-map",
+        sources=VISIT_SOURCES,
+    )
