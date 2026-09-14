@@ -2,32 +2,54 @@
 
 ## Mission
 
-Continue this repository as a rigorous research-code project for applying state-space, IRF, transfer-function, QSE, and forcing-rate analysis to terrestrial ecosystem carbon-cycle models.
+Continue this repository as a rigorous research-code project for adding
+explicit water storage and SPAC transport to matrix land-carbon models, then
+using QSE, disequilibrium, IRF, modal, and forcing-rate analysis on the coupled
+system.
 
 VISIT is the first validation target, not the final scope.
 
+The active scientific question is how dynamic water changes carbon storage
+capacity, signed disequilibrium, and response time. R-tipping is conditional
+and downstream; do not tune the model merely to produce tipping.
+
 ## Read first
 
-Before coding, read in this order:
+Before carbon-water coding, read in this order:
 
-1. `HANDOFF.md`
-2. `docs/implementation_roadmap.md`
-3. `docs/architecture_and_conventions.md`
-4. `docs/visit_state_space_source_map.md`
-5. `docs/research_questions.md`
+1. `docs/carbon_water_research_plan.md`
+2. `docs/coupled_carbon_water_equations.md`
+3. `docs/visitc_carbon_water_source_ledger.md`
+4. `docs/literature_index.md`
+5. `HANDOFF.md`
+6. `docs/current_status.md`
+7. `docs/architecture_and_conventions.md`
 
-## Source of truth for VISIT
+## Two VISIT source boundaries
 
-Use:
+The existing nine-pool soil-carbon adapter uses:
 
 - repository: `Sachitama2001/VISIT-matrix`
+- commit: `3285bd8e131a932e338b59892751648fd9edcc7b`
 - source directory: `visit_local/`
 
 The Python code under `VISIT-matrix/visit_matrix/` is useful prior work but is not authoritative when it disagrees with, simplifies, or omits behavior in the C source.
 
+The active water audit uses:
+
+- repository: `visit-manager/VISITc`
+- commit: `5202debd96df6f88beb7d61f8688fff02ace964a`
+- source directory: `point/`
+
+Never merge assumptions or coefficients across these snapshots without an
+explicit comparison. Use `visit_source_map.py` for the old snapshot and
+`visitc_source_map.py` for the current one.
+
 ## Non-negotiable provenance rule
 
-Every VISIT-derived equation, coefficient, state mapping, or output mapping must identify its C-source path and function and state whether the implementation is exact or approximate.
+Every VISIT-derived equation, coefficient, state mapping, or output mapping
+must identify repository, commit, C-source path, function, units, update order,
+and whether the implementation is exact or approximate.
 
 Do not add undocumented matrix coefficients.
 
@@ -43,19 +65,27 @@ Always label model objects/results as one of:
 
 Never label a reduced 18-pool model as simply "the VISIT model" without qualification.
 
-## First implementation target
+## Active implementation order
 
-Implement the 9-pool VISIT soil carbon subsystem directly from:
+The old nine-pool soil target is implemented. Continue in this order:
 
-- `visit_local/soil_proc.c::f_cycle_soil`
-- `visit_local/decomposition.c::frl`
-- `visit_local/decomposition.c::frh`
+1. validate `visitc_hydrology.py` against a minimal native C bridge;
+2. transcribe `pm_incep`, `pm_evap`, and `pm_transp` dependencies;
+3. finish the bidirectional carbon-water dependency ledger;
+4. replace placeholder normalized storage in the eight-state model with
+   sourced soil retention and plant pressure-volume relations;
+5. compare dynamic and quasi-steady water with matched forcing/processes;
+6. build a periodic reference trajectory before any seasonal R-tipping work.
 
-Add direct-algebra vs matrix-equivalence tests before expanding the plant subsystem.
+Do not expand pool count until a mass-balance, memory, validation, or research
+criterion requires it.
 
-## Native time semantics
+## Native and reduced time semantics
 
-VISIT's native update is daily and sequential. Build discrete-time tools before treating continuous-time LTI notation as the primary representation.
+The inspected VISITc path includes a sequential daily update, but the selected
+executable and compile flags must be traced before declaring one universal
+native timestep. `coupled_carbon_water.py` is a separate continuous model in
+days. Do not describe it as a native VISITc ODE.
 
 ## State caution
 
@@ -75,16 +105,25 @@ For every source-derived process:
 4. provenance metadata;
 5. matrix or linearized integration only afterward.
 
-## Suggested first coding session
+## Carbon-water testing requirement
 
-1. add `DiscreteLTI` + tests;
-2. generalize provenance dataclasses;
-3. implement exact daily VISIT soil subsystem;
-4. test matrix equivalence;
-5. add soil fixed point/QSE;
-6. compute soil IRFs;
-7. then begin plant structural-carbon reconstruction.
+For every source-derived water process:
+
+1. reproduce source order in a pure function;
+2. add a hand-computable test;
+3. test water mass balance and any clipping correction;
+4. compare with native C before calling the transcription exact;
+5. record provenance and approximation level;
+6. only then insert it into a reduced or linearized model.
+
+For every reduced coupled equation, test the carbon and water budgets,
+nonnegative domain, equilibrium residual, both Jacobian coupling directions,
+and numerical refinement. Keep instantaneous carbon capacity distinct from the
+coupled equilibrium.
 
 ## Definition of scientific success
 
-The project succeeds when the same pipeline can compare multiple terrestrial ecosystem models through input-output dynamical quantities such as poles, residues, IRFs, QSE sensitivities, NEP transfer functions, and forcing-rate source/sink boundaries while retaining traceability to each native model's equations.
+The current milestone succeeds when a faithful VISITc water audit and a
+source-grounded low-dimensional carbon-water model can be compared through
+storage capacity, signed disequilibrium, modes, IRFs, and hydraulic memory,
+while every result retains traceability and mass balance.

@@ -2,21 +2,30 @@
 
 This document keeps the implementation tied to the scientific questions.
 
-## Current focus: feedback, branches, and deterministic tipping
+## Current focus: explicit water storage in the matrix framework
 
-Which state-dependent photosynthesis, loss, transfer or allocation functions
-produce multiple equilibria, and under what conditions does forcing cause
-branch loss (B) or a persistent rate-induced basin transition (R)?
+The active question is whether dynamic water storage and SPAC transport change
+how carbon storage capacity, signed disequilibrium, and response time should be
+diagnosed. The implementation and experiment order is in
+[carbon_water_research_plan.md](carbon_water_research_plan.md).
 
-The first implemented checks are an analytic saturating-input scalar model,
-an affine no-feedback control, finite ramps with endpoint holds, and a
-temperature-only VISIT soil fixed-point control. They do not establish tipping
-in native VISIT. Mathematical derivations, assumptions, reproducible tests and
-the next source-grounded mechanism comparisons are in
+The immediate questions are:
+
+1. Can current VISITc hydrology be reorganized without changing source
+   processes or update order?
+2. What is lost when plant/soil water is treated as an instantaneous modifier
+   instead of a dynamic state?
+3. How do water-driven productivity and decomposition changes separate into
+   \(\mu\), \(\tau_E\), and interaction effects on carbon capacity?
+4. Which modes and forcing frequencies expose hydraulic memory?
+5. When is the water Schur complement a valid quasi-steady approximation?
+
+The previous deterministic tipping question remains conditional: after a
+coupled equilibrium or periodic reference trajectory is defined and ordinary
+tracking is validated, do multiple basins and forcing-rate thresholds exist?
+The scalar fold/ramp benchmarks verify tools but do not establish tipping in
+VISITc or the reduced carbon-water model. See
 [deterministic_tipping_plan.md](deterministic_tipping_plan.md).
-Stochastic/N-tipping analysis is deferred; other meteorology is fixed or
-outside the selected subsystem until needed. The questions below remain
-supporting and longer-term research directions.
 
 ## RQ1. Can terrestrial ecosystem models be compared through common input-output dynamics despite different internal structures?
 

@@ -1,9 +1,27 @@
 # 進捗総括と次期作業計画
 
-> 2026-09-08更新: 現在の優先計画は
-> [決定論的非線形モデルとtipping解析](deterministic_tipping_plan.md)に整理した。
-> 本書のP0-P5は原典検証の経過として残す。確率項は導入せず、当面の気象比較は
-> 上層土壌温度だけを変えて他を固定する。
+> 2026-09-14更新: 現在の優先計画は
+> [炭素-水結合の研究計画](carbon_water_research_plan.md)である。本書のP0-P5と
+> [決定論的tipping計画](deterministic_tipping_plan.md)は、完了済み原典検証・
+> 数学ベンチマーク・後続解析として残す。
+
+## 0. 研究方向の更新と新規実装
+
+主題を「水貯留・SPAC輸送を明示した行列型炭素モデルで、炭素貯留容量、
+非平衡性、応答時間を診断する」へ更新した。R-tippingは研究成立の前提ではなく、
+通常応答と追従対象を定義した後に条件が整えば検討する。
+
+今回追加した成果は次のとおりである。
+
+- `visit-manager/VISITc`の現行参照commitを旧VISIT-matrixと別に固定した。
+- `f_hydrology`の状態更新を、Penman-Monteith potentialを有効入力として
+  原典順に部分転記した。
+- baseflowが二重に控除される形の水収支残差を、修正せず診断量として露出した。
+- leaf/stem/root/soilそれぞれにCとWを持つ8状態ODEを実装した。
+- 水の接続行列、炭素貯留容量、Wei型の容量変化分解、結合平衡、Jacobian block、
+  Schur補完を実装した。
+- 乾燥・再湿潤の理想実験と、収支・数値精密化を含む再現manifestを追加した。
+- PDFと文献URLを`literature_index.md`へ整理した。
 
 ## 1. プロジェクトの目標
 
@@ -107,6 +125,10 @@ litter pulse当日のRh変化は0で、翌日は
 後に、その日のlitter入力を追加する更新順序を確認する結果である。
 
 ## 3. 現在のテスト基準
+
+2026-09-14の全suiteは101件を収集し、`88 passed, 13 skipped`である。skipは
+別checkoutを必要とする旧VISIT-matrixのnative soil/plant比較だけであり、新規の
+炭素-水・current VISITcテストは全件成功している。
 
 P0-P5時点の基準は62件である。今回の決定論的非線形基盤とB/Rベンチマークで
 20件を追加した。追加テストは解析解、区画収支、平衡枝、安定性、分岐点、
@@ -291,12 +313,17 @@ turnover、respiration、allocationの個別sliceを実装し、native Cと照�
 
 ## 6. 推奨する直近の実装順
 
-直近は決定論的な非線形フィードバックと平衡枝・流域を優先する。
-初回実装では汎用ODE、平衡診断、解析可能なHill型入力モデル、B/R実験と
-再現図を追加した。詳細な式・比較条件・次段階は
-[現在の計画](deterministic_tipping_plan.md)に記録した。
+直近は炭素-水結合とVISITc水文過程の原典検証を優先する。詳細な式、比較条件、
+完了基準は[現在の計画](carbon_water_research_plan.md)に記録した。
 
-以下のtree一日更新は後続の原典接続課題として保持する。
+1. current VISITcの最小hydrology C bridgeを作る。
+2. `visitc_hydrology.py`と一日全状態・fluxを比較する。
+3. `pm_incep/pm_evap/pm_transp`と抵抗・放射・LAI依存を転記する。
+4. soil retention curveとplant pressure-volume/capacitanceを導入する。
+5. dynamic waterとquasi-steady waterを同一炭素式・同一強制で比較する。
+6. 周期基準軌道を作り、その後にのみR-tippingの可否を調べる。
+
+以下のtree一日更新は既存VISIT-matrix側の後続原典接続課題として保持する。
 
 1. prescribed GPPと環境からturnover、maintenance、allocation、growth respirationを
   原典順序で結ぶ。

@@ -1,5 +1,11 @@
 # VISIT state-space source map
 
+> This document describes the older `Sachitama2001/VISIT-matrix/visit_local`
+> carbon snapshot. The active water audit uses a different repository and
+> commit. See
+> [`visitc_carbon_water_source_ledger.md`](visitc_carbon_water_source_ledger.md)
+> and do not treat the two maps as one source tree.
+
 This note records the first source-grounded state-space decomposition of the VISIT site model stored in `Sachitama2001/VISIT-matrix/visit_local`.
 
 ## Scope and source revision

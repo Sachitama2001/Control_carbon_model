@@ -1,9 +1,34 @@
 # Current implementation status
 
-This file is the short checkpoint after the source-grounded soil, ERA5, and
-minimal native-soil validation cycles. The Japanese progress narrative and
-P0-P5 record is in `progress_and_next_plan.md`. The active research order is
-now `deterministic_tipping_plan.md`; A-K phases remain a longer-term backlog.
+This file is the short checkpoint after the first explicit carbon-water
+implementation. The historical soil, ERA5, plant-slice, and tipping work
+remains available. The active research order is now
+`carbon_water_research_plan.md`; `deterministic_tipping_plan.md` is a deferred
+analysis track rather than the project driver.
+
+## Active carbon-water checkpoint
+
+- current `visit-manager/VISITc` source is pinned independently at commit
+  `5202debd96df6f88beb7d61f8688fff02ace964a`;
+- native `snwa`, `sw30`, and `sww` stores plus the source-order hydrology fluxes
+  are inventoried in `visitc_carbon_water_source_ledger.md`;
+- `visitc_hydrology.py` partially transcribes `f_hydrology`, treating the seven
+  Penman-Monteith potentials as effective inputs;
+- the apparent baseflow double subtraction is reproduced and exposed through
+  a budget residual, not silently corrected;
+- `coupled_carbon_water.py` implements a four-carbon/four-water continuous ODE
+  with exact internal mass cancellation;
+- instantaneous frozen-water carbon capacity is kept separate from the full
+  coupled equilibrium;
+- productivity, transit-time, and interaction effects on capacity are
+  decomposed exactly;
+- full Jacobian blocks and the water Schur complement are implemented;
+- the idealized dry-down/re-wetting example records budget residuals and solver
+  refinement.
+
+The reduced model's storage-potential and conductance functions are smooth
+placeholders. It is executable theory scaffolding, not a calibrated VISITc or
+species model.
 
 ## Completed vertical slices
 
@@ -91,6 +116,7 @@ decomposition slices: `sr_lf/lc/lr`, `sr_ha/hi/hp`, `kml/kmh/kmsl/kmsh`,
 python -m pip install -e '.[dev,era5]'
 pytest -q
 git diff --check
+python examples/run_coupled_carbon_water.py
 ```
 
 Official CDS smoke test requires `~/.cdsapirc` and accepted dataset terms:
@@ -106,6 +132,13 @@ control-carbon-era5 \
 Live network checks are intentionally not part of the default pytest suite.
 The suite tests provider parsing and conversion with deterministic fixtures.
 
+Verified in the 2026-09-14 carbon-water checkpoint: `88 passed, 13 skipped`.
+All skips are legacy native VISIT soil/plant tests that require the separately
+pinned `Sachitama2001/VISIT-matrix` source checkout; they are not carbon-water
+test failures. The carbon-water example reported a stable baseline, maximum
+step-refinement state difference below `9e-7`, carbon budget residual below
+`3e-18`, and water budget residual below `3e-16` for the illustrative run.
+
 ## Known blockers before native VISIT validation
 
 - CEAMIP `strcmp` conditions in `init_site.c` and `location_proc.c` omit
@@ -120,10 +153,10 @@ The suite tests provider parsing and conversion with deterministic fixtures.
 
 ## Next scientific milestone
 
-Connect one source-informed plant feedback to the deterministic branch/basin
-analysis, initially varying temperature only and fixing other meteorology.
-The new scalar benchmarks verify mathematical tools, not VISIT/TKY tipping.
-Generic continuation, critical-rate estimation, return experiments, integrated
-plant dynamics and higher-dimensional basins remain pending. Stochastic and
-N-tipping tools are explicitly excluded from the current stage. See
-`deterministic_tipping_plan.md` for acceptance criteria and reproducible checks.
+Validate the partial Python hydrology update against a minimal native VISITc C
+bridge, then transcribe the Penman-Monteith dependencies. In parallel, replace
+the reduced model's normalized storage proxy with sourced soil-retention and
+plant pressure-volume/capacitance relations. The first central experiment is
+dynamic water storage versus its quasi-steady Schur reduction under matched
+forcing and carbon equations. Seasonal tracking and R-tipping tests come only
+after this ordinary-dynamics validation.

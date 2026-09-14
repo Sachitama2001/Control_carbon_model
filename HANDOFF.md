@@ -1,16 +1,44 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
-> Active priority (2026-09-08): deterministic nonlinear compartment dynamics,
-> equilibrium branches, and B/R-tipping with selected forcing only. Read
-> `docs/deterministic_tipping_plan.md` and `docs/current_status.md` before using
-> the historical skeleton and implementation order below. Stochastic/N-tipping
-> work is explicitly deferred; continuous benchmarks are not native VISIT maps.
+> Active priority (2026-09-14): explicit water storage and SPAC transport in
+> the land-carbon matrix framework. Read `docs/carbon_water_research_plan.md`,
+> `docs/coupled_carbon_water_equations.md`, and
+> `docs/visitc_carbon_water_source_ledger.md` before using the historical
+> skeleton below. Deterministic tipping code remains a tested, deferred track.
 
 ## 0. Purpose of this document
 
 This repository is intended to become a **model-agnostic control-theoretic framework for terrestrial ecosystem carbon-cycle models**. VISIT is the first source-grounded implementation and validation target, not the final scope.
 
 The immediate coding-agent task is **not** to produce a polished VISIT emulator as quickly as possible. The task is to build a rigorous chain from process-model source code to state-space/IRF representations while preserving provenance and clearly separating exact equations from reductions and local approximations.
+
+The active chain is now:
+
+```text
+current VISITc water source
+  -> source-order water ledger and native comparison
+  -> four-component carbon-water balances
+  -> coupled equilibrium/capacity/Jacobian diagnostics
+  -> dynamic-vs-quasi-steady water experiments
+  -> periodic tracking and conditional tipping analysis
+```
+
+Implemented in the current working tree:
+
+- `visitc_source_map.py`: current `visit-manager/VISITc` provenance at
+  `5202debd96df6f88beb7d61f8688fff02ace964a`;
+- `visitc_hydrology.py`: partial `f_hydrology` transcription with PM potentials
+  as effective inputs and an explicit baseflow accounting audit;
+- `coupled_carbon_water.py`: eight-state reduced ODE, budgets, carbon capacity,
+  capacity-change decomposition, coupled equilibrium, Jacobian blocks, Schur
+  reduction, and simulation;
+- `examples/run_coupled_carbon_water.py`: idealized dry-down/re-wetting
+  experiment with refinement and provenance outputs;
+- dedicated tests and carbon-water documentation.
+
+Do not call the eight-state continuous model “VISITc.” It is a synthesis. Do
+not call the partial water transcription fully source-faithful until a native C
+comparison also covers the Penman-Monteith helpers and selected branches.
 
 The research objective is to make it possible to compare many terrestrial ecosystem models in a common language:
 
@@ -33,9 +61,19 @@ The research objective is to make it possible to compare many terrestrial ecosys
 ### Source/reference repository for the first model adapter
 
 - `Sachitama2001/VISIT-matrix`
+- pinned commit `3285bd8e131a932e338b59892751648fd9edcc7b`
 - authoritative VISIT site-model source is under `visit_local/`
 
 Important: `VISIT-matrix/visit_matrix/` already contains a reduced 18-pool matrix implementation. Use it as prior work and a cross-check, **not as the authority**. The C source in `visit_local/` is the authority when deciding whether an equation, state, input, or parameter is actually present in VISIT.
+
+### Source/reference repository for the active water audit
+
+- `visit-manager/VISITc`
+- pinned commit `5202debd96df6f88beb7d61f8688fff02ace964a`
+- inspected source is under `point/`
+
+Keep this provenance separate from the older VISIT-matrix adapter. A formula
+found in one snapshot is not automatically authoritative for the other.
 
 ## 2. Current repository status
 

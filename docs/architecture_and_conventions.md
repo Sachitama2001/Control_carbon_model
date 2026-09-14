@@ -9,7 +9,7 @@ Generic code must not import VISIT-specific modules.
 Recommended dependency direction:
 
 ```text
-core/provenance  <- adapters/visit <- experiments
+core/provenance <- source-faithful adapters <- reduced coupled models <- experiments
 ```
 
 Never allow:
@@ -38,6 +38,13 @@ The state/forcing/regime at which a local linearization is evaluated.
 
 An equilibrium corresponding to frozen forcing. For discrete models use fixed-point language where appropriate.
 
+For a carbon-water system, keep three objects separate:
+
+- instantaneous carbon capacity with the current water-dependent coefficients
+  frozen;
+- coupled carbon-water equilibrium under frozen external forcing;
+- periodic attracting reference trajectory under periodic forcing.
+
 ### IRF
 
 Impulse response of an explicitly identified linearized/reduced input-output system. Do not call arbitrary perturbation trajectories an IRF unless linearity/locality is specified.
@@ -56,7 +63,11 @@ or
 discrete with dt and unit
 ```
 
-VISIT's native carbon update is daily and sequential. Continuous-time forms are mathematical approximations/reformulations and must be labelled as such.
+The established VISIT-matrix carbon adapter has a daily sequential source
+update. The current VISITc source also contains `daily_scheme()`, but its README
+and other paths refer to sub-daily operation; trace the selected executable and
+call graph before declaring native time semantics. Continuous-time forms are
+mathematical approximations/reformulations and must be labelled as such.
 
 ## 4. Sign conventions
 
@@ -78,6 +89,12 @@ Recommended default:
 
 Document any adapter that differs.
 
+For water transport, use an oriented incidence matrix rather than forcing the
+carbon donor-fraction convention onto potential-gradient flow. Each incidence
+column has -1 at the donor and +1 at the receiver, so internal transport obeys
+`ones @ S_W == 0`. A negative computed hydraulic flux reverses direction; do
+not clip it solely to preserve the nominal edge label.
+
 Do not assume NEE sign convention from observational datasets; make NEE convention explicit whenever added.
 
 ## 5. Units
@@ -89,9 +106,16 @@ VISIT source commonly uses:
 ```text
 carbon stock: Mg C ha^-1
 carbon flux: Mg C ha^-1 day^-1
+water store: mm water
+water flux: mm day^-1
+water potential: MPa
 ```
 
 Do not silently convert to kg C m^-2. If conversion is desired, do it in an explicit adapter/conversion layer and test the factor.
+
+Any water equation must state whether stores are per ground area, leaf area,
+sapwood volume, or another basis. A conductance is incomplete metadata without
+its area basis and potential/time units.
 
 ## 6. Data structures
 

@@ -1,9 +1,15 @@
 # 決定論的非線形モデルと tipping 解析
 
+> **Status (2026-09-14): deferred supporting track.** 主題は
+> [炭素-水結合の研究計画](carbon_water_research_plan.md)へ移った。本書の実装済み
+> scalar benchmark と判定基準は維持するが、tippingを発生させるために炭素-水
+> モデルを調整しない。通常応答、動的水貯留、周期追従対象を先に検証する。
+
 ## 1. 現在の優先方針
 
-2026-09-08の合意に基づく現在の実装計画である。従来のP0-P5/A-Kは
-既存成果と後続課題として保持するが、直近の優先順位は本書を参照する。
+This section records the 2026-09-08 implementation plan. It is no longer the
+active priority; use it when the carbon-water work reaches its conditional
+tipping stage.
 
 - 状態空間表現へ外部強制を集約し、状態フィードバックの形と平衡枝の関係を調べる。
 - 解析式と数値実験を並行させ、まず決定論的なB/R-tippingを対象とする。

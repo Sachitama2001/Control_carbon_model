@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "control-carbon-model"
 version = "0.1.0"
-description = "Control-theoretic analysis of terrestrial ecosystem carbon-cycle models"
+description = "Matrix and control-theoretic analysis of coupled terrestrial carbon-water models"
 requires-python = ">=3.10"
 dependencies = [
   "numpy>=1.24",

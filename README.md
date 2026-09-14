@@ -1,18 +1,38 @@
 # Control Carbon Model
 
-A research project for analyzing terrestrial ecosystem carbon-cycle models using control theory, impulse response functions (IRFs), transfer functions, quasi-static equilibria (QSEs), and source-sink diagnostics.
+A research project for analyzing terrestrial ecosystem carbon-cycle models
+through matrix equations, explicit water dynamics, control theory, impulse
+responses, quasi-static equilibria (QSEs), and source-sink diagnostics.
 
-The current focus is deterministic nonlinear state-space dynamics: which
-state feedbacks create multiple equilibrium branches and B/R-tipping?
-Only selected environmental drivers vary; stochastic mechanisms are deferred.
-See the [active plan](docs/deterministic_tipping_plan.md) for equations,
-assumptions, implemented benchmarks, and the next source-grounding steps.
+The active research question is now:
+
+> How does adding explicit water storage and SPAC transport to the land-carbon
+> matrix framework change carbon storage capacity, disequilibrium, and response
+> time?
+
+The first implementation has two deliberately separate tracks:
+
+- an auditable, source-order partial transcription of current VISITc hydrology;
+- a reduced continuous model with leaf/stem/root/soil carbon and water stores.
+
+R-tipping is a later, conditional analysis rather than a required result. See
+the [carbon-water research plan](docs/carbon_water_research_plan.md) and
+[equations](docs/coupled_carbon_water_equations.md). The older
+[deterministic tipping plan](docs/deterministic_tipping_plan.md) is retained as
+a deferred analysis track and benchmark record.
 
 The long-term goal is **not to reproduce one specific land model**, but to build a model-agnostic framework that can compare many terrestrial ecosystem models through common state-space and input-output dynamical quantities.
 
-## Current first testbed
+## Current reference models
 
-VISIT is the first source-grounded implementation target. The authoritative source snapshot currently used for derivation is in `Sachitama2001/VISIT-matrix/visit_local`.
+The established nine-pool soil-carbon adapter is sourced from
+`Sachitama2001/VISIT-matrix/visit_local` at commit
+`3285bd8e131a932e338b59892751648fd9edcc7b`.
+
+The new water audit targets [`visit-manager/VISITc`](https://github.com/visit-manager/VISITc)
+at commit `5202debd96df6f88beb7d61f8688fff02ace964a`. These snapshots are
+not interchangeable; their provenance registries and documentation are kept
+separate.
 
 The existing Python matrix implementation in `VISIT-matrix/visit_matrix` is useful prior work, but the VISIT C source is treated as the authority for state definitions, update order, process equations, and provenance.
 
@@ -20,25 +40,54 @@ The existing Python matrix implementation in `VISIT-matrix/visit_matrix` is usef
 
 For coding agents and new contributors:
 
-1. `AGENTS.md` — concise coding-agent rules and first tasks.
-2. `HANDOFF.md` — full scientific and implementation handoff.
-3. `docs/implementation_roadmap.md` — phased engineering/research roadmap and acceptance criteria.
-4. `docs/current_status.md` — completed implementation, reproducible checks, and current blockers.
-5. `docs/progress_and_next_plan.md` — Japanese progress summary and historical P0-P5 work.
-6. `docs/architecture_and_conventions.md` — package boundaries, time/sign/unit conventions, testing rules.
-7. `docs/visit_state_space_source_map.md` — source-grounded VISIT state/input/output decomposition.
-8. `docs/research_questions.md` — scientific questions and planned experiment matrix.
+1. `AGENTS.md` - coding-agent rules and the active task order.
+2. `docs/carbon_water_research_plan.md` - scientific story, hypotheses, experiment ladder, and acceptance criteria.
+3. `docs/coupled_carbon_water_equations.md` - complete equations and diagnostics for the eight-state model.
+4. `docs/visitc_carbon_water_source_ledger.md` - current VISITc stores, fluxes, call order, source links, and audit findings.
+5. `docs/literature_index.md` - local PDFs, stable links, and evidence-to-equation routing.
+6. `HANDOFF.md` and `docs/current_status.md` - implementation checkpoint and immediate next work.
+7. `docs/architecture_and_conventions.md` - package, time, sign, unit, and testing conventions.
+8. `docs/implementation_roadmap.md` - full engineering and research backlog.
 
-## Initial goals
+## Active goals
 
-- Develop model-agnostic continuous, discrete, and eventually periodic/LTV state-space tools.
-- Connect QSE disequilibrium to NEP/NEE/NECB source-sink behavior with explicit sign conventions.
-- Use IRFs, transfer functions, modal analysis, and frequency response to characterize carbon-cycle dynamics.
-- Derive forcing-rate and QSE-sensitivity relations that can support analytical source/sink criteria.
-- Build provenance-preserving adapters for process-based terrestrial ecosystem models, beginning with VISIT and later extending to additional models.
-- Compare full simulation with IRF/reduced-order approaches for speed, interpretability, and validity range.
+- Reproduce VISITc water bookkeeping without changing its source order.
+- Couple water stores and transport to a small carbon compartment system.
+- Distinguish instantaneous carbon capacity, coupled equilibrium, and periodic tracking trajectories.
+- Decompose capacity change into productivity, transit-time, and interaction effects.
+- Test when dynamic water storage differs from a quasi-steady hydraulic reduction.
+- Preserve model provenance and mass balance at every abstraction level.
+- Retain the existing IRF, modal, native-soil, ERA5, and nonlinear benchmark infrastructure.
 
-## Current code
+## Reproduce the first carbon-water experiment
+
+```bash
+python -m pip install -e '.[dev,era5]'
+python examples/run_coupled_carbon_water.py
+pytest -q
+```
+
+The example starts at a stable coupled equilibrium, applies an idealized
+precipitation dry-down and re-wetting, and writes NPZ data plus a JSON manifest
+under `artifacts/coupled_carbon_water/`. It includes carbon/water budget
+residuals and a maximum-step refinement comparison. The parameter set is
+illustrative, not calibrated VISITc.
+
+## Carbon-water code
+
+`src/control_carbon/visitc_source_map.py` pins current VISITc source provenance.
+
+`src/control_carbon/visitc_hydrology.py` follows
+`point/hydro_balance.c::f_hydrology` in source order while taking seven
+Penman-Monteith potentials as effective inputs. It deliberately exposes the
+apparent double subtraction of baseflow instead of silently correcting it.
+
+`src/control_carbon/coupled_carbon_water.py` implements the eight-state reduced
+ODE, incidence-based water balance, frozen carbon capacity, Wei-style capacity
+decomposition, coupled equilibria, finite-difference Jacobian blocks, the water
+Schur complement, and time integration.
+
+## Existing code
 
 The new [nonlinear core](src/control_carbon/nonlinear.py) provides single-driver
 continuous integration, frozen-equilibrium diagnostics, and signed compartment
@@ -76,5 +125,6 @@ The native soil bridge supports day-varying environments, local environmental
 Jacobians, modal analysis, QSE sensitivity, and a native/nonlinear/tangent
 comparison figure. Plant turnover, respiration, and allocation slices have
 also been individually matched to native C. Their full daily integration
-remains pending; immediate research priorities follow the
-[deterministic tipping plan](docs/deterministic_tipping_plan.md).
+remains pending. Immediate work now follows the
+[carbon-water plan](docs/carbon_water_research_plan.md); deterministic tipping
+benchmarks remain available but are not the main implementation driver.

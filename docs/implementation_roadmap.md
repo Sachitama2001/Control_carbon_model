@@ -1,14 +1,42 @@
 # Implementation Roadmap
 
-## Active priority: deterministic nonlinear dynamics
+## Active priority: explicit carbon-water dynamics
 
-The current agreed order is in [deterministic_tipping_plan.md](deterministic_tipping_plan.md).
-Its first vertical slice now includes signed compartment algebra, continuous
-nonlinear integration and equilibrium diagnostics, analytic feedback branches,
-and separate B/R experiments. Temperature-only source-grounded soil controls
-remain separate from hypothetical feedback mechanisms. No stochastic terms,
-N-tipping machinery, or estimation/MPC work is scheduled in the current phase.
-The A-K phases below are retained as the longer-term backlog, not today's order.
+The current order is in
+[carbon_water_research_plan.md](carbon_water_research_plan.md). The immediate
+path is current VISITc hydrology audit -> native comparison -> grounded
+water-potential/storage relations -> dynamic-vs-quasi-steady water experiments.
+The deterministic B/R benchmark remains tested but is not the active
+model-building objective. The A-K phases below are retained as the historical
+and long-term backlog.
+
+### CW1 - Current VISITc water fidelity
+
+- Pin `visit-manager/VISITc` independently of the old VISIT-matrix snapshot.
+- Inventory water stores, fluxes, diagnostics, call order, units, and carbon
+  dependencies.
+- Validate the partial `f_hydrology` transcription against a native C harness.
+- Preserve and quantify the baseflow/clipping accounting behavior.
+- Transcribe Penman-Monteith helper dependencies only after direct tests exist.
+
+### CW2 - Low-dimensional coupled theory
+
+- Maintain four shared components (leaf, stem, root, soil) until a declared
+  validation criterion requires another state.
+- Enforce separate carbon compartment and water incidence conventions.
+- Distinguish frozen carbon capacity, coupled equilibrium, and periodic
+  reference trajectory.
+- Test both directions of the carbon-water Jacobian and the water Schur
+  complement.
+
+### CW3 - Constitutive grounding and comparison
+
+- Replace normalized water storage with soil-retention and plant
+  pressure-volume/capacitance relations.
+- Compare dynamic versus quasi-steady water, coupled versus one-way feedback,
+  and nonlinear versus tangent dynamics under matched forcing.
+- Use idealized experiments before global forcing.
+- Move to seasonal tracking and conditional R-tipping only after these checks.
 
 ## Guiding principle
 
@@ -18,7 +46,8 @@ The roadmap is intentionally staged so that each layer can be validated independ
 
 ## Progress checkpoint
 
-As of the current working tree, discrete LTI basics, generic provenance,
+As of the current working tree, the first eight-state carbon-water ODE, current
+VISITc source ledger/partial hydrology transcription, discrete LTI basics, generic provenance,
 source-grounded VISIT 9-pool soil algebra, decomposition scalars, soil fixed
 points, Rh IRFs, direct trajectory comparison, and point-scale ERA5-to-VISIT
 weather preparation are implemented and tested. See `current_status.md` for
@@ -31,7 +60,7 @@ floating-point precision. Day-varying decomposition environments, local
 temperature perturbation tests, grouped modes and QSE sensitivities are also
 complete. Plant turnover, respiration and allocation have separate native C
 checks but are not yet one daily map. See `progress_and_next_plan.md` for the
-P0-P5 record and `deterministic_tipping_plan.md` for the active priority.
+P0-P5 record and `carbon_water_research_plan.md` for the active priority.
 
 ---
 
@@ -625,8 +654,17 @@ Cross-model comparison should allow different state dimensions while comparing c
 
 ## Priority order for the next coding agent
 
-Use `deterministic_tipping_plan.md` for the current priority. The following is
-the historical bootstrap sequence, much of which is already implemented:
+Use `carbon_water_research_plan.md` for the current priority. The next concrete
+coding sequence is:
+
+1. build a minimal native VISITc hydrology comparison harness;
+2. compare every exposed one-day store and flux;
+3. transcribe PM helpers and trace their LAI/conductance dependencies;
+4. implement sourced storage-to-potential constitutive functions;
+5. compare dynamic water with the quasi-steady Schur reduction;
+6. add periodic tracking only after the comparison passes.
+
+The following is the historical bootstrap sequence, much of which is already implemented:
 
 1. implement discrete LTI core + tests;
 2. refactor provenance into generic schema;
