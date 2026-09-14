@@ -12,8 +12,13 @@ dependencies = [
   "scipy>=1.10",
 ]
 
+[project.scripts]
+control-carbon-era5 = "control_carbon.era5_cli:main"
+
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+era5 = ["cdsapi>=0.7", "h5py>=3.8"]
+analysis = ["matplotlib>=3.8"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

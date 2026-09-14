@@ -182,6 +182,152 @@ class DiscreteLTI:
         return states, outputs
 
 
+@dataclass(frozen=True)
+class DiscreteFixedPointResult:
+    """Diagnostics for a fixed point under a constant discrete-time input."""
+
+    state: np.ndarray
+    residual_norm: float
+    condition_number: float
+    stable: bool
+    converged: bool = True
+    method: str = "linear solve"
+
+
+@dataclass(frozen=True)
+class DiscreteModalAnalysis:
+    """Grouped spectral decomposition of a diagonalizable discrete system."""
+
+    poles: np.ndarray
+    multiplicities: np.ndarray
+    decay_times: np.ndarray
+    projectors: np.ndarray
+    state_participation: np.ndarray
+    residues: np.ndarray
+    eigenvector_condition_number: float
+    reconstruction_error: float
+    direct_term: np.ndarray
+
+    def impulse_response(self, n_steps: int) -> np.ndarray:
+        """Reconstruct ``h[0]=D`` and dynamic samples from grouped residues."""
+        if n_steps < 1:
+            raise ValueError("n_steps must be at least 1")
+        response = np.empty(
+            (n_steps, self.direct_term.shape[0], self.direct_term.shape[1]),
+            dtype=complex,
+        )
+        response[0] = self.direct_term
+        for step in range(1, n_steps):
+            response[step] = np.sum(
+                self.poles[:, np.newaxis, np.newaxis] ** (step - 1)
+                * self.residues,
+                axis=0,
+            )
+        return np.real_if_close(response)
+
+
+def discrete_fixed_point(
+    system: DiscreteLTI, constant_input: ArrayLike
+) -> DiscreteFixedPointResult:
+    """Solve ``x = A x + B u`` for a constant input and report diagnostics."""
+    constant_input_array = np.asarray(constant_input, dtype=float)
+    if constant_input_array.shape != (system.n_input,):
+        raise ValueError("constant_input must have shape (n_input,)")
+    if not np.all(np.isfinite(constant_input_array)):
+        raise ValueError("constant_input must be finite")
+
+    fixed_point_matrix = np.eye(system.n_state) - system.A
+    condition_number = float(np.linalg.cond(fixed_point_matrix))
+    try:
+        state = np.linalg.solve(fixed_point_matrix, system.B @ constant_input_array)
+    except np.linalg.LinAlgError as error:
+        raise ValueError("system does not have a unique finite fixed point") from error
+    residual = system.A @ state + system.B @ constant_input_array - state
+    return DiscreteFixedPointResult(
+        state=state,
+        residual_norm=float(np.linalg.norm(residual)),
+        condition_number=condition_number,
+        stable=system.is_stable(),
+    )
+
+
+def discrete_modal_analysis(
+    system: DiscreteLTI, *, pole_tolerance: float = 1e-9
+) -> DiscreteModalAnalysis:
+    """Group repeated poles and compute spectral projectors and I/O residues.
+
+    The diagonal of each grouped spectral projector is a basis-invariant state
+    participation measure for that pole group. Non-diagonalizable systems are
+    rejected because a simple residue sum cannot represent Jordan terms.
+    """
+    if not np.isfinite(pole_tolerance) or pole_tolerance <= 0:
+        raise ValueError("pole_tolerance must be finite and positive")
+    eigenvalues, eigenvectors = np.linalg.eig(system.A)
+    grouped: list[list[complex]] = []
+    for eigenvalue in sorted(eigenvalues, key=lambda value: (value.real, value.imag)):
+        for group in grouped:
+            representative = sum(group) / len(group)
+            if abs(eigenvalue - representative) <= pole_tolerance * max(
+                1.0, abs(eigenvalue), abs(representative)
+            ):
+                group.append(complex(eigenvalue))
+                break
+        else:
+            grouped.append([complex(eigenvalue)])
+    poles = np.asarray([sum(group) / len(group) for group in grouped], dtype=complex)
+    multiplicities = np.asarray([len(group) for group in grouped], dtype=int)
+    identity = np.eye(system.n_state, dtype=complex)
+    matrix_a = system.A.astype(complex)
+    projectors = []
+    for pole_index, pole in enumerate(poles):
+        projector = identity.copy()
+        for other_index, other_pole in enumerate(poles):
+            if other_index != pole_index:
+                projector = projector @ (
+                    (matrix_a - other_pole * identity) / (pole - other_pole)
+                )
+        projectors.append(projector)
+    projector_array = np.asarray(projectors)
+    reconstructed_identity = projector_array.sum(axis=0)
+    reconstructed_a = np.sum(
+        poles[:, np.newaxis, np.newaxis] * projector_array, axis=0
+    )
+    reconstruction_error = float(
+        max(
+            np.linalg.norm(reconstructed_identity - identity),
+            np.linalg.norm(reconstructed_a - matrix_a),
+        )
+    )
+    scale = max(1.0, np.linalg.norm(matrix_a))
+    if reconstruction_error > 100.0 * pole_tolerance * scale:
+        raise ValueError(
+            "system is not diagonalizable into simple grouped spectral projectors"
+        )
+    residues = np.asarray(
+        [system.C @ projector @ system.B for projector in projector_array]
+    )
+    magnitudes = np.abs(poles)
+    decay_times = np.full(poles.shape, np.nan, dtype=float)
+    zero = magnitudes == 0.0
+    stable = (magnitudes > 0.0) & (magnitudes < 1.0)
+    decay_times[zero] = 0.0
+    decay_times[stable] = -system.dt / np.log(magnitudes[stable])
+    decay_times[magnitudes == 1.0] = np.inf
+    return DiscreteModalAnalysis(
+        poles=np.real_if_close(poles),
+        multiplicities=multiplicities,
+        decay_times=decay_times,
+        projectors=np.real_if_close(projector_array),
+        state_participation=np.real_if_close(
+            np.diagonal(projector_array, axis1=1, axis2=2)
+        ),
+        residues=np.real_if_close(residues),
+        eigenvector_condition_number=float(np.linalg.cond(eigenvectors)),
+        reconstruction_error=reconstruction_error,
+        direct_term=system.D.copy(),
+    )
+
+
 def discrete_transfer_function_matrix(system: DiscreteLTI, z: complex) -> np.ndarray:
     """Evaluate G(z) = C (zI-A)^-1 B + D."""
     eye = np.eye(system.n_state)

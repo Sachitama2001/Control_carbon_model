@@ -60,6 +60,14 @@ VISIT's native carbon update is daily and sequential. Continuous-time forms are 
 
 ## 4. Sign conventions
 
+For the continuous compartment research form `dx/dt = A Xi K x + B mu`,
+`A` is a signed donor-column transfer matrix: diagonal -1, nonnegative
+off-diagonal entries, and nonpositive column sums. `Xi` and `K` are diagonal
+nonnegative environmental multipliers and turnover rates. There is no extra
+minus sign before `A`. Nonnegative allocation columns of `B` sum to one.
+The state Jacobian is called `J_x` to distinguish it from this transfer `A`
+and the native discrete transition `A_d`. See `deterministic_tipping_plan.md`.
+
 Recommended default:
 
 - carbon stocks positive;
@@ -241,6 +249,17 @@ Core library should return arrays/data objects, not create figures implicitly.
 Use `examples/` or `notebooks/` for exploratory figures after numerical core is tested.
 
 Every published figure should be reproducible from a script with fixed inputs/configuration.
+
+IRF and simulation comparisons must use the same baseline, initial state, forcing perturbation, timestep, and output convention. Store these inputs with the returned comparison data.
+
+For state-space trajectory figures:
+
+- label the projection from the full state explicitly;
+- show IRF prediction and direct simulation on identical axes;
+- mark the fixed/reference state, trajectory direction, and elapsed time;
+- include time-series and error panels so a visually close projected curve cannot hide disagreement in unshown dimensions;
+- report the perturbation amplitude and whether the reduced system is exactly linear or only locally linearized;
+- use "projected state trajectory" rather than "phase portrait" for nonautonomous/time-varying systems unless an autonomous augmented state is shown.
 
 ## 15. Cross-model adapter contract
 

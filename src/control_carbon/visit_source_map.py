@@ -17,6 +17,41 @@ from .provenance import SourceRef, provenance_manifest
 VISIT_SOURCE_REPOSITORY = "Sachitama2001/VISIT-matrix"
 VISIT_SOURCE_COMMIT = "3285bd8e131a932e338b59892751648fd9edcc7b"
 VISIT_SOURCE_ROOT = "visit_local"
+VISIT_PARAMETER_WORKBOOK_SHA256 = (
+    "f8748b9dca3a7e7e38a2aa7ce93fd54c22653948f2467fd2ed7c1f6181edbad3"
+)
+VISIT_LAND_COVER_NAMES: Tuple[str, ...] = (
+    "Water (and Goode's interrupted space)",
+    "Evergreen Needleleaf Forest",
+    "Evergreen Broadleaf Forest",
+    "Deciduous Needleleaf Forest",
+    "Deciduous Broadleaf Forest",
+    "Mixed Forest",
+    "Woodland",
+    "Wooded Grassland",
+    "Closed Shrubland",
+    "Open Shrubland",
+    "Grassland",
+    "Cropland",
+    "Bare Ground",
+    "Urban and Built-up",
+    "Wetland",
+    "Snow & Ice",
+)
+
+VISIT_PARAMETER_WORKBOOK_SOURCE = SourceRef(
+    path="visit_local/INPUT/parameter_VISITc_16.xlsx",
+    symbol="Tree / Herb3 / Herb4 / Soil / Canopy / parameter_VISITc_16.txt",
+    role="user-supplied default parameter values by MOD12 land-cover class",
+    repository=VISIT_SOURCE_REPOSITORY,
+    assumptions=(
+        f"file SHA-256: {VISIT_PARAMETER_WORKBOOK_SHA256}",
+        "not present in the pinned source commit and therefore identified by file hash",
+        "parameter.c::set_parameter defines the authoritative runtime text ordering",
+        "runtime parameter_S1b.txt is absent from the inspected source snapshot",
+    ),
+    approximation_level="supplementary-parameter-source",
+)
 
 
 @dataclass(frozen=True)

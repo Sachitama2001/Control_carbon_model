@@ -4,6 +4,9 @@ import pytest
 
 from control_carbon.provenance import SourceRef, provenance_manifest
 from control_carbon.visit_source_map import (
+    VISIT_LAND_COVER_NAMES,
+    VISIT_PARAMETER_WORKBOOK_SHA256,
+    VISIT_PARAMETER_WORKBOOK_SOURCE,
     VISIT_SOURCE_COMMIT,
     VISIT_SOURCE_REPOSITORY,
     VISIT_SOURCES,
@@ -45,3 +48,11 @@ def test_visit_manifest_pins_authoritative_revision():
         and source["commit"] == VISIT_SOURCE_COMMIT
         for source in manifest["sources"]
     )
+
+
+def test_supplementary_parameter_workbook_is_hash_pinned():
+    assert len(VISIT_LAND_COVER_NAMES) == 16
+    assert VISIT_LAND_COVER_NAMES[4] == "Deciduous Broadleaf Forest"
+    assert len(VISIT_PARAMETER_WORKBOOK_SHA256) == 64
+    assert VISIT_PARAMETER_WORKBOOK_SHA256 in VISIT_PARAMETER_WORKBOOK_SOURCE.assumptions[0]
+    assert VISIT_PARAMETER_WORKBOOK_SOURCE.commit is None

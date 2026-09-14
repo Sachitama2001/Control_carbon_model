@@ -4,6 +4,8 @@ import pytest
 from control_carbon.state_space import (
     ContinuousLTI,
     DiscreteLTI,
+    discrete_fixed_point,
+    discrete_modal_analysis,
     discrete_transfer_function_matrix,
     impulse_response,
     transfer_function_matrix,
@@ -87,3 +89,62 @@ def test_discrete_frequency_response_and_validation():
         system.forced_response(np.ones((4, 1)))
     with pytest.raises(ValueError, match="dt"):
         DiscreteLTI(system.A, system.B, system.C, system.D, dt=0.0)
+
+
+def test_discrete_fixed_point_reports_solution_and_stability():
+    system = DiscreteLTI(
+        A=np.array([[0.5]]),
+        B=np.array([[2.0]]),
+        C=np.array([[3.0]]),
+        D=np.array([[4.0]]),
+    )
+
+    result = discrete_fixed_point(system, [1.0])
+
+    assert np.allclose(result.state, [4.0])
+    assert result.residual_norm == pytest.approx(0.0)
+    assert result.condition_number == pytest.approx(1.0)
+    assert result.stable
+    assert result.converged
+
+
+def test_discrete_fixed_point_rejects_nonunique_solution():
+    system = DiscreteLTI(
+        A=np.array([[1.0]]),
+        B=np.array([[1.0]]),
+        C=np.array([[1.0]]),
+        D=np.array([[0.0]]),
+    )
+
+    with pytest.raises(ValueError, match="unique"):
+        discrete_fixed_point(system, [1.0])
+
+
+def test_grouped_discrete_modal_residues_reconstruct_impulse_response():
+    system = DiscreteLTI(
+        A=np.diag([0.5, 0.5, 0.9]),
+        B=np.eye(3),
+        C=np.eye(3),
+        D=np.zeros((3, 3)),
+    )
+
+    modal = discrete_modal_analysis(system)
+
+    assert np.allclose(modal.poles, [0.5, 0.9])
+    assert np.array_equal(modal.multiplicities, [2, 1])
+    assert np.allclose(modal.state_participation, [[1, 1, 0], [0, 0, 1]])
+    assert np.allclose(modal.impulse_response(8), system.impulse_response(8))
+    assert modal.decay_times[0] == pytest.approx(-1.0 / np.log(0.5))
+    assert modal.reconstruction_error < 1e-12
+
+
+def test_discrete_modal_analysis_rejects_jordan_block():
+    system = DiscreteLTI(
+        A=np.array([[0.5, 1.0], [0.0, 0.5]]),
+        B=np.ones((2, 1)),
+        C=np.ones((1, 2)),
+        D=np.zeros((1, 1)),
+    )
+
+    with pytest.raises(ValueError, match="not diagonalizable"):
+        discrete_modal_analysis(system)

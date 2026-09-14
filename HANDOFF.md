@@ -1,5 +1,11 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> Active priority (2026-09-08): deterministic nonlinear compartment dynamics,
+> equilibrium branches, and B/R-tipping with selected forcing only. Read
+> `docs/deterministic_tipping_plan.md` and `docs/current_status.md` before using
+> the historical skeleton and implementation order below. Stochastic/N-tipping
+> work is explicitly deferred; continuous benchmarks are not native VISIT maps.
+
 ## 0. Purpose of this document
 
 This repository is intended to become a **model-agnostic control-theoretic framework for terrestrial ecosystem carbon-cycle models**. VISIT is the first source-grounded implementation and validation target, not the final scope.
@@ -32,6 +38,10 @@ The research objective is to make it possible to compare many terrestrial ecosys
 Important: `VISIT-matrix/visit_matrix/` already contains a reduced 18-pool matrix implementation. Use it as prior work and a cross-check, **not as the authority**. The C source in `visit_local/` is the authority when deciding whether an equation, state, input, or parameter is actually present in VISIT.
 
 ## 2. Current repository status
+
+> Status note: this section describes the original skeleton. The implemented
+> checkpoint has advanced substantially; read `docs/current_status.md` before
+> using the older task ordering below.
 
 Current package skeleton:
 

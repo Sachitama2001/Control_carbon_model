@@ -23,6 +23,20 @@ Primary source files inspected:
 
 An existing reduced matrix implementation in `VISIT-matrix/visit_matrix/` is treated as a useful prior implementation, but the C source above is the authority for this project.
 
+### Supplementary land-cover parameter workbook
+
+The user-supplied `visit_local/INPUT/parameter_VISITc_16.xlsx` contains Tree,
+Herb3, Herb4, Soil, Canopy, and runtime-layout sheets for MOD12 classes 0-15.
+It is pinned separately by SHA-256
+`f8748b9dca3a7e7e38a2aa7ce93fd54c22653948f2467fd2ed7c1f6181edbad3`
+because it is not part of the authoritative Git commit. The C routine
+`parameter.c::set_parameter` remains authoritative for field order and runtime
+interpretation. `initialize.c` loads both a site-specific `PARAF` and the
+16-class `parameter_S1b.txt`, selecting the land-cover defaults only when
+`PARA_CHOICE == 1`. The runtime `parameter_S1b.txt` is absent from this source
+snapshot, so workbook values are reference defaults rather than values already
+validated in a native run.
+
 ## 1. Native model is a discrete-time nonlinear state transition
 
 The experiment driver executes, for each day,
@@ -153,6 +167,28 @@ Sources: `decomposition.c::{frl,frh}` and `soil_proc.c::f_cycle_soil()`.
 For each litter/humus pool the degraded amount is stock times a base decomposition rate times an environmental scalar. Litter decomposition is partitioned between microbial respiration and transfers to active/intermediate/passive humus. Hence, conditional on environmental scalars, the nine-pool soil subsystem is linear compartmental.
 
 The environmental scalars are nonlinear in soil temperature and moisture, including Lloyd-Taylor-type temperature expressions and saturating moisture/aperture limitations.
+
+### `stype` call path and source limitation
+
+`stype` in `decomposition.c::{frl,frh}` is not a parameter read from a file. It is an integer selector supplied directly by `soil_proc.c::f_cycle_soil()` according to the compile-time `EX_DECTMP` mode in `setting.h`:
+
+| `EX_DECTMP` | `frl` call | `frh` calls |
+|---|---|---|
+| 0 (baseline) | `stype=0` | `stype=0` shared by all humus pools |
+| 1 (warming) | `stype=0` | `stype=0` shared by all humus pools |
+| 2 (parameter change) | `stype=1` | active=0, intermediate=1, passive=2 |
+| 3 (warming + parameter change) | `stype=1` | active=0, intermediate=1, passive=2 |
+
+In the pinned source snapshot, all three conditional branches in `frh()` test `stype == 0`. Therefore the calls with `stype=1` and `stype=2` do not assign the local variable `fth` before it is used. This is undefined C behavior, not merely a shared temperature response.
+
+Repository history does not supply an authoritative correction: the repeated conditions are already present in the earliest tracked source commit (`bba6abf`), and the later pinned commit only relocates/refactors the local workflow without changing these lines.
+
+The adapter policy is consequently:
+
+- reproduce modes 0/1 directly;
+- reject source-faithful evaluation of modes 2/3 explicitly;
+- expose the apparent `stype=0/1/2` correction only under separately labelled inferred behavior;
+- retain effective decomposition scalars as adapter inputs so soil carbon bookkeeping remains usable without silently resolving the source defect.
 
 ## 5. Output equation: NEP
 

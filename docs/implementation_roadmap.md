@@ -1,10 +1,37 @@
 # Implementation Roadmap
 
+## Active priority: deterministic nonlinear dynamics
+
+The current agreed order is in [deterministic_tipping_plan.md](deterministic_tipping_plan.md).
+Its first vertical slice now includes signed compartment algebra, continuous
+nonlinear integration and equilibrium diagnostics, analytic feedback branches,
+and separate B/R experiments. Temperature-only source-grounded soil controls
+remain separate from hypothetical feedback mechanisms. No stochastic terms,
+N-tipping machinery, or estimation/MPC work is scheduled in the current phase.
+The A-K phases below are retained as the longer-term backlog, not today's order.
+
 ## Guiding principle
 
 Build from **source fidelity -> mathematical abstraction -> local linear analysis -> IRF/control diagnostics -> cross-model generalization**.
 
 The roadmap is intentionally staged so that each layer can be validated independently.
+
+## Progress checkpoint
+
+As of the current working tree, discrete LTI basics, generic provenance,
+source-grounded VISIT 9-pool soil algebra, decomposition scalars, soil fixed
+points, Rh IRFs, direct trajectory comparison, and point-scale ERA5-to-VISIT
+weather preparation are implemented and tested. See `current_status.md` for
+the exact reproducible checkpoint and known native-source blockers.
+
+The fixed-environment native VISIT soil perturbation bridge is now complete:
+one-day and 40-day direct trajectories agree with the Python implementation,
+and a 100-day native litter-pulse difference agrees with the exact soil IRF to
+floating-point precision. Day-varying decomposition environments, local
+temperature perturbation tests, grouped modes and QSE sensitivities are also
+complete. Plant turnover, respiration and allocation have separate native C
+checks but are not yet one daily map. See `progress_and_next_plan.md` for the
+P0-P5 record and `deterministic_tipping_plan.md` for the active priority.
 
 ---
 
@@ -211,6 +238,15 @@ Tests:
 
 Flag suspicious source branches rather than silently fixing them. In particular, any repeated conditional branch that looks like a source bug should be documented and tested as-source before a corrected alternative is proposed.
 
+The current source snapshot requires an explicit policy for `frh()` under `EX_DECTMP == 2 or 3`:
+
+- `stype` is selected by `f_cycle_soil()`; it is not read from forcing or parameter files;
+- `frl()` receives `stype=1` in these modes;
+- `frh()` receives `stype=0,1,2` for active, intermediate, and passive humus;
+- all three branches inside `frh()` test `stype == 0`, so calls with 1 or 2 leave `fth` uninitialized and have undefined C behavior;
+- source-faithful code must stop explicitly for that path;
+- an inferred `0/1/2` branch correction may be offered only as a separately labelled assumption and must never be reported as native VISIT behavior.
+
 ---
 
 ## Phase D — VISIT plant structural-carbon subsystem
@@ -408,7 +444,26 @@ phase
 
 Plotting should be a separate example/experiment layer.
 
-### G5. Reduced-order models
+### G5. IRF-to-simulation trajectory comparison
+
+For every scientific response experiment, retain the common initial condition, baseline forcing, perturbation sequence, and time convention needed to compare:
+
+- the response reconstructed from the local/reduced IRF;
+- the direct reduced-model trajectory;
+- the native-model perturbation trajectory when available;
+- state and output errors versus time and perturbation amplitude.
+
+Produce reusable numerical result objects before plotting. A standard comparison figure should eventually include:
+
+1. forcing or impulse history;
+2. IRF-predicted and directly simulated GPP/NPP/Rh/NEP time series as applicable;
+3. selected carbon-pool or modal-coordinate time series;
+4. both trajectories in the same two-dimensional state projection, with fixed/reference state, direction, and time markers;
+5. approximation error and the perturbation range over which the local IRF remains accurate.
+
+The full state dimension must not be hidden. Label every two-dimensional projection, initially using total litter versus total humus carbon and later dominant modal coordinates or scientifically selected pool combinations. For time-varying forcing, call the panel a projected state trajectory rather than a strict autonomous phase portrait.
+
+### G6. Reduced-order models
 
 Only after full local systems are validated:
 
@@ -421,6 +476,11 @@ Only after full local systems are validated:
 ## Phase H — Native VISIT perturbation bridge
 
 Goal: compare local IRFs derived from reduced/Jacobian models against perturbations of the original C model.
+
+Status: the minimal carbon-subsystem bridge is complete, including day-varying
+environments and temperature tangent checks. It directly compiles pinned
+`soil_proc.c` and `decomposition.c`. Full native ecosystem execution remains
+pending and must not be inferred from subsystem agreement.
 
 Possible approaches, in preferred order:
 
@@ -438,6 +498,8 @@ Validation metrics:
 - error vs perturbation amplitude;
 - horizon-dependent error;
 - mode/time-scale agreement.
+
+The native bridge should emit the same trajectory-comparison data contract as the reduced soil implementation. This allows one plotting script to compare IRF theory, direct reduced simulation, and native VISIT without changing definitions between panels.
 
 ---
 
@@ -563,7 +625,8 @@ Cross-model comparison should allow different state dimensions while comparing c
 
 ## Priority order for the next coding agent
 
-If only one continuous work session is available, do this sequence:
+Use `deterministic_tipping_plan.md` for the current priority. The following is
+the historical bootstrap sequence, much of which is already implemented:
 
 1. implement discrete LTI core + tests;
 2. refactor provenance into generic schema;

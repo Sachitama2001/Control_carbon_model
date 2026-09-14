@@ -2,6 +2,22 @@
 
 This document keeps the implementation tied to the scientific questions.
 
+## Current focus: feedback, branches, and deterministic tipping
+
+Which state-dependent photosynthesis, loss, transfer or allocation functions
+produce multiple equilibria, and under what conditions does forcing cause
+branch loss (B) or a persistent rate-induced basin transition (R)?
+
+The first implemented checks are an analytic saturating-input scalar model,
+an affine no-feedback control, finite ramps with endpoint holds, and a
+temperature-only VISIT soil fixed-point control. They do not establish tipping
+in native VISIT. Mathematical derivations, assumptions, reproducible tests and
+the next source-grounded mechanism comparisons are in
+[deterministic_tipping_plan.md](deterministic_tipping_plan.md).
+Stochastic/N-tipping analysis is deferred; other meteorology is fixed or
+outside the selected subsystem until needed. The questions below remain
+supporting and longer-term research directions.
+
 ## RQ1. Can terrestrial ecosystem models be compared through common input-output dynamics despite different internal structures?
 
 ### Hypothesis
