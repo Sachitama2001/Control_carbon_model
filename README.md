@@ -1,5 +1,13 @@
 # Control Carbon Model
 
+2026-09-17: Added a [VISIT process screening report](docs/visit_r_tipping_process_screening.md)
+and a [capacity/QSE/attractor exploration](docs/capacity_qse_attractor_exploration.md).
+The latter proves that a state-dependent Luo-style capacity is a map whose
+self-consistent fixed points need not be unique, and gives a reproducible
+nonzero-to-nonzero R-tipping counterexample. It does **not** claim that VISIT
+has multiple attractors. The next source-grounded test is the complete plant
+daily map, especially the LAI--GPP--allocation--NSC loop.
+
 2026-09-15: Added a separate [minimal carbon–nitrogen R-tipping study](docs/nitrogen_tipping_minimal.md)
 with a Japanese TeX/PDF report, elemental budgets, a monotone-limitation no-tipping
 result, and a conditional excess-nitrogen benchmark. This is not a calibrated forest model.
@@ -40,6 +48,13 @@ not interchangeable; their provenance registries and documentation are kept
 separate.
 
 The existing Python matrix implementation in `VISIT-matrix/visit_matrix` is useful prior work, but the VISIT C source is treated as the authority for state definitions, update order, process equations, and provenance.
+
+For the current paper-oriented capacity question, start with
+[the Japanese TeX report](docs/capacity_qse_attractor_exploration.tex) or its
+[compiled PDF](docs/capacity_qse_attractor_exploration.pdf). The companion
+[VISIT slide/source screening PDF](docs/visit_r_tipping_process_screening.pdf)
+records why allocation and plant carbon memory are prioritized over individual
+photosynthesis or respiration response curves.
 
 ## Start here
 

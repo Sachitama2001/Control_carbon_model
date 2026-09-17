@@ -1,6 +1,6 @@
 # Literature index: matrix land-carbon models and explicit water dynamics
 
-Last verified: 2026-09-14. Prefer DOI and publisher links because local PDFs
+Last verified: 2026-09-17. Prefer DOI and publisher links because local PDFs
 may differ by accepted-manuscript or typeset version. A local copy is listed
 only when it is present in `docs/` and redistribution appears permitted.
 
@@ -41,6 +41,15 @@ the canonical article is at
 | Anderegg & Venturas (2020), “Plant hydraulics play a critical role in Earth system fluxes” | [PDF](https://nph.onlinelibrary.wiley.com/doi/pdf/10.1111/nph.16548) | Concise synthesis of why stomatal/hydraulic representation matters for carbon and water fluxes | Framing, not an equation source by itself |
 
 ## Tipping and nonautonomous tracking
+
+The current capacity-focused synthesis is in
+[`capacity_qse_attractor_exploration.tex`](capacity_qse_attractor_exploration.tex),
+with the VISIT equation screen in
+[`visit_r_tipping_process_screening.tex`](visit_r_tipping_process_screening.tex).
+The central distinction is now explicit: a second stable equilibrium is another
+self-consistent QSE, a seasonally forced orbit differs from instantaneous QSE,
+and a genuine non-QSE attractor under constant forcing would require a limit
+cycle or more complex invariant set.
 
 For the 2026-09-15 user-requested minimal-model analysis, see
 [`water_tipping_minimal.tex`](water_tipping_minimal.tex) and

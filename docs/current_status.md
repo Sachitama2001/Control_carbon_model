@@ -1,5 +1,28 @@
 # Current implementation status
 
+## Capacity/QSE exploration checkpoint (2026-09-17)
+
+- `capacity_qse_attractor_exploration.tex` derives the nonlinear capacity map
+  \(\widehat X_c(X)=-M(X)^{-1}u(X)\), the self-consistency condition
+  \(X^*=\widehat X_c(X^*)\), and the equilibrium Jacobian
+  \(J=M(I-D_X\widehat X_c)\);
+- `capacity_feedback.py` gives a deliberately model-agnostic positive-carbon
+  counterexample with two nonzero stable QSE branches and a moving basin
+  boundary; fast and slow ramps select different branches while the tracked
+  branch remains stable;
+- this establishes mathematical possibility, not multiple attractors in VISIT;
+- `visit_r_tipping_process_screening.tex` records that the explanatory slides'
+  individual photosynthesis, stomatal, respiration, and decomposition formulas
+  do not alone establish R-tipping;
+- the pinned executable source instead prioritizes the coupled
+  LAI--GPP--piecewise-allocation--NSC loop, whose full daily update is not yet
+  implemented;
+- a second equilibrium is still a QSE. A literal non-QSE attracting trajectory
+  under constant forcing would require a periodic or more complex attractor and
+  remains unproven.
+- verification at this checkpoint: 146 tests passed and 7 source-dependent
+  tests skipped; both Japanese reports compile without layout warnings.
+
 This file is the short checkpoint after the first explicit carbon-water
 implementation. The historical soil, ERA5, plant-slice, and tipping work
 remains available. The active research order is now
@@ -159,8 +182,10 @@ residual `4.44e-16` for the illustrative run.
 
 ## Next scientific milestone
 
-The first central experiment is now dynamic water storage versus its
-quasi-steady Schur reduction under matched forcing and carbon equations. It
-should use the transcribed PM chain in a controlled meteorological experiment,
-bound hydraulic parameters, and test whether carbon-dependent saturated water
-capacity is required. Seasonal tracking and R-tipping remain downstream.
+For the paper-oriented capacity question, the next source-grounded milestone is
+to complete the pinned VISIT plant daily map through GPP, respiration, turnover,
+piecewise allocation, NSC, and survival reallocation. Test constant-forcing
+fixed points first, then the annual Poincare map, before applying rate ramps.
+In the broader carbon-water track, dynamic water storage versus its quasi-steady
+Schur reduction remains the central comparison. Neither track should tune
+parameters merely to force tipping.

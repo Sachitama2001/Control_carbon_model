@@ -1,0 +1,304 @@
+% LuaLaTeX
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,bm,booktabs,longtable,graphicx}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\one}{\bm 1}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\setlength{\emergencystretch}{3em}
+% Builds are run from the repository root.
+\graphicspath{{artifacts/capacity_feedback/}}
+\title{Carbon storage capacity は一意な吸引先か\\
+\large 状態依存容量、複数QSE、周期軌道を区別する探索報告}
+\author{Control\_carbon\_model}
+\date{2026年9月17日}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Luoらの行列アプローチでは、炭素貯留量をcarbon storage capacityとcarbon storage potentialの差として
+整理できる。本稿はcapacityを凍結環境のQSEとみなしたとき、炭素状態が常にその一つの対象へ
+吸引されるかを検討する。外生係数を持つ安定線形系では答えは肯定的である。しかし、生産入力や
+移動行列が炭素状態に依存すれば、capacityは一点ではなく状態から候補容量への写像になる。
+平衡はその写像の固定点であり、複数の自己無撞着なcapacityを持ち得る。また、凍結した移動行列が
+安定でも、capacityの状態フィードバックによって全系は不安定になり得る。これを一般式と
+正の炭素だけを持つ一次元反例で示す。反例では全環境値で二つの非ゼロ安定平衡が存続する一方、
+同じ環境経路を20年で動かすと低位枝へ、120年で動かすと高位枝へ達する。
+ただし、別の平衡もQSEである。定常環境下で文字どおり「QSE以外の軌跡」へ吸引される主張には、
+少なくとも二状態の安定周期軌道などを示す必要があり、VISITについては未実証である。
+本稿は論文の主張を反証可能な段階へ分け、次のソース準拠検証を定めるところで一旦停止する。
+\end{abstract}
+\tableofcontents
+
+\section{Luo型のcapacityとpotential}
+Luoら\cite{luo2022}の一般的な炭素プール式を、符号を明確にして
+\begin{equation}
+ \dot{\bm X}=\bm u+M\bm X,\qquad M=A\xi K
+ \label{eq:linear}
+\end{equation}
+と書く。$\bm X$は炭素プール、$\bm u=B\bm\mu$は外部からの炭素入力、
+$K$はプール別の基準放出速度、$\xi$は環境・生物による倍率、$A$は移動・損失構造である。
+$M$が可逆なら
+\begin{align}
+ \bm X_c&=-M^{-1}\bm u,\label{eq:capacity}\\
+ \bm X_p&=-M^{-1}\dot{\bm X},\label{eq:potential}\\
+ \bm X&=\bm X_c-\bm X_p\label{eq:identity}
+\end{align}
+となる。総量は$X=\one^\mathsf T\bm X$などとする。Luoらの語法では、$\bm X_c$がcarbon storage
+capacity、$\bm X_p$がcapacityに対するdisequilibriumを表すcarbon storage potentialである。
+
+環境と係数が一定で、$M$がHurwitz、すなわち全固有値の実部が負なら、
+\begin{equation}
+ \bm X(t)=\bm X_c+e^{Mt}[\bm X(0)-\bm X_c]
+\end{equation}
+なので、$\bm X_c$は一意な大域吸引平衡である。この限定された場合には
+「capacity＝QSE＝吸引先」が成立する。季節外力があれば、瞬間capacityは動き続け、長期状態は通常、
+それを位相遅れと振幅減衰を伴って追う周期軌道である。従って瞬間capacity、凍結平衡、
+周期的な吸引軌道は最初から区別しなければならない。
+
+なお、Luoら自身の一般式は行列や入力の状態依存を排除しておらず、非線形微生物モデルや
+動的植生への適用に未解決部分があることも述べている\cite{luo2022}。従って本稿は、
+「Luoらが常に一意な大域吸引平衡を仮定した」と批判するものではない。論文としての追加価値は、
+状態依存の場合にcapacityを固定点写像として明示し、一意性・安定性・吸引域・追随失敗を
+同じ診断手順でモデル間比較できるようにする点に置くべきである。
+
+\subsection{記号、単位、出典}
+面積当たり炭素量を使う場合の代表単位を示す。実際の単位は対象モデルの規約へ合わせる。
+\begin{longtable}{p{.17\linewidth}p{.43\linewidth}p{.29\linewidth}}
+\toprule 記号 & 定義 & 代表単位・出典\\\midrule\endhead
+$t$ & 時間 & 年（本稿の反例）\\
+$\bm X$ & 炭素プール状態ベクトル & $\mathrm{kgC\,ha^{-1}}$など；Luoら\cite{luo2022}\\
+$\bm u=B\bm\mu$ & 外部から各プールへの炭素入力 & $\mathrm{kgC\,ha^{-1}\,yr^{-1}}$；Luoら\\
+$B$ & 入力をプールへ配分する行列 & 無次元；Luoら\\
+$\bm\mu$ & GPP/NPPなどの入力強度 & 炭素量/時間；Luoら\\
+$A$ & プール間移動と系外損失の行列 & 無次元；Luoら\\
+$\xi$ & 環境・生物による速度倍率 & 無次元；Luoら\\
+$K$ & プール別の基準放出速度の対角行列 & $\mathrm{yr^{-1}}$；Luoら\\
+$M=A\xi K$ & 炭素移動・損失をまとめた行列 & $\mathrm{yr^{-1}}$；本稿の略記\\
+$\bm X_c,\bm X_p$ & carbon storage capacity, potential & $\bm X$と同じ；Luoら\\
+$\widehat{\bm X}_c$ & 状態依存系での点ごとのcapacity写像 & $\bm X$と同じ；本稿で明示する表示\\
+$\lambda$ & 外部環境または動かすパラメータ & 無次元化した$0$--$1$；本稿の反例\\
+$x,L,U,H$ & 一次元炭素量、低位・境界・高位枝 & 任意の一貫した炭素量単位；本稿の反例\\
+$k,r$ & 緩和率、三次フィードバック係数 & $\mathrm{yr^{-1}}$, $\mathrm{carbon^{-2}\,yr^{-1}}$\\
+$T$ & 環境ランプの継続時間 & 年\\
+\bottomrule
+\end{longtable}
+
+\section{状態依存系ではcapacityは写像になる}
+\subsection{正確な恒等式と自己無撞着条件}
+非線形性を許して
+\begin{equation}
+ \dot{\bm X}=\bm u(\bm X,\lambda)+M(\bm X,\lambda)\bm X
+ \label{eq:nonlinear}
+\end{equation}
+とする。$M$が各点で可逆な領域において、点ごとのcapacity写像を
+\begin{equation}
+ \widehat{\bm X}_c(\bm X,\lambda)
+ =-M(\bm X,\lambda)^{-1}\bm u(\bm X,\lambda)
+ \label{eq:capacitymap}
+\end{equation}
+と定義すれば、近似なしに
+\begin{equation}
+ \dot{\bm X}=M(\bm X,\lambda)
+ [\bm X-\widehat{\bm X}_c(\bm X,\lambda)],\qquad
+ \widehat{\bm X}_p=\widehat{\bm X}_c-\bm X
+ \label{eq:exactidentity}
+\end{equation}
+である。しかし$\widehat{\bm X}_c$は現在状態に依存するため、一般には目的地点ではない。
+凍結平衡$\bm X^*$は
+\begin{equation}
+ \boxed{\bm X^*=\widehat{\bm X}_c(\bm X^*,\lambda)}
+ \label{eq:selfconsistent}
+\end{equation}
+という固定点、すなわち自己無撞着なcapacityである。写像と恒等写像が複数回交差すれば、
+同じ環境で複数のQSEが存在する。
+
+\subsection{安定性を決める項}
+式\eqref{eq:exactidentity}を平衡で微分すると、$\bm X^*-\widehat{\bm X}_c=0$なので
+$M$の微分を掛けた項は消え、全ヤコビアンは
+\begin{equation}
+ \boxed{J_*=M_*\left(I-D_{\bm X}\widehat{\bm X}_c\big|_*\right)}.
+ \label{eq:jacobian}
+\end{equation}
+従って、各点で凍結した$M$だけを調べても全系の安定性は決まらない。
+capacityの状態感度は、方向$\bm v$について
+\begin{equation}
+ D\widehat{\bm X}_c[\bm v]
+ =-M^{-1}\left(DM[\bm v],\widehat{\bm X}_c+D\bm u[\bm v]\right)
+ \label{eq:capacityderivative}
+\end{equation}
+である。生産入力の状態依存と、分解・移動速度の状態依存を別々に寄与分解できる。
+
+特別に$M=-kI$、$k>0$で、capacity写像がノルムに関してLipschitz定数$L<1$の縮小写像なら、
+固定点は一意であり、二軌道の差$\bm d$に対して
+\begin{equation}
+ \frac{\dd}{\dd t}\frac12\|\bm d\|^2
+ \le -k(1-L)\|\bm d\|^2
+\end{equation}
+となる。従ってこの場合は大域的に一つのcapacityへ収束する。
+複数の自己無撞着capacityを得るには、少なくともどこかでこの縮小性を失う必要がある。
+一般の非対称$M$では、適切な重み付きノルムまたは収縮解析が別途必要である。
+
+\section{storage potentialは常に減る「距離」ではない}
+一次元の
+\begin{equation}
+ \dot x=k[\widehat c(x)-x],\qquad p=\widehat c(x)-x
+ \label{eq:scalar}
+\end{equation}
+では、平衡$x^*=\widehat c(x^*)$は
+\begin{equation}
+ \widehat c'(x^*)<1
+\end{equation}
+のとき局所安定である。また凍結環境では
+\begin{equation}
+ \frac{\dd}{\dd t}\frac{p^2}{2}
+ =k[\widehat c'(x)-1]p^2.
+ \label{eq:potentialgrowth}
+\end{equation}
+従って$\widehat c'>1$の領域では、storage potentialの絶対値はむしろ増加する。
+状態非依存線形系で有用なdisequilibrium指標を、非線形系の大域的Lyapunov関数または
+「一意な吸引先までの距離」と無条件に解釈できない。
+
+多プール系ではさらに、総量だけの
+$X_p=\one^\mathsf T\widehat{\bm X}_p$がゼロでも、各プールのpotentialは相殺して
+$\widehat{\bm X}_p\ne\bm0$であり得る。総capacityと総stockの一致は、状態ベクトルの平衡を保証しない。
+
+\section{正の炭素だけを持つ数理的反例}
+\subsection{構成}
+次はVISITの式でも森林較正式でもなく、論理的可能性を最小限で示す反例である。
+$0\le\lambda\le1$に対して
+\begin{align}
+ L&=1, &U(\lambda)&=3+4\lambda,&H(\lambda)&=5+5\lambda,\\
+ \widehat c(x,\lambda)
+ &=x-\frac{r}{k}(x-L)(x-U)(x-H),\\
+ \dot x&=k(\widehat c-x)
+ =-r(x-L)(x-U)(x-H),
+ \label{eq:cubic}
+\end{align}
+と置く。$r=0.005$, $k=1$とした。$x$の単位を炭素量、時間を年とすれば、
+$k$は$\mathrm{yr^{-1}}$、$r$は$\mathrm{(carbon\ amount)^{-2}\,yr^{-1}}$である。
+$L,U,H$は全て正で、$L,H$は安定、$U$は不安定で吸引域境界になる。
+しかも凍結移動係数$M=-k$は全状態・全環境で安定である。
+$0\le x\le12$の検証領域では$\widehat c>0$であり、入力$u=k\widehat c$も正である。
+
+環境を$\lambda(t)=\min(t/T,1)$で動かし、初期値を$H(0)=5$とする。
+全ての途中環境で高位安定枝$H(\lambda)$は存在し続け、局所安定性を失わない。
+ところが$T=20$年では動く境界$U$に追い越されて$L=1$へ収束し、$T=120$年では
+$H(1)=10$へ追随する。二分探索によるこのパラメータ例の臨界継続時間は
+\begin{equation}
+ 75.0018<T_{\rm crit}<75.0049\quad\text{年}
+\end{equation}
+である。これは「速い方が低位枝へ移る」というR-tippingの数理的反例であるが、数値値を
+森林の臨界速度として解釈してはならない。
+
+\begin{figure}[htbp]
+ \centering
+ \includegraphics[width=.95\linewidth]{capacity_map_and_ramp.pdf}
+ \caption{左：状態依存capacity写像と恒等線。交点が自己無撞着capacityである。
+ 右：同じ環境経路に対する20年ランプと120年ランプ。点線は安定枝、破線は吸引域境界。}
+ \label{fig:ramp}
+\end{figure}
+
+\subsection{反例が示すことと示さないこと}
+この例は、(i) 安定な$M$、(ii) 正の入力、(iii) 全経路で存続する安定capacity枝、を持っていても、
+capacityの状態依存があれば一意な大域吸引先を保証できないことを示す。
+一方、最終的な低位枝$L$も式\eqref{eq:selfconsistent}を満たすQSEである。
+従って、この結果を「QSE以外の軌跡へ吸引された」と表現するのは厳密ではない。
+正確には「追跡していたQSE枝とは別の自己無撞着capacityへ速度誘起遷移した」である。
+
+\clearpage
+\section{「QSE以外へ吸引」の四つの意味}
+\begin{longtable}{p{.20\linewidth}p{.31\linewidth}p{.39\linewidth}}
+\toprule 長期対象 & capacityとの関係 & 論文上の位置づけ\\\midrule\endhead
+一意な平衡 & 外生安定線形系ではcapacityと一致 & Luo型の基準。新しい反例ではない。\\
+別の安定平衡 & それも自己無撞着capacity/QSE & 複数capacityとR-tipping。今回、数理的可能性を示した。\\
+季節周期軌道 & 瞬間capacityとは一般に一致しない & 位相遅れを伴う標準的追随。これだけでは新規性が弱い。\\
+定常環境下の周期軌道・複雑吸引集合 & 各瞬間で非平衡、QSEではない & 文字どおりの「QSE以外」。VISITでは未発見・未実証。\\
+\bottomrule
+\end{longtable}
+
+最も単純な周期外力の例
+\begin{equation}
+ \dot x=k[c_0+a\sin(\omega t)-x]
+\end{equation}
+には、厳密な吸引周期解
+\begin{equation}
+ x_{\rm per}(t)=c_0+
+ \frac{ak}{\sqrt{k^2+\omega^2}}\sin\left(\omega t-\tan^{-1}\frac{\omega}{k}\right)
+\end{equation}
+がある。これは瞬間QSEをそのまま通らないが、季節外力への普通の遅れである。
+
+\begin{figure}[htbp]
+ \centering
+ \includegraphics[width=.68\linewidth]{periodic_capacity_lag.pdf}
+ \caption{周期的な瞬間capacityと、それに位相遅れを伴って追随する吸引周期軌道。}
+\end{figure}
+
+一次元自律連続系は非定常周期軌道を持てない。定常環境下で本当にQSEでない吸引軌道を
+探すには、少なくとも二つの動的状態、時間遅れ、または離散・ハイブリッド写像が必要である。
+候補は葉量とNSC、植物炭素と利用可能窒素、炭素と植物水貯留などである。
+Hopf分岐なら、共役複素固有値が虚軸を横切り、非線形項が安定周期軌道を飽和させる条件を調べる。
+日次VISITを一年写像として扱う場合は、固定点の安定性をヤコビアンの固有値ではなく
+年写像のFloquet乗数（単位円内か）で判定する。
+
+\section{VISITへの接続と、論文仮説}
+説明スライドの選別結果は別稿\code{docs/visit_r_tipping_process_screening.tex}にまとめた。
+固定版ソースで最も関連するのは、葉量--LAI--GPP--区分的配分--NSC--展葉という閉ループである。
+この系から月次または年次の写像$\bm X_{n+1}=F(\bm X_n;\lambda)$を作り、
+入力と移動係数を状態ごとに抽出すれば、$\widehat{\bm X}_c$と
+$D\widehat{\bm X}_c$を数値評価できる。
+
+現時点で最も強く、かつ反証可能な中心仮説は次である。
+\begin{quote}
+状態依存の陸域炭素モデルでは、Luo型carbon storage capacityは必ずしも一意な大域吸引目標ではなく、
+状態から候補容量への写像である。自己無撞着capacityが複数存在すれば、carbon storage potentialは
+枝局所的なdisequilibrium指標であって、吸引域をまたぐ大域座標ではない。
+\end{quote}
+この主張は「VISITに複数安定状態がある」とはまだ言っていない。論文の結果は証拠に応じて
+次の三段階に分けるべきである。
+\begin{enumerate}
+\item 理論：式\eqref{eq:selfconsistent}--\eqref{eq:potentialgrowth}と数理反例。
+\item モデル比較：複数の陸面・炭素モデルでcapacity写像の縮小性、固定点数、局所安定性を測る。
+\item 機構実証：VISITなど一つ以上のソース準拠モデルで複数吸引域または非平衡吸引軌道を示す。
+\end{enumerate}
+
+\section{次の作業と停止点}
+今回は、一般式の導出、再現可能な反例、VISIT式の候補選別までを一区切りとする。
+次の作業順は以下である。
+\begin{enumerate}
+\item 固定版VISITの植物日次写像を、GPP、呼吸、落葉、配分、NSC、生存再配分まで更新順序どおり完成する。
+\item 一定気象・固定季節条件で多初期値計算と固定点継続を行い、正の複数平衡を探索する。
+\item 現実的には季節性を戻し、一年Poincar\'e写像の固定点、乗数、多周期軌道を調べる。
+\item 複数吸引状態が見つかった場合だけ、単一気象変数・単一パラメータのランプで速度閾値を調べる。
+\item 見つからなければ、調べた領域での一意追随という否定結果を残し、別モデルにも同じcapacity診断を適用する。
+\end{enumerate}
+採択基準は、終端環境の長時間保持、時間刻み収束、多初期値、枝の安定性、吸引域境界、
+ソース行と単位の記録である。数値丸めで微小炭素をゼロにすることや、代数ソルバの根切替えを
+生態学的なtippingと数えない。
+
+\section{再現方法}
+反例の実装は\code{src/control_carbon/capacity_feedback.py}、試験は
+\code{tests/test_capacity_feedback.py}、図とJSONの生成は
+\code{examples/analyze_capacity_feedback.py}にある。
+\begin{verbatim}
+PYTHONPATH=src python examples/analyze_capacity_feedback.py
+python -m pytest tests/test_capacity_feedback.py -q
+\end{verbatim}
+生成物は\code{artifacts/capacity_feedback/}に保存する。本稿の数値は
+DOP853、相対許容誤差$10^{-10}$、最大刻み$0.25$年で計算し、刻み・許容誤差を細かくした試験で
+最終吸引先が変わらないことを確認した。
+
+\begin{thebibliography}{9}
+\bibitem{luo2022} Y. Luo et al. (2022), Matrix Approach to Land Carbon Cycle Modeling,
+\emph{Journal of Advances in Modeling Earth Systems}, 14, e2022MS003008.\\
+Full text: \url{https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022MS003008};
+archived manuscript: \url{https://www.osti.gov/servlets/purl/1978583}.
+\bibitem{ashwin} P. Ashwin et al. (2012), Tipping points in open systems:
+bifurcation, noise-induced and rate-dependent examples in the climate system,
+\emph{Phil. Trans. R. Soc. A}, 370, 1166--1184.
+\bibitem{feudel} U. Feudel (2023), Rate-induced tipping in ecosystems and climate,
+local copy: \code{docs/Feudel2023RateInducedTipping.pdf}.
+\end{thebibliography}
+\end{document}

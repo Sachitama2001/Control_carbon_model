@@ -1,0 +1,192 @@
+% LuaLaTeX
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,bm,booktabs,longtable,array}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\setlength{\emergencystretch}{3em}
+\title{VISIT説明スライドの過程式はR-tippingを生み得るか\\
+\large スライド19--28の選別と、実装ソースへの接続}
+\author{Control\_carbon\_model}
+\date{2026年9月17日}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+VISIT開発者による説明資料\code{docs/visit_ex_2020.pptx}の後半に示された
+光合成、気孔、呼吸、配分、地下部過程の式を、R-tippingを生み得るかという観点から選別した。
+結論は、個々の飽和関数、指数関数、最小値演算、一次呼吸だけでは、通常、複数の吸引域も
+速度依存の吸引域横断も生じない、というものである。有力なのは、葉量・LAI・光合成・葉への配分・
+貯蔵炭素を結ぶ状態フィードバックであり、土壌水分と土壌炭素はその閾値を動かし記憶を与え得る。
+ただし、説明スライドのFarquhar型光合成式は、固定した旧VISITソースで実際に選ばれている
+日GPP式とは一致しない。したがって本稿は、スライドに基づく候補抽出と、ソースに基づく検証対象を
+明確に分ける。現段階は機構候補の選別であり、VISITにR-tippingが存在するという実証ではない。
+\end{abstract}
+\tableofcontents
+
+\section{問いと判定基準}
+環境変数またはパラメータを一つだけ時間変化させる。途中の時刻でその値を止めた自律系を
+「凍結系」と呼ぶ。本稿でR-tippingの候補と認めるには、少なくとも次を満たす必要がある。
+\begin{enumerate}
+\item 変化経路に沿って追跡対象の凍結平衡が存在し、局所安定性を保つ。
+\item 同じ始点と終点でも、十分遅い変化はその枝を追跡し、速い変化は吸引域境界を越える。
+\item 変化を終えて環境を固定した後にも、異なる長期状態へ収束する。
+\end{enumerate}
+平衡そのものが消える場合はB-tipping、一時的にGPPや炭素量が低下して同じ平衡へ戻る場合は
+過渡応答であり、ここでいうR-tippingとは分ける。また、数値解法が別の代数根を選んだだけなら、
+生態系の状態遷移ではなく数値的な枝切替えである\cite{ashwin,feudel}。
+
+状態$\bm x$、一定環境$\lambda$の系を
+\begin{equation}
+ \dot{\bm x}=\bm f(\bm x;\lambda)
+\end{equation}
+とすれば、二つの安定状態の間のR-tippingには、典型的には鞍点の安定多様体などの
+吸引域境界が必要である。従って、気象値を入れると一意のフラックスを返すだけの診断式は、
+それ単独では候補にならない。状態記憶と閉じたフィードバックが必要である。
+
+\section{資料の範囲と出典の境界}
+第一の資料は\code{docs/visit_ex_2020.pptx}のスライド19--28である。これはモデルの数式と考え方を
+説明する資料であり、本リポジトリが固定した実行ソースそのものではない。
+第二の資料は、\code{/mnt/d/CT/VISIT-matrix/visit_local}、commit
+\code{3285bd8e131a932e338b59892751648fd9edcc7b}である。行番号はこの固定版に対するものとする。
+スライド式を「VISIT系の候補」、固定版ソースを「実装検証対象」と呼び分ける。
+
+\section{スライド19--28の式と選別}
+\subsection{光合成生化学と放射（スライド19--23）}
+スライド19の中心は、Farquhar--von Caemmerer--Berry型の
+\begin{align}
+ A&=\min(A_j,A_v)-R_l,\\
+ A_v&=V_{c\max}\frac{p_i-\Gamma^*}{p_i+K'_c},\qquad
+ A_j=\frac{J(p_i-\Gamma^*)}{4(p_i+2\Gamma^*)},\\
+ K'_c&=K_c\left(1+\frac{O}{K_o}\right)
+\end{align}
+である。電子伝達$J$は光量から二次方程式で決まり、温度応答はArrhenius型で与えられる。
+スライド20--23はBeer--Lambert則による光の減衰、葉窒素・$V_{c\max}$の鉛直積分、
+日向葉と日陰葉の和へ展開する。
+
+$\min$は微分不能な切替面を作り、温度応答には最適域があり得る。しかし、$A_j,A_v$を
+現在の状態と環境から一意に計算するだけなら、そこには吸引域も記憶もない。
+したがって、これらは\textbf{単独ではR-tippingを作らず}、葉量や葉窒素への戻り結合を通して
+平衡枝・吸引域境界を動かす候補である。$\min$の枝切替えを、そのままtippingと呼んではならない。
+
+\subsection{気孔コンダクタンス（スライド21, 24）}
+Leuning型の代表形は
+\begin{equation}
+ g_s=g_0+\frac{aA}{(p_a-\Gamma)(1+D/D_0)},\qquad
+ p_i=p_a-\frac{A}{g_s}
+\end{equation}
+であり、$A,p_i,g_s$を同時に解く。Ball型と、温度・光・飽差・土壌水分の倍率を掛ける
+Jarvis型も示されている。暗黙式が複数根を持つ可能性は数値的に点検すべきだが、
+各時刻に代数的に解くだけなら根の選択は生態学的な状態記憶ではない。
+水貯留、木部損傷、葉量などの動的状態へ結合して初めて、R-tipping候補となる。
+
+\subsection{呼吸（スライド26）}
+\begin{equation}
+ R=R_m+R_g,\qquad R_m=mW=m_0e^{aT}W,\qquad R_g=g\,\Delta W
+\end{equation}
+のように、維持呼吸は現存量に比例し温度で指数増加し、成長呼吸は成長量に比例する。
+固定温度下の一次損失は安定化に働き、一つの平衡を複数の吸引状態へ分割しない。
+ただし温度は生産と呼吸の差を大きく動かすため、既に存在する吸引域境界を移動させる
+制御変数として重要である。
+
+\subsection{配分（スライド27）}
+スライドでは、葉炭素の更新を概ね
+\begin{equation}
+ \Delta W_{\mathrm{leafC}}
+ =f_{\mathrm{leaf}}(\mathrm{GPP}-R_m)-R_{g,\mathrm{leaf}}-LF_{\mathrm{leafC}}
+\end{equation}
+と表し、葉窒素と最適LAIに応じて$f_{\mathrm{leaf}}$を区分的に変える。
+ここには
+\begin{equation}
+ W_{\rm leaf}\to LAI\to \hbox{受光・GPP}
+ \to \hbox{葉への配分}\to W_{\rm leaf}
+\end{equation}
+という閉ループがある。区分条件はベクトル場を切り替え、非構造性炭素は履歴を保持する。
+従って、\textbf{最優先のR-tipping候補}は単一の配分式ではなく、この閉ループ全体である。
+
+\subsection{地下部過程（スライド28）}
+複数の土壌有機物プールの分解は、概ね基準速度に温度倍率$f_T(T)$と水分倍率$f_W(W)$を掛ける。
+固定された$T,W$の下で一次分解だけを考えれば、通常は一意の安定平衡を作る。
+一方、土壌水分・土壌炭素・無機態窒素を状態として戻すと、遅い記憶と位相遅れが加わる。
+従って地下部は「単独の引き金」より、配分--LAIループの吸引域と追随速度を変える部分として
+優先する。
+
+\begin{longtable}{p{.10\linewidth}p{.27\linewidth}p{.20\linewidth}p{.28\linewidth}}
+\toprule スライド & 過程 & 単独での判定 & 結合系での役割\\\midrule\endhead
+19--23 & FvCB光合成、放射・葉N積分 & 低：診断的、概ね飽和型 & LAI・葉Nフィードバックの利得\\
+21,24 & 気孔と葉内$\mathrm{CO_2}$ & 低--中：暗黙根は要監査 & 水貯留と結ぶと境界を動かす\\
+26 & 維持・成長呼吸 & 低：一次損失 & 温度による純成長率と時定数の変更\\
+27 & 配分、最適LAI、貯蔵N & 高：区分則と閉ループ & 複数平衡・吸引域境界の第一候補\\
+28 & 土壌分解と水分・温度倍率 & 中：単独の一次系は低 & 遅い記憶、位相遅れ、養分供給\\
+\bottomrule
+\end{longtable}
+
+\section{固定版ソースが示す、より具体的な候補}
+\subsection{説明式と実行式の違い}
+固定版\code{plant_proc.c:132--138}では、実際のGPPは\code{f_gpp}であり、
+DePury--Farquhar呼出しはコメントアウトされている。
+\code{photosynthesis.c:22--43}の実行式はMonsi--Saeki/Kuroiwa型で、定数をまとめれば
+\begin{equation}
+ \mathrm{GPP}=C\log\frac{1+\sqrt{1+b}}
+ {1+\sqrt{1+b\exp(-k\,LAI)}}.
+\end{equation}
+従って、FvCB式で得た候補をそのまま「固定版VISITの機構」とみなせない。
+温度、気孔、土壌水分の制限係数は\code{photosynthesis.c:78--113}で$[0,1]$へ切られ、
+土壌温度$2\,^{\circ}\mathrm C$未満では温度係数をゼロにする。この閾値もベクトル場を切り替えるが、
+凍結系に複数吸引域を作るかは全状態更新で確かめる必要がある。
+
+\subsection{配分・貯蔵・生存再配分}
+固定版の配分則は\code{allocation.c:24--110}にある。EPP$>0$で
+$LAI>LAI_{\rm opt}$なら葉配分をゼロにし、$LAI\le LAI_{\rm opt}$なら
+不足葉量とEPPから葉配分を求め、上限$0.05$を置く。EPP$\le0$では各器官へのGPP配分から
+維持呼吸を差し引く。これはスライド27の式と思想は近いが、同一式ではない。
+
+さらに\code{plant_proc.c:25--67}では非構造性炭素貯蔵から展葉し、
+同ファイル\code{:204--244}では幹・根への正の配分を貯蔵へ回した後に器官量を更新する。
+\code{allocation.c:113--189}はLAIが閾値未満になると幹・根から葉へ再配分する。
+したがって最小でも
+\begin{equation}
+ \bm x=(C_{\rm leaf},C_{\rm stem},C_{\rm root},C_{\rm NSC})^\mathsf T
+\end{equation}
+を状態候補とし、更新順序を保たなければ、肝心の記憶と閾値を消してしまう。
+固定版では、落葉・枯死、LAI更新、GPP、呼吸、配分、貯蔵・構造プール更新、
+生存再配分、再度のLAI更新、窒素過程という順である
+（\code{plant_proc.c:76--285}）。月・年スケールの解析でも、日次写像を年写像へ合成してから
+縮約する方が、この順序を保ちやすい。
+
+\section{一変数ずつ動かす探索計画}
+一つの気象変数またはパラメータだけを動かすという仮定の下では、次の順が効率的である。
+\begin{enumerate}
+\item $LAI_{\rm opt}$または葉配分上限：配分切替面を直接移動させる。
+\item 温度：GPP温度係数と維持呼吸の差を動かす。ただし同時に二つの式へ入ることを明記する。
+\item 土壌水分またはVPD：光合成制限を介してEPPの符号と配分枝を動かす。
+\item 葉窒素または$V_{c\max}$：スライド式を使う場合の光合成能力の単独操作。
+\item PARまたは大気$\mathrm{CO_2}$：飽和曲線だけで複数吸引域が生じない対照実験。
+\end{enumerate}
+各ケースで、固定環境の多初期値計算、固定点継続、ヤコビアンまたは年写像の乗数、
+吸引域境界、速い経路と遅い経路、終端保持後の収束先を記録する。
+
+\section{この段階で言えること・言えないこと}
+スライド中の個別式から直ちにR-tippingを結論することはできない。
+一方、配分--LAI--GPP--貯蔵炭素の閉ループには、状態依存の生産能力、区分的な配分、
+遅い記憶が同時に存在するため、最も検証価値が高い。気孔式の代数根切替え、FvCBの律速枝切替え、
+凍結閾値の通過は、それだけではR-tippingの証拠ではない。
+
+次段階では、固定版ソースの完全な植物日次写像を構成し、まず一定環境または一年周期環境の下で
+複数の正の吸引状態が存在するかを調べる。存在しなければ、それ自体が重要な否定結果であり、
+人工的な双安定関数をVISITの発見として扱わない。
+
+\begin{thebibliography}{9}
+\bibitem{ashwin} P. Ashwin et al. (2012), Tipping points in open systems:
+bifurcation, noise-induced and rate-dependent examples in the climate system,
+\emph{Phil. Trans. R. Soc. A}, 370, 1166--1184.
+\bibitem{feudel} U. Feudel (2023), Rate-induced tipping in ecosystems and climate,
+local copy: \code{docs/Feudel2023RateInducedTipping.pdf}.
+\bibitem{slides} A. Ito, VISIT model explanatory slides (2020),
+local file: \code{docs/visit_ex_2020.pptx}, slides 19--28.
+\bibitem{source} VISIT-matrix \code{visit_local}, commit
+\code{3285bd8e131a932e338b59892751648fd9edcc7b}.
+\end{thebibliography}
+\end{document}

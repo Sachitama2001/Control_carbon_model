@@ -14,6 +14,13 @@ from .tipping import (
     SmoothRamp,
     run_feedback_ramp,
 )
+from .capacity_feedback import (
+    CubicCapacityFeedback,
+    critical_ramp_duration,
+    periodic_attractor,
+    periodic_capacity,
+    simulate_capacity_ramp,
+)
 from .era5 import (
     CDS_ERA5_HOURLY_VARIABLES,
     CDS_ERA5_SINGLE_LEVELS_DATASET,

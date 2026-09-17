@@ -1,5 +1,16 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-17 capacity/QSE exploration: `docs/capacity_qse_attractor_exploration.*`
+> derives the state-dependent capacity map, its self-consistency equation, and
+> the full-equilibrium Jacobian `J=M(I-D capacity)`. A model-agnostic positive
+> scalar counterexample has two nonzero stable capacity branches and gives
+> different final branches for 20-year and 120-year ramps; it is not a VISIT
+> result or calibration. `docs/visit_r_tipping_process_screening.*` audits the
+> 2020 explanatory slides and the pinned old VISIT source. The source-grounded
+> next target is the complete daily plant map, especially LAI--GPP--allocation--NSC.
+> New module/tests/example: `capacity_feedback`; nine dedicated tests pass.
+> Full suite at this checkpoint: 146 passed, 7 source-dependent skips.
+
 > 2026-09-15 carbon–nitrogen follow-up: `docs/nitrogen_tipping_minimal.md` and TeX/PDF.
 > Independent 2-state fixed-stoichiometry benchmark: monotone N limitation has no
 > permanent R-tipping when the final positive equilibrium exists. An explicitly
