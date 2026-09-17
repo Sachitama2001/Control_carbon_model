@@ -15,7 +15,7 @@ and long-term backlog.
 - Pin `visit-manager/VISITc` independently of the old VISIT-matrix snapshot.
 - Inventory water stores, fluxes, diagnostics, call order, units, and carbon
   dependencies.
-- Validate the partial `f_hydrology` transcription against a native C harness.
+- Maintain the native-validated `f_hydrology`, PM, radiation, and canopy-conductance bridges.
 - Preserve and quantify the baseflow/clipping accounting behavior.
 - Transcribe Penman-Monteith helper dependencies only after direct tests exist.
 
@@ -47,7 +47,7 @@ The roadmap is intentionally staged so that each layer can be validated independ
 ## Progress checkpoint
 
 As of the current working tree, the first eight-state carbon-water ODE, current
-VISITc source ledger/partial hydrology transcription, discrete LTI basics, generic provenance,
+VISITc source ledger/native hydrology and PM transcription, discrete LTI basics, generic provenance,
 source-grounded VISIT 9-pool soil algebra, decomposition scalars, soil fixed
 points, Rh IRFs, direct trajectory comparison, and point-scale ERA5-to-VISIT
 weather preparation are implemented and tested. See `current_status.md` for
@@ -657,12 +657,11 @@ Cross-model comparison should allow different state dimensions while comparing c
 Use `carbon_water_research_plan.md` for the current priority. The next concrete
 coding sequence is:
 
-1. build a minimal native VISITc hydrology comparison harness;
-2. compare every exposed one-day store and flux;
-3. transcribe PM helpers and trace their LAI/conductance dependencies;
-4. implement sourced storage-to-potential constitutive functions;
-5. compare dynamic water with the quasi-steady Schur reduction;
-6. add periodic tracking only after the comparison passes.
+1. compare dynamic water with the quasi-steady Schur reduction;
+2. connect PM-derived forcing under matched carbon/water processes;
+3. calibrate or bound hydraulic traits and saturated plant water;
+4. test carbon-dependent plant-water allometry and alternate resolution;
+5. add periodic tracking only after the comparison passes.
 
 The following is the historical bootstrap sequence, much of which is already implemented:
 

@@ -4,7 +4,7 @@
 
 This document specifies the first executable carbon-water model in
 `src/control_carbon/coupled_carbon_water.py`. It is a **source-grounded reduced
-continuous model**, not an exact rewrite of VISITc. The exact/partial VISITc
+continuous model**, not an exact rewrite of VISITc. The native-validated VISITc
 water transcription is kept separately in `visitc_hydrology.py`.
 
 The purpose of this model is to connect four things in one inspectable system:
@@ -16,6 +16,9 @@ The purpose of this model is to connect four things in one inspectable system:
 
 Default values are numerical examples only. They are not calibrated VISITc,
 species, biome, or site parameters.
+
+The complete native-water and coupled-ODE derivation is in
+`carbon_water_differential_equations.md`.
 
 ## State, units, and forcing
 
@@ -136,14 +139,13 @@ so the model must satisfy
 The code reports the residual of this identity and tests it near machine
 precision.
 
-Internal flows use differences in normalized storage as the first, deliberately
-simple proxy for water-potential differences:
+Internal flows use sourced storage-to-potential relations:
 
 \[
 \begin{aligned}
-q_{sr}&=G_{sr}(\boldsymbol C)(\theta_s-\theta_r),\\
-q_{rt}&=G_{rt}(\boldsymbol C)(\theta_r-\theta_t),\\
-q_{tl}&=G_{tl}(\boldsymbol C)(\theta_t-\theta_l).
+q_{sr}&=G_{sr}(\boldsymbol C)(\psi_s-\psi_r),\\
+q_{rt}&=G_{rt}(\boldsymbol C)(\psi_r-\psi_t),\\
+q_{tl}&=G_{tl}(\boldsymbol C)(\psi_t-\psi_l).
 \end{aligned}
 \]
 
@@ -152,8 +154,7 @@ carbon. Thus carbon changes water transport without pretending that carbon is
 physically transferred into water. Negative \(q\) is allowed and represents
 reverse equilibration; it is not clipped.
 
-For research-grade SPAC interpretation, normalized storage must eventually be
-replaced by explicit constitutive relations
+The constitutive structure is
 
 \[
 \psi_s=\psi_s(W_s),\qquad
@@ -161,9 +162,11 @@ replaced by explicit constitutive relations
 q_{ij}=K_{ij}(\boldsymbol C,\boldsymbol W)(\psi_i-\psi_j),
 \]
 
-using a soil retention curve and plant pressure-volume/capacitance relations.
-SurEau-Ecos and FETCH models are implementation references; see
-`literature_index.md`.
+The soil relation reproduces the texture-specific diagnostic algebra in
+current VISITc `location_proc.c`; plant stores use the SurEau-Ecos symplasmic
+pressure-volume curve aggregated to leaf, stem, and root. These relations are
+source-labelled, but saturated plant water, conductance magnitudes, and organ
+allometry remain uncalibrated. See `carbon_water_differential_equations.md`.
 
 ## Carbon capacity is not the coupled equilibrium
 
@@ -250,6 +253,5 @@ carbon response times beyond a quasi-steady water approximation.
 - A transient pulse, mortality event, or long recovery time is not by itself
   evidence of rate-induced tipping. A tracking target, basin distinction, and
   forcing-rate threshold are required.
-- Before interpreting fitted parameter values, replace placeholder hydraulic
-  relations, add dimension checks, and validate against a source model or data.
-
+- Before interpreting fitted parameter values, calibrate saturated plant water,
+  allometry and conductances, add further dimension checks, and validate against data.

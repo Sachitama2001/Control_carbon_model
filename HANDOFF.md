@@ -1,5 +1,21 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-15 carbon–nitrogen follow-up: `docs/nitrogen_tipping_minimal.md` and TeX/PDF.
+> Independent 2-state fixed-stoichiometry benchmark: monotone N limitation has no
+> permanent R-tipping when the final positive equilibrium exists. An explicitly
+> hypothetical excess-N inhibition law admits rate-dependent basin changes;
+> the fast-step basin entry has an analytic sufficient proof. Equal-dose centered
+> ramps and 3-state delayed recycling are tested. No VISIT/water coefficients changed.
+> New module/tests/example: `minimal_nitrogen_tipping`; full suite: 144 passed.
+
+> 2026-09-15 theory follow-up: see `docs/water_tipping_minimal.md` and its TeX/PDF.
+> User-requested minimal R-tipping analysis is a separate uncalibrated benchmark
+> (`minimal_water_tipping.py`), not a completion of the native calibration path.
+> It proves a scalar rainfall-only no-tipping result and a finite-rate threshold
+> for a paired environmental path, plus a conditional dynamic-water example.
+> VISITa was inspected at `5c513196f21c1b1efb9ead540e3d40865b15e07e` but not run.
+> Existing hydraulic unit/boundary caveats remain unresolved. Full suite: 129 passed.
+
 > Active priority (2026-09-14): explicit water storage and SPAC transport in
 > the land-carbon matrix framework. Read `docs/carbon_water_research_plan.md`,
 > `docs/coupled_carbon_water_equations.md`, and
@@ -27,8 +43,12 @@ Implemented in the current working tree:
 
 - `visitc_source_map.py`: current `visit-manager/VISITc` provenance at
   `5202debd96df6f88beb7d61f8688fff02ace964a`;
-- `visitc_hydrology.py`: partial `f_hydrology` transcription with PM potentials
-  as effective inputs and an explicit baseflow accounting audit;
+- `visitc_hydrology.py`: `f_hydrology`, atmospheric/resistance, LAI/radiation,
+  canopy-conductance, and PM transcriptions with an explicit baseflow audit;
+- `visitc_native.py`: direct native-C checks for all exposed one-day hydrology,
+  radiation, PM, and canopy-conductance outputs;
+- `hydraulic_relations.py`: native VISITc soil retention and reduced
+  SurEau-Ecos plant pressure-volume/capacitance relations;
 - `coupled_carbon_water.py`: eight-state reduced ODE, budgets, carbon capacity,
   capacity-change decomposition, coupled equilibrium, Jacobian blocks, Schur
   reduction, and simulation;
@@ -36,9 +56,10 @@ Implemented in the current working tree:
   experiment with refinement and provenance outputs;
 - dedicated tests and carbon-water documentation.
 
-Do not call the eight-state continuous model “VISITc.” It is a synthesis. Do
-not call the partial water transcription fully source-faithful until a native C
-comparison also covers the Penman-Monteith helpers and selected branches.
+Do not call the eight-state continuous model “VISITc.” It is a synthesis. The
+implemented hydrology/PM slices are native-validated, but they are not a
+complete source-faithful VISITc model: initialization, all site branches, and
+the complete carbon system remain outside the bridge.
 
 The research objective is to make it possible to compare many terrestrial ecosystem models in a common language:
 

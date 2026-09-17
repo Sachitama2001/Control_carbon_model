@@ -10,7 +10,8 @@ snapshot used by the existing nine-pool soil-carbon adapter. Do not combine
 coefficients from the two snapshots without a documented comparison.
 
 `src/control_carbon/visitc_hydrology.py` transcribes the source-order store
-update below while accepting Penman-Monteith potentials as effective inputs.
+update below and the Penman-Monteith dependency chain. The effective-input
+boundary remains available so store algebra and PM algebra can be tested independently.
 `src/control_carbon/coupled_carbon_water.py` is a separate four-component
 continuous synthesis and is not expected to reproduce a VISITc day.
 
@@ -18,7 +19,7 @@ continuous synthesis and is not expected to reproduce a VISITc day.
 
 | Quantity | C expression | Units/comment in source | Declared/read at | Role in this repository |
 |---|---|---|---|---|
-| Snow water | `mass->snwa` | mm water equivalent | `point/structure.h::struct Mass`; `hydro_balance.c` | Native daily state in partial transcription; excluded from first reduced ODE |
+| Snow water | `mass->snwa` | mm water equivalent | `point/structure.h::struct Mass`; `hydro_balance.c` | Native daily state in hydrology transcription; excluded from first reduced ODE |
 | Upper soil water | `mass->sw30` | mm, above 30 cm | same | Native daily state; source of soil evaporation and C3/C4 transpiration |
 | Whole soil water | `mass->sww` | mm, source comment says whole soil | same | Native daily state; source of tree transpiration and baseflow |
 | Upper water diagnostic | `loct->soilwtr_l` | mm water | assigned after hydrology in `location_proc.c` | Carbon-process/effective driver |
@@ -37,8 +38,8 @@ strictly disjoint layers is therefore an interpretation, not a source fact.
 
 | Source order | Flux/update | Main source algebra | Donor -> receiver/outside | Current status |
 |---:|---|---|---|---|
-| 1 | Snow fraction | `1/(1+exp(0.75*(tmp_2m-2)))` | precipitation partition | Exact in partial transcription |
-| 2 | Thaw | logistic temperature factor times snow store; separate small-snow branch | snow -> liquid input | Exact in partial transcription |
+| 1 | Snow fraction | `1/(1+exp(0.75*(tmp_2m-2)))` | precipitation partition | Native-C validated |
+| 2 | Thaw | logistic temperature factor times snow store; separate small-snow branch | snow -> liquid input | Native-C validated |
 | 3 | Canopy interception | LAI capacity plus quadratic supply-potential limitation, separately for tree/C3/C4 | rain -> atmosphere | Store update exact; PM potentials are effective inputs |
 | 4 | Liquid soil input | `(rain - incep) + thaw` | atmosphere/snow -> upper bucket | Exact |
 | 5 | `ro1` | cubic bucket overflow using `fieldcap30 - sw30` | upper -> `sww` path | Exact, including exponent `0.33333` |
@@ -65,7 +66,7 @@ no-clipping case, direct algebra gives
 \]
 
 Therefore baseflow contributes an additional source-level loss. The Python
-partial transcription deliberately reproduces this behavior and reports
+transcription deliberately reproduces this behavior and reports
 `water_budget_residual` and `expected_source_residual`. It does **not** assert
 that the source is wrong in intent, and it does not silently repair the update.
 Any corrected experiment must be a named alternative with native-vs-corrected
@@ -101,11 +102,10 @@ converting coefficients to continuous rates.
 
 | Priority | Source work | Acceptance criterion |
 |---|---|---|
-| P0 | Transcribe `pm_incep`, `pm_evap`, and `pm_transp` plus their resistance/radiation dependencies | Native C and Python agree for hand-picked daily inputs |
-| P0 | Compile a minimal `f_hydrology` bridge | One-day states and all exposed fluxes agree, including edge branches |
+| complete | Transcribe `pm_incep`, `pm_evap`, and `pm_transp` plus resistance/radiation/LAI/canopy-conductance dependencies | Native C and Python agree for hand-picked daily inputs |
+| complete | Compile minimal `f_hydrology` and PM bridges | One-day states and all exposed fluxes agree, including normal, frozen, QHB, and clipping branches |
 | P1 | Trace `gc`, LAI, photosynthesis moisture response, and decomposition scalars | Each carbon-water arrow has file, function, variable, unit, and update order |
 | P1 | Determine runtime meaning of `sww` from initialization, outputs, and parameter generation | Layer interpretation is evidence-backed |
 | P1 | Add snow-free and snow-enabled mass-balance tests | Residuals are explained by named source branches only |
 | P2 | Compare original and explicitly corrected baseflow variants | Scientific results are not conditioned on an unnoticed bookkeeping choice |
 | P2 | Map native daily memory variables | Exact Markov state list is documented |
-

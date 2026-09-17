@@ -67,15 +67,14 @@ Never label a reduced 18-pool model as simply "the VISIT model" without qualific
 
 ## Active implementation order
 
-The old nine-pool soil target is implemented. Continue in this order:
+The old nine-pool soil target and the first VISITc hydrology/PM validation are
+implemented. Continue in this order:
 
-1. validate `visitc_hydrology.py` against a minimal native C bridge;
-2. transcribe `pm_incep`, `pm_evap`, and `pm_transp` dependencies;
-3. finish the bidirectional carbon-water dependency ledger;
-4. replace placeholder normalized storage in the eight-state model with
-   sourced soil retention and plant pressure-volume relations;
-5. compare dynamic and quasi-steady water with matched forcing/processes;
-6. build a periodic reference trajectory before any seasonal R-tipping work.
+1. compare dynamic and quasi-steady water with matched forcing/processes;
+2. connect the transcribed PM chain to a controlled meteorological forcing experiment;
+3. calibrate or bound pressure-volume and conductance parameters;
+4. test whether carbon-dependent saturated plant water/allometry is required;
+5. build a periodic reference trajectory before any seasonal R-tipping work.
 
 Do not expand pool count until a mass-balance, memory, validation, or research
 criterion requires it.

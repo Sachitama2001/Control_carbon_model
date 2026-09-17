@@ -1,0 +1,611 @@
+% Build: lualatex -interaction=nonstopmode -halt-on-error carbon_water_matrix_report.tex
+% Run twice. LuaLaTeX + LuaTeX-ja; no external bibliography processor required.
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,bm,booktabs,longtable,array}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\trans}{^{\mathsf T}}
+\newcommand{\one}{\bm 1}
+\newcommand{\pos}[1]{[#1]_+}
+\newcommand{\src}[1]{\par\noindent{\small 出典・位置づけ：#1}\par}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\setlength{\emergencystretch}{3em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\title{森林の炭素循環と水循環を結ぶ行列モデル\\
+\large 月・年単位の動態解析に向けた微分方程式、単位、原典との対応}
+\author{Control\_carbon\_model 研究ノート}
+\date{2026年9月15日改訂}
+\begin{document}
+\maketitle
+\begin{abstract}
+目的はVISITやSurEauをそのまま微分方程式に置き換えることではない。
+炭素の入力・分配・移動・損失を分ける行列アプローチに、水貯留、
+水ポテンシャル、水輸送を組み込み、異なるモデルの仮定が森林炭素動態に
+どう影響するかを比較できる枠組みを用意することである。
+本稿では保存則を共通部分、保水曲線・気孔応答・流出則を交換可能な関数として整理する。
+数ha程度の森林を対象に、月・年単位の出力と、より細かな内部計算を区別する。
+原典の数値計算を再現することと、物理的な収支・単位が正しいことも区別する。
+以前の説明のうち、日更新の位置づけ、供給制限式の単位、基底流の二重控除、
+クリッピングと水理容量の関係は、本稿の説明で補足・訂正する。
+\end{abstract}
+\tableofcontents
+\clearpage
+
+\section{研究対象と、今回の疑問への回答}
+森林を地表面積当たりの貯留量で表す。炭素と水は異なる保存量であり、
+両者を足して一つの総量にするわけではない。相互作用は、乾燥による光合成・分解の変化、
+葉量による蒸散の変化、根・幹の量による通水能力の変化として表す。
+Luoら\cite{luo}のBox 1、式(B1)の炭素行列形式を出発点とするが、
+本稿で提案する水との結合形そのものを同論文の式とは呼ばない。
+
+\begin{longtable}{p{.27\linewidth}p{.68\linewidth}}
+\toprule 疑問 & 回答の要点\\\midrule\endhead
+日更新は数値積分か & その解釈は妥当。ただし日平均の外力を一定にする仮定と、状態・流量の逐次更新は別の近似である。特定のODEの厳密解とは限らない（第\ref{sec:daily}節）。\\
+baseflowとは & 基底流。土壌深部や地下水の貯留から徐々に流れ出る成分。本稿では林分の系外へ出る遅い排水を意味する。河川基底流を直接再現しているとは限らない。\\
+二重控除とは & 同一の流出水量を貯留から二回引くこと。対象のVISITc関数では、報告流出に一回しか含まれない量が貯留から二回引かれる（\ref{app:native}）。\\
+native写像とは & 「原典コードの逐次更新を表す写像」と言い換える。分岐、順番、中間変数、補正も含めた数式化を指す。物理的妥当性の保証ではない。\\
+流れの向きは行列で決まるか & 向きを選んで接続行列を作った後は自動的に決まる。向きの選択自体は規約であり、行列の列と流量の符号を一緒に反転しても同じ輸送になる。\\
+$f_{\rm snow},S,P,M$ & 降雪割合、積雪水量、降水速度、融雪速度。雪の割合は積雪の被覆率ではなく、降水のうち雪として入る割合。\\
+$QE$の単位 & 供給水量$Q$と潜在蒸発散速度$E_p$はそのまま加算できない。期間水量$e=E_p\Delta t$を使えば$Qe$はmm$^2$。\\
+C3・C4草本の省略 & 樹木優占林の初期モデルでは省略可能。ただし下層植生の寄与が小さい条件を明示し、土壌蒸発は残す。C3型の樹木の光合成を省略する意味ではない。\\
+日本語の表現 & 「個別に評価する」は、該当箇所では「同じ残存水量を使って、それぞれの蒸散量を計算する」とする。\\
+二重控除は正しいか & コード再現としては正しくても、記載された流出だけを用いる水収支としては閉じない。未記載の損失を追加しない限り保存則を満たさない。\\
+PMとは & Penman--Monteith（ペンマン--モンティース）式。森林の抵抗を用いる一般式と、基準草地用のFAO式を混同しない。\\
+\bottomrule
+\end{longtable}
+
+\section{変数、単位、空間的な基準}
+時間$t$は日とし、微分の点は$\dd/\dd t$を意味する。月・年は出力の集計期間であり、
+単に時間の単位を変えてもモデルの内容は変わらない。
+以下で$d$は日、$\mathrm{MgC}$は炭素1メガグラムを表す。
+水量1 mmは地表面積当たり1 kg m$^{-2}$に相当する（水密度を1000 kg m$^{-3}$とする）。
+面積$H$ haの林分では、$C$ MgC ha$^{-1}$の総炭素量は$HC$ MgC、
+$W$ mmの総水量は$10HW$ m$^3$となる。地表面積基準と葉面積基準を混在させない。
+
+\begin{longtable}{p{.20\linewidth}p{.34\linewidth}p{.18\linewidth}p{.20\linewidth}}
+\toprule 記号 & 定義 & 単位 & 根拠\\\midrule\endhead
+$\bm C,C_i$ & 炭素貯留ベクトル、各成分 & MgC ha$^{-1}$ & 本稿の面積基準\\
+$\bm W,W_i$ & 水貯留ベクトル、各成分 & mm & 本稿の面積基準\\
+$\bm\psi,\psi_i$ & 水ポテンシャル（輸送時は全ポテンシャル） & MPa & 水理の共通変数\\
+$\bm u$ & 気温、降水、放射等の外力の組 & 成分による & 共通入力\\
+$B,\bm\mu$ & 入力分配行列、炭素入力速度 & 1、MgC ha$^{-1}$ d$^{-1}$ & Luo式(B1)の拡張\\
+$A,\xi,K$ & 炭素移動割合、環境修正、基準回転速度の行列 & 1、1、d$^{-1}$ & Luo式(B1)\\
+$S_w,\bm q$ & 水の接続行列、辺ごとの内部流量 & 1、mm d$^{-1}$ & 本稿の保存則\\
+$G_e,\mathcal G$ & 辺の水理コンダクタンス、その対角行列 & mm d$^{-1}$ MPa$^{-1}$ & SurEau式(2)を換算\\
+$L_w$ & $S_w\mathcal G S_w\trans$ & mm d$^{-1}$ MPa$^{-1}$ & 本稿の導出\\
+$\Omega,\Psi$ & ポテンシャルから水量、水量からポテンシャルへの関係 & 出力はmm、MPa & 構成関係\\
+$\mathcal C_w$ & $\partial\Omega/\partial\bm\psi$、水理容量行列 & mm MPa$^{-1}$ & SurEau式(3),(42)を拡張\\
+$W_i^{\rm sat},r_i$ & 飽和水量、相対含水量$W_i/W_i^{\rm sat}$ & mm、1 & SurEau式(41)--(43)\\
+$\pi_{0,i},\epsilon_i$ & 飽和時浸透ポテンシャル、体積弾性率 & MPa、MPa & SurEau式(43)\\
+$S,P,M,f_{\rm snow}$ & 積雪水量、降水速度、融雪速度、降雪割合 & mm、mm d$^{-1}$、mm d$^{-1}$、1 & VISITc [V1]\\
+$U,L,F_U,F_L$ & 原典の上側・下側土壌水量と各容量 & mm & VISITc [V1,V4]\\
+$I,E_s,T,R,D$ & 遮断蒸発、土壌蒸発、蒸散、速い流出、遅い排水 & mm d$^{-1}$ & 本稿の外部流量\\
+$Q,e,E_p,\mathcal A$ & 供給水量、潜在期間水量、潜在速度、実際の期間水量 & mm、mm、mm d$^{-1}$、mm & VISITc [V1]の単位整理\\
+$\Delta t,\mathcal T$ & 計算刻み、集計または周期の長さ & d & 本稿\\
+$\bm s,\bm e$ & 各水区画への外部供給、系外損失 & mm d$^{-1}$ & 本稿\\
+\bottomrule
+\end{longtable}
+原典参照番号[V1]等のファイル・行番号は\ref{app:sources}にまとめる。
+本稿の$S$は積雪、$S_w$は接続行列であり別物である。基底流には$D_b$を用い、
+炭素入力分配$B$との記号の重複を避ける。
+
+後の節で導入する補助記号も、ここにまとめる。PM専用の変数は第5節の表を参照されたい。
+\begin{longtable}{p{.23\linewidth}p{.45\linewidth}p{.26\linewidth}}
+\toprule 記号 & 意味 & 単位・出典\\\midrule\endhead
+$n,r,m,p$ & 炭素区画数、入力数、水区画数、接続数 & 個数。本稿の行列定義\\
+$l,t,r,s$（添字） & 葉、幹、根、土壌。添字$t$は時間ではない & 区画識別\\
+$b_i,k_i,\ell_i$ & 入力分配率、回転速度、系外損失割合 & 1、d$^{-1}$、1。炭素行列から定義\\
+$\mu_0,f_d$ & 基準NPP速度、分解の環境修正 & MgC ha$^{-1}$ d$^{-1}$、1。本稿の閉包\\
+$f_{\rm season},f_{\rm light},f_w,f_T,f_\theta$ & 季節、光、水ストレス、温度、土壌水への応答 & 1。本稿の交換可能な関数\\
+$a_w,\psi_{50}$ & 水ストレス応答の勾配と半減点 & MPa$^{-1}$、MPa。本稿の例\\
+$g_{ij},c_i$ & 基準通水能力、炭素量の半飽和定数 & mm d$^{-1}$ MPa$^{-1}$、MgC ha$^{-1}$。[V6]型\\
+$k_D,W_D$ & 排水速度係数、排水が始まる水量 & d$^{-1}$、mm。[V6]型\\
+$H,\mathrm{LAI}_T$ & 林分面積、樹木の葉面積指数 & ha、m$^2_{\rm leaf}$ m$^{-2}_{\rm ground}$\\
+$r_{\rm tlp}$ & 膨圧を失う相対含水量 & 1。SurEau式(43)\\
+$\rho_w,g,z,h$ & 水密度、重力加速度、高さ、水頭 & kg m$^{-3}$、m s$^{-2}$、m、m\\
+$a,b,F$ & 原典土壌曲線の係数・指数・基準容量 & 原典コメントではMPa、1、mm。[V3]、単位留保あり\\
+$\alpha$ & 供給制限式の形状係数0.85 & 1。[V1]\\
+$T_a,T_d$ & 気温、深部地温 & $^\circ$C。[V1]\\
+$p,p_r,m,i,e_s,t_T$（付録） & 日降水、雨、融雪、遮断蒸発、土壌蒸発、樹木蒸散の期間量 & すべてmm。[V1]。区画数$p$とは文脈で区別\\
+$g,d,r_1,r_{2b},r_2,d_b$（付録） & 土壌入力、容量不足、上側流出、下側溢流、報告流出、基底流の期間量 & すべてmm。[V1]。重力加速度$g$とは別\\
+$h_0,h,h_{\max},c_U,c_L$（付録） & 再配分の候補値、実際の再配分、その上限、負水量補正 & すべてmm。[V1]。水頭$h$とは別\\
+$\bm x,M,\bm C_{\rm QSE},\bm C_{\rm gap}$ & 結合状態、炭素速度行列、瞬間容量、容量と現在量の差 & 混合単位、d$^{-1}$、MgC ha$^{-1}$、MgC ha$^{-1}$\\
+$J_{ab}$ & 出力$a$の速度の入力状態$b$に対する微分 & $(a\text{の単位})/(b\text{の単位})$/d。本稿の線形化\\
+$\mathcal P,\bm x_*$ & 1年後へ進める写像、周期基準状態 & 出力は結合状態の単位\\
+\bottomrule
+\end{longtable}
+
+\section{炭素と水を結ぶ共通行列形式}\label{sec:matrix}
+\subsection{炭素：入力、移動、損失を分ける}
+炭素区画数を$n$、独立な外部炭素入力数を$r$とする。
+\begin{equation}\boxed{
+\dot{\bm C}=B(\bm C,\bm W,\bm u)\bm\mu(\bm C,\bm W,\bm u)
++A(\bm C,\bm W,\bm u)\xi(\bm C,\bm W,\bm u)K\bm C.}
+\label{eq:carbon}
+\end{equation}
+\src{Luoら\cite{luo}、Box 1、式(B1)を出発点とし、複数入力と状態依存性を明記した本稿の表現。}
+$B$は$n\times r$、$A,\xi,K$は$n\times n$である。
+単一の純一次生産（NPP）を入力とするなら$r=1$であり、$B$は分配ベクトルとなる。
+通常、$A_{jj}=-1$、$A_{ij}\geq0\ (i\ne j)$、$\sum_i A_{ij}\leq0$とする。
+列$j$は供給元の炭素区画である。$K=\diag(k_j)$、$\xi=\diag(\xi_j)$は非負とする。
+外部への損失割合は$\ell_j=-\sum_i A_{ij}$なので、
+\begin{equation}
+\frac{\dd}{\dd t}\one\trans\bm C
+=\one\trans B\bm\mu-\sum_j\ell_j\xi_j k_jC_j.
+\label{eq:cbudget}
+\end{equation}
+これは式\eqref{eq:carbon}の列和から得られる保存則である。
+総一次生産（GPP）を入力に選ぶ場合は独立栄養呼吸$R_a$も明示して差し引く。
+NPPを使いながら再び$R_a$を引いてはいけない。現在の試作コードの\code{gpp}は
+全量が植物へ分配され、独立栄養呼吸が別にないため、そのまま実際のGPPとは解釈できない。
+本稿の初期モデルでは入力をNPPと定義する。
+
+\subsection{水：保存則と、流量を決める関係を分ける}
+水区画数を$m$、内部接続数を$p$とする。接続行列$S_w$の各列には、
+出発区画に$-1$、到着区画に$+1$を置き、それ以外を0とする。
+\begin{align}
+\dot{\bm W}&=\bm s-\bm e+S_w\bm q,\label{eq:water}\\
+\bm q&=-\mathcal G S_w\trans\bm\psi,
+\qquad\mathcal G=\diag(G_1,\ldots,G_p),\quad G_e\geq0,\label{eq:darcy}\\
+\dot{\bm W}&=\bm s-\bm e-L_w\bm\psi,
+\qquad L_w=S_w\mathcal G S_w\trans.\label{eq:lap}
+\end{align}
+\src{区画間のポテンシャル差に比例する輸送はSurEau-Ecos\cite{sureau}式(2)--(4)。接続行列への整理と以下の保存則は本稿の導出。原論文と記号・流量の向きは統一し直している。}
+例えば土壌から根へ向けた列では$q=G(\psi_s-\psi_r)$となる。
+負なら逆流であり、そのこと自体は異常ではない。
+列の向きと対応する$q$の符号を同時に変えても$S_w\bm q$は変わらない。
+したがって、向きの規約を一度与えれば、収支の正負は行列から自動的に決まる。
+各列の和が0なので、内部輸送は総水量を変えない。
+\begin{equation}
+\frac{\dd}{\dd t}\one\trans\bm W=\one\trans(\bm s-\bm e).
+\end{equation}
+また任意の$\bm\psi$について
+$\bm\psi\trans L_w\bm\psi
+=\sum_eG_e(\psi_{\rm donor(e)}-\psi_{\rm receiver(e)})^2\geq0$であり、
+輸送項だけならポテンシャル差を緩和する向きに働く。
+これは受動輸送の性質であり、外力・生長・気孔応答を含む結合系全体の安定性の証明ではない。
+
+\subsection{水量とポテンシャルは独立なのか}
+水量とポテンシャルの関係を
+\begin{equation}\bm W=\Omega(\bm\psi,\bm C),\qquad
+\bm\psi=\Psi(\bm W,\bm C)\label{eq:constitutive}\end{equation}
+とする。逆関係は単調で逆関数が存在する範囲で用いる。
+水量を積分してポテンシャルを式\eqref{eq:constitutive}から求めれば、状態は$(\bm C,\bm W)$でよい。
+両方を未知変数として持つなら、保存則に代数的な制約を加えた微分代数方程式（DAE）になる。
+同じ水の自由度を二倍に増やすわけではない。
+ポテンシャルを積分する場合、連鎖律から
+\begin{equation}\boxed{
+\mathcal C_w\dot{\bm\psi}
+=\bm s-\bm e-L_w\bm\psi-\Omega_C\dot{\bm C},\quad
+\mathcal C_w=\frac{\partial\Omega}{\partial\bm\psi},\quad
+\Omega_C=\frac{\partial\Omega}{\partial\bm C}.}\label{eq:cap}
+\end{equation}
+\src{固定貯留容量の容量表現はSurEau式(3),(41),(42)。炭素量に依存する容量への拡張と$-\Omega_C\dot{\bm C}$は本稿の連鎖律による導出。}
+例えば$W_i=W_i^{\rm sat}(\bm C)r_i(\psi_i)$なら、
+$\mathcal C_{w,ii}=W_i^{\rm sat}\dd r_i/\dd\psi_i$、
+$\Omega_{C,ij}=r_i\partial W_i^{\rm sat}/\partial C_j$である。
+生長で保水できる器が大きくなっても、その分の水が自動的に生成されるわけではない。
+外部条件への陽な依存があれば、同様に$-\Omega_u\dot{\bm u}-\partial_t\Omega$も必要になる。
+
+\subsection{炭素と水の行列をどこまで共通化するか}
+保存則の最も広い共通形は、貯留の変化＝外部入力＋接続行列×過程速度である。
+ただし炭素の$A\xi K\bm C$は「供給元貯留に比例する流出」が基礎なのに対し、
+水の$-L_w\bm\psi$は「ポテンシャル差」が基礎である。
+水の正方向の流量を供給元の$W_j>0$で割れば、形式的に
+$q/W_j$を移動速度にできるが、空の区画で特異になり、逆流で方向も変わる。
+水を無理に固定係数の$A\xi K\bm W$へ押し込むより、次を共通の比較対象とする。
+\begin{equation}
+\boxed{\begin{aligned}
+\dot{\bm C}&=B\bm\mu+A\xi K\bm C,\\
+\dot{\bm W}&=\bm s-\bm e-S_w\mathcal G S_w\trans\Psi(\bm W,\bm C).
+\end{aligned}}\label{eq:joint}
+\end{equation}
+炭素と水の双方向依存を許した非線形ODEである。行列表現は線形性を意味しない。
+接続構造、入力、保水関係、通水能力、外部損失、環境修正を分けることで、
+どの部分の違いが応答時間や炭素貯留に影響したのかを比較できる。
+
+\section{森林の初期モデル：必要な過程の解像度}
+\subsection{最小限の区画と、増やす条件}
+初期比較では炭素を葉・幹・根・土壌有機物の4区画、水を土壌・根・幹・葉の4区画とする。
+これは本研究の縮約案であり、VISITまたはSurEauの全状態ではない。
+土壌炭素を1区画にする近似は、長期の速い・遅い分解成分を区別しないので、
+複数年の応答時間を再現できなければリターと遅い土壌炭素を分ける。
+深層の渇水記憶が重要なら土壌水を上下層に分け、積雪地では雪を追加する。
+樹木優占林では草本のC3・C4区画は初期段階で省略する。
+下層植生の蒸散・生産が無視できない林分では戻す。
+落葉期の季節性は葉量・フェノロジーとして残し、可動性炭素の蓄積や再展葉の履歴が
+4区画で表せなければ非構造性炭素を追加する。
+斜面流入・流出、地下水へのアクセス、攪乱は、対象林分で寄与がある場合に明示する。
+区画を増やす判断は、月・年の収支、観測で識別できる記憶、予測誤差に基づく。
+
+\subsection{成分で書いた連立微分方程式}
+添字$l,t,r,s$を葉、幹、根、土壌とする。水の並びも$(l,t,r,s)$とし、
+内部流量を$(q_{sr},q_{rt},q_{tl})$とすると
+\begin{equation}
+S_w=\begin{pmatrix}0&0&1\\0&1&-1\\1&-1&0\\-1&0&0\end{pmatrix}.
+\end{equation}
+一例として、植物のターンオーバーがすべて土壌炭素へ入り、土壌の分解が系外へ出る構造を採用する。
+\begin{equation}
+B=\begin{pmatrix}b_l\\b_t\\b_r\\0\end{pmatrix},\quad
+A=\begin{pmatrix}-1&0&0&0\\0&-1&0&0\\0&0&-1&0\\1&1&1&-1\end{pmatrix},\quad
+\xi=\diag(1,1,1,f_d),\quad K=\diag(k_l,k_t,k_r,k_s).
+\end{equation}
+\begin{equation}\boxed{\begin{aligned}
+\dot C_l&=b_l\mu-k_lC_l,&\dot W_l&=q_{tl}-T,\\
+\dot C_t&=b_t\mu-k_tC_t,&\dot W_t&=q_{rt}-q_{tl},\\
+\dot C_r&=b_r\mu-k_rC_r,&\dot W_r&=q_{sr}-q_{rt},\\
+\dot C_s&=k_lC_l+k_tC_t+k_rC_r-f_dk_sC_s,
+&\dot W_s&=P-I-E_s-R-D-q_{sr}.
+\end{aligned}}\label{eq:example}
+\end{equation}
+\src{本研究の4区画縮約案。既存の\code{coupled_carbon_water.py}の収支構造を基礎に、入力をNPPと明示し遮断蒸発を区別したもの。VISITの完全な炭素式ではない。}
+ここでは雪なし、樹冠遮断水の持越しなしとする。雪を追加する場合は
+$\dot S=f_{\rm snow}P-M$、土壌への入力を$(1-f_{\rm snow})P-I+M$と置き換える。
+流量は$q_{ij}=G_{ij}(\psi_i-\psi_j)$で閉じる。
+$b_l+b_t+b_r=1$であるため、
+\begin{align}
+\dot C_{\rm total}&=\mu-f_dk_sC_s,\\
+\dot W_{\rm total}&=P-I-E_s-T-R-D
+\end{align}
+となる。雪を含める場合の総水量には$S$を加える。
+この総炭素変化をNEPと呼ぶのは、入力がNPP、損失が従属栄養呼吸だけの場合である。
+伐採・火災・溶存炭素流出等を加える場合はNECBの収支として区別する。
+観測NEEとの比較では符号と観測範囲を別途そろえる。
+
+\subsection{閉じたモデルにするための関数の例}
+保存則だけでは計算はできない。次は比較の出発点としての仮定であり、
+パラメータ値を含む現地適合済みのモデルではない。
+\begin{align}
+\mu&=\mu_0\,f_{\rm season}(t)\,f_{\rm light}(\bm u,C_l)\,f_w(\psi_l),\\
+f_w(\psi_l)&=\{1+\exp[-a_w(\psi_l-\psi_{50})]\}^{-1},\\
+f_d&=f_T(T_a)f_\theta(W_s),\qquad
+D=k_D\pos{W_s-W_D},\label{eq:closure}\\
+G_{sr}&=g_{sr}\frac{C_r}{C_r+c_r},\quad
+G_{rt}=g_{rt}\sqrt{\frac{C_r}{C_r+c_r}\frac{C_t}{C_t+c_t}},\quad
+G_{tl}=g_{tl}\sqrt{\frac{C_t}{C_t+c_t}\frac{C_l}{C_l+c_l}}.
+\end{align}
+\src{本稿の比較用閉包。コンダクタンスの炭素依存構造と閾値排水は既存試作コード[V6]に対応するが、$f_w$のロジスティック式は本稿の選択。VISITやSurEauの気孔式の忠実な転記ではない。}
+$\mu_0$は炭素入力速度、$f_{\rm season},f_{\rm light},f_w,f_T,f_\theta$は無次元の応答、
+$a_w>0$はMPa$^{-1}$、$\psi_{50}$はMPa、$k_D$はd$^{-1}$、$W_D$はmm、
+$g_{ij}$はコンダクタンス、$c_i>0$はMgC ha$^{-1}$である。
+気温応答$f_T$、土壌水応答$f_\theta$、光応答、流出$R$、蒸散$T$は交換可能な関数として残す。
+したがって本節はモデル族の仕様であって、全係数が確定した唯一の実験モデルではない。
+同じ水ストレスを気孔抵抗と蒸散の事後係数に重複適用しないようにする。
+上限・下限を超えた水を単に切り捨てず、流出や供給制限として収支に計上する。
+境界$W_i=0$で$\dot W_i\geq0$になることは、各関数を選んだ後に検証する必要がある。
+
+\section{交換可能な保水関係と蒸発散式}
+\subsection{植物：SurEau-Ecosの圧力--体積関係}
+相対含水量$r=W/W^{\rm sat}$に対し、膨圧が失われる境界を
+$r_{\rm tlp}=1+\pi_0/\epsilon$とする。$\pi_0<0$、$\epsilon>0$、$0<r_{\rm tlp}<1$を仮定する。
+\begin{equation}
+\psi_{\rm tissue}(r)=\begin{cases}
+-\pi_0-\epsilon(1-r)+\pi_0/r,&r\geq r_{\rm tlp},\\
+\pi_0/r,&0<r<r_{\rm tlp}.
+\end{cases}\label{eq:pv}
+\end{equation}
+\src{SurEau-Ecos\cite{sureau}式(43)。細胞内側の水（symplasm）の関係を、本稿では地表面積当たり水量へ換算して使う候補とする。}
+その微分から、区分の内部では
+\begin{equation}
+\mathcal C_w=\frac{\dd W}{\dd\psi_{\rm tissue}}
+=\begin{cases}W^{\rm sat}/(\epsilon-\pi_0/r^2),&r>r_{\rm tlp},\\
+-W^{\rm sat}r^2/\pi_0,&r<r_{\rm tlp}.
+\end{cases}\label{eq:pvderiv}
+\end{equation}
+\src{式\eqref{eq:pv}を微分した本稿の表現。SurEau式(42),(44)に対応。境界では片側微分を区別する。}
+水理容量は、ポテンシャルを1 MPa変えるのに必要な水量を意味する。
+飽和側の内側極限も$W^{\rm sat}/(\epsilon-\pi_0)>0$である。
+以前の試作コードは$r$を一定範囲に切り詰め、その範囲外で容量を0と返すが、
+これは逆微分の意味では正しくない。平坦化された$\psi(W)$では
+$\dd\psi/\dd W=0$であって、逆関数がなく$\dd W/\dd\psi$は定義できない。
+ゼロ容量による準定常化と、数値的クリッピングを同一視してはいけない。
+本稿では物理的に有効な範囲内の式を示し、境界処理の修正は別の実装課題とする。
+
+原論文は葉・幹の細胞内外を分け、幹区画に根・枝等を含める。
+本稿の独立した根・幹・葉に同じ曲線の形を使うことは縮約上の選択であって、
+SurEau全体の再現ではない。葉面積基準の水量$Q_{\rm leafarea}$を使う場合は
+$W=\mathrm{LAI}\,Q_{\rm leafarea}$とし、流量・容量・コンダクタンスも同じ基準に換算する。
+LAIが変わるときはその微分項も必要になる。
+輸送で高さを区別する場合は、組織の関係に重力項を加え
+$\psi=\psi_{\rm tissue}+\rho_wgz/10^6$ MPaとする。
+$z$は共通基準から上向きの高さ[m]、$\rho_w$は水密度[kg m$^{-3}$]、
+$g$は重力加速度[m s$^{-2}$]である。重力項の重複加算を避ける。
+
+\subsection{土壌：VISITcの診断関係と単位上の留保}
+原典には次のべき乗関係がある。
+\begin{equation}
+\psi_m^{\rm code}=-a\left(\frac{\max(W,0.2\ {\rm mm})}{F}\right)^{-b},
+\quad (a,b)=(0.121,4.05),(0.478,5.39),(0.405,11.4).
+\label{eq:soilnative}
+\end{equation}
+\src{VISITc [V3]、\code{location_proc.c} 490--530行、\code{f_loct_proc}。3組は土性分岐0,1,2に対応。$F$は該当区画の\code{fieldcap30}または\code{fieldcap}。}
+原典はさらに上側に$-0.05$、下側に$-1.00$を加える。
+\code{structure.h} 295行のコメントはMPaとするが、係数の物理的由来や
+重力項の高さとの対応はこのコメントだけでは確定できない。
+本稿は「原典コメント上はMPa」と「独立に検証された物理単位」を区別する。
+数値を黙って水頭[m]へ読み替えたり、MPaへの変換係数を推測して掛けたりしない。
+もし水頭$h$[m]であると別途確認できた場合には$\psi=\rho_wgh/10^6$[MPa]で換算する。
+植物のMPaの曲線と結合する前に、土性パラメータ・重力基準の監査が必要である。
+また$F$は飽和水量ではなく原典の容量変数であり、$W/F$を常に物理的飽和度と呼ばない。
+
+\subsection{Penman--Monteithの一般式と単位}
+一般式をSI単位で書くと、潜在蒸発散速度は
+\begin{equation}
+E_{\rm SI}=\frac{\Delta_v(R_n-H_g)+\rho_a c_p V/r_a}
+{\lambda\{\Delta_v+\gamma(1+r_s/r_a)\}},
+\qquad [E_{\rm SI}]={\rm kg\ m^{-2}\ s^{-1}}.\label{eq:pm}
+\end{equation}
+\src{Allenら\cite{fao}、FAO56第2章、式(3)の一般Penman--Monteith式。記号を本稿に合わせた。基準草地用の係数を森林へそのまま適用する式ではない。}
+\begin{longtable}{p{.18\linewidth}p{.48\linewidth}p{.27\linewidth}}
+\toprule 記号 & 意味 & SI単位\\\midrule\endhead
+$R_n,H_g$ & 正味放射、地中への熱流 & W m$^{-2}$\\
+$\Delta_v,\gamma$ & 飽和水蒸気圧の温度勾配、乾湿計定数 & Pa K$^{-1}$\\
+$V$ & 水蒸気圧不足（VPD） & Pa\\
+$\rho_a,c_p$ & 空気密度、空気の比熱 & kg m$^{-3}$、J kg$^{-1}$ K$^{-1}$\\
+$r_a,r_s$ & 空気力学的抵抗、表面・群落抵抗 & s m$^{-1}$\\
+$\lambda$ & 水の蒸発潜熱 & J kg$^{-1}$\\
+\bottomrule
+\end{longtable}
+式\eqref{eq:pm}の分子2項はともにPa W m$^{-2}$ K$^{-1}$であり、整合する。
+24時間この速度が続くなら$E_p=86400E_{\rm SI}$ mm d$^{-1}$となる。
+昼間だけ続く仮定なら日長を秒へ換算して積分する。夜間の蒸散を省略するかどうかは別のモデル仮定である。
+
+VISITcの[V2]は$\mathrm{daylen}$、$\mathrm{LHT}=695$とともに、
+遮断・蒸散で$c_p=0.2813$、土壌蒸発では最後の代入によって$c_p=1014$を使う。
+前者のコメントはWh kg$^{-1}$ K$^{-1}$である。
+風速から計算した$r_a$はs m$^{-1}$相当であり、これらを同一のSI式として無条件に解釈できない。
+原典の演算を保存した再現用実装と、単位を整えた研究用PM式を分ける必要がある。
+本稿はコードを黙って修正せず、物理単位の監査が未完了であることを記録する。
+
+\subsection{供給制限：\texorpdfstring{$Q$と$E$}{QとE}を同じ単位にする}
+\begin{equation}
+e=E_p\Delta t,\qquad
+\mathcal A(Q,e)=\frac{Q+e-\sqrt{(Q+e)^2-4\alpha Qe}}{2\alpha},
+\quad\alpha=0.85.\label{eq:supply}
+\end{equation}
+\src{VISITc [V1]、遮断蒸発79--85行、土壌蒸発128--133行、蒸散143--175行の反復式を、期間水量として整理。}
+$Q$は利用可能な水量[mm]、$e$はその期間に要求される潜在水量[mm]であり、
+$Qe$も$(Q+e)^2$もmm$^2$、結果$\mathcal A$はmmとなる。
+速度に戻すなら$E_a=\mathcal A(Q,E_p\Delta t)/\Delta t$とする。
+非負の入力では$0\leq\mathcal A\leq\min(Q,e)$。
+例えば$Q=1$ mm、$E_p=2$ mm d$^{-1}$、$\Delta t=1$ dなら
+$\mathcal A\simeq0.891$ mmである。
+原典の1日計算で数値上省略されていた日を補った説明であって、
+刻みを任意に変えても同じ過程になる保証ではない。
+実際、$Q>0$を固定して$\Delta t\to0$とすると$E_a\to E_p$となり、
+この式をそのまま連続時間の水ストレス関数にしても同じ制限は残らない。
+
+\section{逐次日更新と微分方程式の関係}\label{sec:daily}
+日平均の外力をその日の間一定と仮定することは、外力の区分一定近似である。
+状態が一日の間一定であるという意味ではない。例えば前進Euler法は
+\begin{equation}
+\bm z_{k+1}=\bm z_k+\Delta t\,F(\bm z_k,\bm u_k)
+\end{equation}
+であり、差分方程式でもありODEの数値積分でもある。
+過程を順に計算する方式は
+\begin{equation}
+\bm z^{(0)}=\bm z_k,\quad
+\bm z^{(j)}=\bm z^{(j-1)}+\Delta t F_j(\bm z^{(j-1)},\bm u_k),\quad
+\bm z_{k+1}=\bm z^{(J)}
+\end{equation}
+のような分割積分と解釈できる場合がある。
+ただしVISITcには期間水量の代数式、閾値分岐、負水量の補正がある。
+日更新写像$F_{\rm day}$から$(F_{\rm day}(z)-z)/(1\ \mathrm d)$を作ることは可能だが、
+そのODEを高精度積分した1日後が必ず$F_{\rm day}(z)$に一致するわけではない。
+連続時間化の妥当性には、刻みを変えたときの極限と収支を調べる必要がある。
+
+「原典の逐次更新を表す写像」は、日平均外力、計算開始時の状態、
+必要な履歴変数から翌日の状態を与えるものと定義する。
+水3変数だけで翌日が決まるとは限らない。気孔コンダクタンスやフェノロジー、
+前段で作られた診断値を使う場合は、それらも状態または明示的入力に含める。
+対象関数の再現と、選択された実行プログラム全体の再現は区別する。
+
+\section{月・年単位で何を解析するか}
+\subsection{計算刻み、気象の解像度、出力の解像度を分ける}
+月平均・年平均を知りたい場合にも、降雨間隔や乾燥の閾値が重要なら日以下の計算を残す。
+月を$\mathcal I_m=[t_m,t_{m+1}]$、長さを$\mathcal T_m$とすると、
+\begin{equation}
+\overline{\bm C}_m=\frac1{\mathcal T_m}\int_{\mathcal I_m}\bm C(t)\dd t,
+\qquad F^{\rm total}_m=\int_{\mathcal I_m}F(t)\dd t
+\end{equation}
+を区別して出力する。貯留は期間平均または期末値、流量は期間積算または平均速度である。
+月の収支は期末値の差と積算流量を比較する。
+一般に$\overline{F(\bm x,\bm u)}\ne F(\overline{\bm x},\overline{\bm u})$であり、
+さらに$M=A\xi K$について
+$\overline{M\bm C}=\overline M\,\overline{\bm C}
++\overline{(M-\overline M)(\bm C-\overline{\bm C})}$である。
+月平均気象だけを式へ入れると、非線形性と共変動が失われる。
+平均化したODEを作る場合は、この差を閉包・有効係数・誤差として評価する。
+月や年を時間単位に変えるだけなら、すべての速度係数も対応する日数倍へ変換する。
+
+\subsection{日々のQSEと季節軌道は異なる診断}
+$M(t)=A(t)\xi(t)K$が可逆で、固定した係数のもとで安定な炭素系なら
+\begin{equation}
+\bm C_{\rm QSE}(t)=-M(t)^{-1}B(t)\bm\mu(t),\qquad
+\bm C_{\rm gap}=\bm C_{\rm QSE}-\bm C
+\label{eq:qse}
+\end{equation}
+を瞬間的な炭素貯留容量と、その状態からの符号付きの差として定義できる。
+\src{Luoら\cite{luo}の式(1a)--(2)の貯留容量の考え方を、固定係数の平衡条件から本稿の記号で表したもの。}
+これは「今の環境が続くとした場合」の診断であり、翌月の予報ではない。
+冬に入力が小さくなれば小さなQSEになる場合があるが、分解も同時に弱まるので、
+必ず0に近づくとは言えない。$M$が特異なら逆行列を用いる式自体が定義できない。
+係数が炭素自身に依存する場合、式\eqref{eq:qse}は現在値で係数を凍結した診断であり、
+非線形系の真の平衡を求めたことにはならない。
+水を含む平衡は炭素・水の両方の右辺を0にする別の問題である。
+
+季節性が大きい森林では、同じ季節を繰り返す基準気象のもとで、
+一年周期の基準軌道$\bm x_*(t+\mathcal T)=\bm x_*(t)$を探す。
+年写像を$\mathcal P$とすれば$\mathcal P(\bm x_*(0))=\bm x_*(0)$である。
+周期軌道の月平均、年平均、同じ季節からのずれ、回復時間を主指標とし、
+日々のQSEは補助診断とする。周期軌道の存在・一意性・安定性は確認事項であり仮定で済ませない。
+\begin{equation}
+\overline{\bm C_{\rm QSE}}\ne
+-\overline M^{-1}\,\overline{B\bm\mu}
+\end{equation}
+が一般的であり、「日QSEの年平均」「年平均係数の平衡」「周期軌道の平均」は別の量である。
+
+\subsection{速い水理を残すか、準定常化するか}
+線形化を
+\begin{equation}
+\begin{pmatrix}\delta\dot{\bm C}\\\delta\dot{\bm W}\end{pmatrix}
+=\begin{pmatrix}J_{CC}&J_{CW}\\J_{WC}&J_{WW}\end{pmatrix}
+\begin{pmatrix}\delta\bm C\\\delta\bm W\end{pmatrix}
+\end{equation}
+と書く。水が十分速く安定に緩和し、$J_{WW}$が可逆なら、局所的に
+\begin{equation}
+\delta\bm W\simeq-J_{WW}^{-1}J_{WC}\delta\bm C,
+\qquad J_{\rm eff}=J_{CC}-J_{CW}J_{WW}^{-1}J_{WC}
+\end{equation}
+が得られる。これは本稿の線形代数による導出である。
+非線形な準定常水モデルでは毎時刻$F_W(\bm C,\bm W,\bm u)=0$を解く。
+乾燥中の容量、土壌水の季節記憶、損傷の履歴が無視できなければ準定常化できない。
+まず同じ気象・同じ関数・同じ炭素係数の動的水モデルと比較し、
+月・年の炭素量や干ばつ後の回復が保たれるかを判断する。
+周期軌道では$J(t)$も時変であり、1年分の変分方程式の伝播行列の固有値を用いる。
+日々の瞬間固有値だけで年周期の安定性を判定しない。
+
+\section{モデル群の比較設計と、未解決事項}
+\begin{longtable}{p{.19\linewidth}p{.36\linewidth}p{.39\linewidth}}
+\toprule 比較する部分 & 選択肢 & 比較時にそろえるもの\\\midrule\endhead
+保存則・接続 & 単一土壌、二層土壌、植物水の有無 & 面積、降水、外部境界、炭素収支\\
+保水関係 & 検証後のVISIT診断式、植物の圧力--体積式、別の土壌保水曲線 & 単位、貯留量の定義、初期水量または初期ポテンシャル\\
+通水能力 & 定数、炭素量依存、乾燥損傷依存 & 接続、基準時の水理抵抗、損傷の有無\\
+大気への損失 & 観測駆動、単位を整えたPM、気孔水理結合 & 気象、放射、面積基準、気孔応答\\
+時間表現 & 原典の日写像、動的ODE、準定常水 & 同じ外力・過程を可能な限り使い、変更点を分離\\
+炭素診断 & 瞬間容量、周期平均、回復時間 & 同じ期間・基準軌道・NEP等の定義\\
+\bottomrule
+\end{longtable}
+水量とポテンシャルは異なる保水曲線の下で同時に一致させられるとは限らない。
+初期化を「同じ水量」で比較するのか「同じ水ストレス」で比較するのかを実験名に明記する。
+既存のC/Python照合試験は転記精度の検証であって、単位・保存則・野外再現性を代替しない。
+特に次は未解決であり、文書化だけで解決済みとはしない。
+\begin{enumerate}
+\item VISITcのPMの時間・熱量単位と土壌ポテンシャルの物理単位の確定。
+\item 基底流の二重控除について原典の意図を確認し、再現版と保存則を満たす比較版を分離すること。
+\item 試作コードのクリッピング境界の水理容量、非負性、GPP/NPPの意味の修正。
+\item 対象林分の容量・コンダクタンス・炭素回転速度の同定と、動的水／準定常水の比較。
+\item 季節基準軌道の構築と、月・年平均に対する刻み幅・区画数の感度試験。
+\end{enumerate}
+本稿で完成させたのは共通の数理枠組みと原典監査の整理であり、
+現地パラメータが確定し全条件で検証された森林予測モデルではない。
+
+\appendix
+\section{VISITcの日更新：森林のみの場合と基底流監査}\label{app:native}
+この付録では\emph{すべての降水・蒸発・流出を1日間の水量[mm]として記す}。
+本文の速度との区別のため、降水期間水量を$p=P\Delta t$、融雪期間水量を$m=M\Delta t$とする。
+C3・C4草本を0とする条件付きの転記であり、原典の全植生分岐を省略なく表したものではない。
+\subsection{降雪、融雪、樹冠遮断、上側土壌}
+\begin{align}
+f_{\rm snow}&=\{1+\exp[0.75(T_a-2)]\}^{-1},\\
+m&=\begin{cases}
+\displaystyle\frac{1/11}{1+\exp[-0.5(T_a-4)]}
+\left(1+\frac{10}{0.05S_k+1}\right)S_k,&S_k>0.1,\\
+S_k,&S_k\leq0.1,
+\end{cases}\\
+S_{k+1}&=S_k+f_{\rm snow}p-m.
+\end{align}
+\src{VISITc [V1] 54--71行。温度の数値は$^\circ$C、水量の数値はmmで入力する経験式。係数0.75,0.5は温度差の逆数、0.05はmm$^{-1}$相当で、$1/11$はこの日更新における割合。}
+$f_{\rm snow}$は$0$から$1$の間の降雪割合、$S_k$は日初の雪の水換算量である。
+$p_r=(1-f_{\rm snow})p$を雨とし、樹冠葉面積指数を$\mathrm{LAI}_T$とすると
+\begin{align}
+i&=\mathcal A(\min(p_r,0.25\,\mathrm{LAI}_T),e_{p,I}),\\
+g&=p_r-i+m,\qquad r_1=\mathcal R(g,F_U-U_k),\\
+U^{(1)}&=U_k+g-r_1,\qquad e_s=\mathcal A(U^{(1)},e_{p,s}),\qquad U^{(2)}=U^{(1)}-e_s,\\
+t_T&=\mathcal A(L_k,e_{p,T}).
+\end{align}
+$e_{p,I},e_{p,s},e_{p,T}$はPMから得る潜在期間水量、$i,e_s,t_T$は実際の期間水量である。
+遮断容量係数0.25はこの面積基準でmm、$\mathcal A$は式\eqref{eq:supply}。
+原典の流出演算を、数値をmmで扱うことが明確になるように
+\begin{equation}
+\mathcal R(g,d)=w_0\max\left\{\left[\max\{(g/w_0)^3+(d/w_0)^3,0\}\right]^{0.33333}-d/w_0,0\right\},
+\quad w_0=1\ {\rm mm}
+\end{equation}
+と書く。$d$は容量までの不足量[mm]である。
+\src{VISITc [V1] 79--85,112--136,169--175行。上式の$w_0$は本稿の次元整理で、原典の数値演算を変えない。指数0.33333を厳密な$1/3$へ替えると厳密転記ではなくなる。}
+
+\subsection{基底流、下側流出、再配分}
+\begin{align}
+d_b&=\begin{cases}0,&T_d\leq0,\\0.003L_k,&T_d>0\text{かつ地点QHB},\\0.001L_k,&\text{その他の融解条件},\end{cases}\\
+L^{(1)}&=L_k-d_b,\qquad r_{2b}=\mathcal R(r_1,F_L-L^{(1)}),\qquad r_2=r_{2b}+d_b,\\
+h_0&=\frac{L^{(1)}F_U/F_L-U^{(2)}}{1+F_U/F_L},\qquad
+h=\begin{cases}\min(h_0/2,h_{\max}),&h_0>0,\\\max(h_0,-h_{\max}),&h_0\leq0,\end{cases}\\
+c_U&=\max[-(U^{(2)}+h),0],\qquad c_L=\max[-(L^{(1)}-h),0],\\
+U_{k+1}&=U^{(2)}+h+c_U,\qquad
+L_{k+1}=L^{(1)}-h+c_L+r_1-r_2-t_T.
+\end{align}
+\src{VISITc [V1] 182--230行。$T_d$は深部地温[$^\circ$C]。$h_{\max}=\mathrm{hyd\_cond}\times1000\times86400$は、透水係数をm s$^{-1}$とした1日分の最大再配分量[mm]。}
+$c_U,c_L$は負の水量を0に戻すことで加わった水量で、実在する供給源ではない。
+原典ではこの補正の後に下側の最終減算があるため、全条件で最終水量が非負とは保証されない。
+加算すると、$\Delta$を翌日と当日の差として
+\begin{equation}\boxed{
+\Delta(S+U+L)-\{p-(i+e_s+t_T)-r_2\}=-d_b+c_U+c_L.}
+\end{equation}
+補正がない場合にも$-d_b$が残る。基底流は192行で貯留から引かれ、
+202行で報告流出$r_2$に加えられ、230行で$r_2$ごと再び貯留から引かれる。
+これが二重控除の意味である。例えば$d_b=0.1$ mmなら、他の流量が同じとき、
+報告流出による収支より貯留がさらに0.1 mm減る。
+
+この監査は$U,L$を別の水区画として総和した場合の条件付き結論である。
+原典の\code{sww}には全層を示唆する命名もある一方、[V4]では上側容量を差し引く処理がある。
+さらに時期・分岐で容量の扱いが変わる箇所もあるため、幾何学的な層定義は追加確認が必要である。
+それでも同じ\code{sww}から$d_b$が二回減る演算事実は変わらない。
+対象コミットのこの関数についての指摘であり、VISITの全版に一般化しない。
+保存則を満たす比較版では、基底流を一度だけ引き、報告流出と一致させる。
+192行を消す方法と230行で基底流以外だけを引く方法では途中の不足量が変わるため、
+どちらを採るかまで仕様にしなければならない。本稿では原典の意図を推測して修正しない。
+
+\subsection{草本がある原典との違い}
+原典では上側土壌の同じ残存水量からC3草本、C4草本の蒸散をそれぞれ計算した後、
+その合計を引く[V1,141--164行]。各蒸散が供給量以下でも、合計が供給量を超える場合がある。
+その後の補正も含めて原典再現が必要である。森林縮約版で草本を省略したときには、
+この過程だけでなく草本の遮断、放射分配、炭素入力も一貫して省く。
+
+\section{出典と実装位置の台帳}\label{app:sources}
+VISITcの参照先は\url{https://github.com/visit-manager/VISITc}、
+コミット\code{5202debd96df6f88beb7d61f8688fff02ace964a}の\code{point/}である。
+行番号はこの版に固定する。例えば[V1]の原典リンクは
+\url{https://github.com/visit-manager/VISITc/blob/5202debd96df6f88beb7d61f8688fff02ace964a/point/hydro_balance.c#L21}。
+以前の9炭素区画アダプターの原典\code{Sachitama2001/VISIT-matrix}、
+コミット\code{3285bd8e131a932e338b59892751648fd9edcc7b}とは別であり、
+その係数を本稿の水モデルへ混ぜていない。
+\begin{longtable}{p{.07\linewidth}p{.40\linewidth}p{.46\linewidth}}
+\toprule ID & ファイル・位置 & 本稿との対応\\\midrule\endhead
+V1 & \code{point/hydro_balance.c}, \code{f_hydrology}, 21--238行 & 雪54--71、遮断79--107、上側112--164、樹木169--180、基底流182--202、再配分204--227、最終収支230--237。順番を保つ日写像。\\
+V2 & \code{point/hydro_flows.c}, \code{f_r_aero} 77--92行、\code{pm_incep} 96--128行、\code{pm_evap} 131--156行、\code{pm_transp} 159--200行 & PM演算の転記対象。\code{definition.h} 42行のLHTも参照。単位の物理監査は未完了。\\
+V3 & \code{point/location_proc.c}, \code{f_loct_proc}, 468--535行 & 水文実行、診断水量更新470--473、ポテンシャル490--530、生理更新533以降。\code{structure.h} 295行にMPaコメント。\\
+V4 & \code{point/init_site.c} 385--387行、\code{point/location_proc.c} 462--464行 & 土壌容量と層定義。設定分岐の確認が必要。\\
+V5 & \code{point/radiation.c}, \code{f_net_rad}, 214--314行；\code{point/ecophysiology.c}, \code{lai_mass} 108--127行、\code{f_canopy_cond} 229--271行 & PMの上流にある放射・LAI・気孔の依存関係。本稿ではこれらの全係数を採用せず交換可能な関数とする。\\
+V6 & \code{src/control_carbon/coupled_carbon_water.py}, 309--426行 & 現在の4炭素・4水の試作フラックス。原典モデルの完全転記ではない。\\
+V7 & \code{src/control_carbon/hydraulic_relations.py}, 93--193行 & 土壌・植物保水関係。165行以降の容量の境界処理は本稿で問題を指摘。\\
+\bottomrule
+\end{longtable}
+V6,V7は2026年9月15日の作業ツリーを参照するため、今後の編集で行番号が変わる。
+文献の式番号は出版社版に基づく。ローカルの\code{Luo2022MatrixApproach.pdf}は
+今回\code{pdftotext}で構造エラーが出たため、Box 1と式番号は出版社公開本文で照合した。
+ローカルPDFを黙って置き換えてはいない。SurEauは出版社本文とローカルPDFを参照した。
+
+\begin{thebibliography}{9}
+\bibitem{luo} Luo, Y. et al. (2022).
+Matrix Approach to Land Carbon Cycle Modeling.
+\textit{Journal of Advances in Modeling Earth Systems}, 14, e2022MS003008.
+\url{https://doi.org/10.1029/2022MS003008}.
+本稿の参照箇所：Box 1式(B1)、貯留容量に関する式(1a)--(2)。
+\bibitem{sureau} Ruffault, J., Pimont, F., Cochard, H., Dupuy, J.-L., and Martin-StPaul, N. (2022).
+SurEau-Ecos v2.0: a trait-based plant hydraulics model for simulations of plant water status and drought-induced mortality at the ecosystem level.
+\textit{Geoscientific Model Development}, 15, 5593--5626.
+\url{https://doi.org/10.5194/gmd-15-5593-2022}.
+本稿の参照箇所：式(2)--(4)、(41)--(44)。
+\bibitem{fao} Allen, R. G., Pereira, L. S., Raes, D., and Smith, M. (1998).
+\textit{Crop evapotranspiration: Guidelines for computing crop water requirements}.
+FAO Irrigation and Drainage Paper 56. 第2章、一般Penman--Monteith式(3).
+\url{https://www.fao.org/4/X0490E/x0490e06.htm}.
+\bibitem{visit} visit-manager/VISITc.
+\url{https://github.com/visit-manager/VISITc/tree/5202debd96df6f88beb7d61f8688fff02ace964a/point}.
+対象関数・行番号は\ref{app:sources}。2026年9月15日照合。
+\end{thebibliography}
+\end{document}

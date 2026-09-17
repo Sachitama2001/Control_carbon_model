@@ -14,12 +14,490 @@ silently correcting it.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 
 import numpy as np
 
-from .visitc_source_map import VISITC_HYDROLOGY_SOURCE
+from .visitc_source_map import (
+    VISITC_HYDROLOGY_SOURCE,
+    VISITC_HYDRO_FLOWS_SOURCE,
+    VISITC_RADIATION_SOURCE,
+    VISITC_CANOPY_CONDUCTANCE_SOURCE,
+)
+
+
+@dataclass(frozen=True)
+class VISITCCanopyRadiationParameters:
+    """Inputs to VISITc's LAI-dependent ``f_net_rad`` partition."""
+
+    leaf_area_index: tuple[float, float, float]
+    extinction_initial: tuple[float, float, float]
+    extinction_radiation: tuple[float, float, float]
+    albedo: tuple[float, float, float, float]
+    c3_understory_fraction: float = 0.0
+    c4_understory_fraction: float = 0.0
+
+    def __post_init__(self) -> None:
+        for name, size in (
+            ("leaf_area_index", 3),
+            ("extinction_initial", 3),
+            ("extinction_radiation", 3),
+            ("albedo", 4),
+        ):
+            values = np.asarray(getattr(self, name), dtype=float)
+            if values.shape != (size,) or not np.all(np.isfinite(values)):
+                raise ValueError(f"{name} must be finite with shape ({size},)")
+            if np.any(values < 0.0):
+                raise ValueError(f"{name} must be nonnegative")
+        fractions = np.asarray(
+            (self.c3_understory_fraction, self.c4_understory_fraction), dtype=float
+        )
+        if (
+            not np.all(np.isfinite(fractions))
+            or np.any(fractions < 0.0)
+            or fractions.sum() > 1.0
+        ):
+            raise ValueError("understory fractions must be nonnegative and sum to <= 1")
+        if np.any(np.asarray(self.albedo) > 1.0):
+            raise ValueError("albedo values must lie in [0, 1]")
+
+
+@dataclass(frozen=True)
+class VISITCNetRadiation:
+    """Layer net radiation and source intermediate diagnostics, W m-2."""
+
+    tree: float
+    c3: float
+    c4: float
+    ground: float
+    ecosystem: float
+    cover_fractions: tuple[float, float, float, float]
+    absorbed_shortwave: tuple[float, float, float, float]
+    partitioned_longwave: tuple[float, float, float, float]
+    source: object = VISITC_RADIATION_SOURCE
+
+
+@dataclass(frozen=True)
+class VISITCPenmanMonteithEnvironment:
+    """Prepared daily atmosphere, radiation, and conductance inputs.
+
+    Temperatures are degree Celsius, pressure and vapour quantities hPa,
+    wind is m s-1, day length is hours, radiation is W m-2, and canopy
+    conductance is mmol H2O m-2 s-1.
+    """
+
+    air_temperature: float
+    surface_temperature: float
+    air_pressure: float
+    vapor_pressure: float
+    vapor_pressure_deficit: float
+    wind_speed: float
+    day_length: float
+    incoming_shortwave: float
+    cloud_fraction: float
+    canopy_conductance_tree: float
+    canopy_conductance_c3: float
+    canopy_conductance_c4: float
+    radiation: VISITCCanopyRadiationParameters
+
+    def __post_init__(self) -> None:
+        numeric = np.asarray(
+            tuple(
+                value
+                for name, value in self.__dict__.items()
+                if name != "radiation"
+            ),
+            dtype=float,
+        )
+        if not np.all(np.isfinite(numeric)):
+            raise ValueError("Penman-Monteith environment must be finite")
+        if self.air_pressure <= 0.0:
+            raise ValueError("air_pressure must be positive")
+        for name in (
+            "vapor_pressure",
+            "vapor_pressure_deficit",
+            "wind_speed",
+            "day_length",
+            "incoming_shortwave",
+            "canopy_conductance_tree",
+            "canopy_conductance_c3",
+            "canopy_conductance_c4",
+        ):
+            if getattr(self, name) < 0.0:
+                raise ValueError(f"{name} must be nonnegative")
+        if not 0.0 <= self.cloud_fraction <= 1.0:
+            raise ValueError("cloud_fraction must lie in [0, 1]")
+
+
+@dataclass(frozen=True)
+class VISITCPenmanMonteithFluxes:
+    """Source-exact PM potentials and their prepared dependencies."""
+
+    saturated_vapor_pressure: float
+    saturation_vapor_pressure_slope: float
+    air_density: float
+    aerodynamic_resistance: float
+    soil_resistance: float
+    net_radiation: VISITCNetRadiation
+    potential_interception_tree: float
+    potential_interception_c3: float
+    potential_interception_c4: float
+    potential_soil_evaporation: float
+    potential_transpiration_tree: float
+    potential_transpiration_c3: float
+    potential_transpiration_c4: float
+    source: object = VISITC_HYDRO_FLOWS_SOURCE
+
+
+@dataclass(frozen=True)
+class VISITCCanopyConductanceParameters:
+    """Direct inputs to ``ecophysiology.c::f_canopy_cond``."""
+
+    photosynthetic_capacity: float
+    radiation_extinction: float
+    light_use_efficiency: float
+    canopy_top_ppfd: float
+    leaf_area_index: float
+    atmospheric_co2: float
+    co2_compensation_point: float
+    vapor_pressure_deficit: float
+    minimum_stomatal_conductance: float
+    ball_berry_slope: float
+    vpd_scale: float
+
+    def __post_init__(self) -> None:
+        values = np.asarray(tuple(self.__dict__.values()), dtype=float)
+        if not np.all(np.isfinite(values)):
+            raise ValueError("canopy-conductance inputs must be finite")
+        if self.radiation_extinction <= 0.0 or self.vpd_scale <= 0.0:
+            raise ValueError("radiation_extinction and vpd_scale must be positive")
+        if self.leaf_area_index < 0.0 or self.vapor_pressure_deficit < 0.0:
+            raise ValueError("LAI and VPD must be nonnegative")
+        if self.atmospheric_co2 == self.co2_compensation_point:
+            raise ValueError("atmospheric CO2 must differ from compensation point")
+
+
+@dataclass(frozen=True)
+class VISITCCanopyConductance:
+    gross_photosynthesis_proxy: float
+    conductance: float
+    co2_factor: float
+    vpd_factor: float
+    source: object = VISITC_CANOPY_CONDUCTANCE_SOURCE
+
+
+def visitc_leaf_area_index(
+    foliage_carbon: float, specific_leaf_area: float
+) -> float:
+    """Transcribe ``lai_mass`` from foliage C and SLA (cm2 gDM-1)."""
+    values = np.asarray((foliage_carbon, specific_leaf_area), dtype=float)
+    if not np.all(np.isfinite(values)) or specific_leaf_area < 0.0:
+        raise ValueError("foliage carbon/SLA must be finite and SLA nonnegative")
+    # dmTc=2.2, then source conversions /100 and /2 for one-sided area.
+    return max(specific_leaf_area * foliage_carbon * 2.2 / 100.0 / 2.0, 0.0)
+
+
+def visitc_irradiance_extinction(
+    initial_extinction: float, solar_height_degrees: float
+) -> float:
+    """Transcribe ``irr_attn`` including its minimum sine factor of 0.3."""
+    values = np.asarray((initial_extinction, solar_height_degrees), dtype=float)
+    if not np.all(np.isfinite(values)) or initial_extinction < 0.0:
+        raise ValueError("extinction inputs must be finite and nonnegative")
+    sine_height = np.clip(math.sin(solar_height_degrees * 0.0174533), 0.3, 1.0)
+    return float(initial_extinction / sine_height)
+
+
+def visitc_canopy_conductance(
+    parameters: VISITCCanopyConductanceParameters,
+    *,
+    fixed_350_ppm_co2: bool = False,
+) -> VISITCCanopyConductance:
+    """Transcribe ``f_canopy_cond`` for one plant canopy.
+
+    The source-local ``gpp`` is returned as a diagnostic.  It has the same
+    source-specific canopy-rate basis used by the Ball--Berry-like expression;
+    it is not the ecosystem daily GPP flux reported by ``daily_scheme``.
+    """
+    p = parameters
+    if p.photosynthetic_capacity > 0.0:
+        cc1 = 2.0 * p.photosynthetic_capacity / p.radiation_extinction
+        bb = (
+            p.radiation_extinction
+            * p.light_use_efficiency
+            * p.canopy_top_ppfd
+            / p.photosynthetic_capacity
+        )
+        cc2 = 1.0 + math.sqrt(1.0 + bb)
+        cc3 = 1.0 + math.sqrt(
+            1.0 + bb * math.exp(-p.radiation_extinction * p.leaf_area_index)
+        )
+        gpp = cc1 * math.log(cc2 / cc3)
+    else:
+        gpp = 0.0
+    co2_value = 350.0 if fixed_350_ppm_co2 else p.atmospheric_co2
+    co2_factor = 1.0 / (co2_value - p.co2_compensation_point)
+    vpd_factor = 1.0 / (1.0 + p.vapor_pressure_deficit / p.vpd_scale)
+    conductance = (
+        p.minimum_stomatal_conductance * p.leaf_area_index
+        + p.ball_berry_slope * co2_factor * vpd_factor * gpp
+    )
+    return VISITCCanopyConductance(
+        gross_photosynthesis_proxy=gpp,
+        conductance=conductance,
+        co2_factor=co2_factor,
+        vpd_factor=vpd_factor,
+    )
+
+
+def visitc_saturated_vapor_pressure(air_temperature: float) -> float:
+    """Transcribe ``f_vap_pre_sat`` (Tetens equation), returning hPa."""
+    if not np.isfinite(air_temperature):
+        raise ValueError("air_temperature must be finite")
+    if air_temperature > 0.0:
+        value = 6.1078 * 10.0 ** (
+            7.5 * air_temperature / (237.3 + air_temperature)
+        )
+    else:
+        value = 6.1078 * 10.0 ** (
+            9.5 * air_temperature / (265.3 + air_temperature)
+        )
+    return max(value, 0.0)
+
+
+def visitc_saturation_vapor_pressure_slope(air_temperature: float) -> float:
+    """Transcribe ``f_slope_vps``, returning hPa K-1."""
+    if not np.isfinite(air_temperature):
+        raise ValueError("air_temperature must be finite")
+    absolute_temperature = 273.15 + air_temperature
+    if absolute_temperature <= 0.0:
+        raise ValueError("air_temperature must exceed absolute zero")
+    if air_temperature > 0.0:
+        numerator = 6.1078 * (2500.0 - 2.4 * air_temperature)
+        exponential = 10.0 ** (
+            7.5 * air_temperature / (237.3 + air_temperature)
+        )
+    else:
+        numerator = 6.1078 * 2834.0
+        exponential = 10.0 ** (
+            9.5 * air_temperature / (265.3 + air_temperature)
+        )
+    denominator = 0.4615 * absolute_temperature**2
+    return numerator / denominator * exponential
+
+
+def visitc_air_density(
+    air_temperature: float, air_pressure: float, vapor_pressure: float
+) -> float:
+    """Transcribe ``f_airdens``, returning kg m-3."""
+    values = np.asarray((air_temperature, air_pressure, vapor_pressure))
+    if not np.all(np.isfinite(values)) or air_pressure <= 0.0 or vapor_pressure < 0.0:
+        raise ValueError("air-density inputs must be finite with positive pressure")
+    absolute_temperature = 273.15 + air_temperature
+    if absolute_temperature <= 0.0:
+        raise ValueError("air_temperature must exceed absolute zero")
+    return (
+        1.293
+        * 273.15
+        / absolute_temperature
+        * air_pressure
+        / 1013.25
+        * (1.0 - 0.378 * vapor_pressure / air_pressure)
+    )
+
+
+def visitc_aerodynamic_resistance(wind_speed: float) -> float:
+    """Transcribe ``f_r_aero``, returning s m-1 including source clipping."""
+    if not np.isfinite(wind_speed) or wind_speed < 0.0:
+        raise ValueError("wind_speed must be finite and nonnegative")
+    wind = max(wind_speed, 0.1)
+    resistance = math.log(10.0) ** 2 / (0.41**2 * wind)
+    return min(max(resistance, 0.1), 59.5)
+
+
+def visitc_net_radiation(
+    environment: VISITCPenmanMonteithEnvironment,
+) -> VISITCNetRadiation:
+    """Transcribe LAI cover and ``radiation.c::f_net_rad`` daily algebra."""
+    params = environment.radiation
+    lai = np.asarray(params.leaf_area_index)
+    extinction0 = np.asarray(params.extinction_initial)
+    extinction = np.asarray(params.extinction_radiation)
+    albedo = np.asarray(params.albedo)
+
+    tree_cover = 1.0 - math.exp(-extinction0[0] * lai[0])
+    c3_cover = (
+        (1.0 - tree_cover)
+        * params.c3_understory_fraction
+        * (1.0 - math.exp(-extinction0[1] * lai[1]))
+    )
+    c4_cover = (
+        (1.0 - tree_cover)
+        * params.c4_understory_fraction
+        * (1.0 - math.exp(-extinction0[2] * lai[2]))
+    )
+    ground_cover = 1.0 - tree_cover - c3_cover - c4_cover
+    covers = np.array((tree_cover, c3_cover, c4_cover, ground_cover))
+
+    stefan_boltzmann = 5.6703e-8
+    upward_longwave = (
+        0.95 * (environment.surface_temperature + 273.15) ** 4 * stefan_boltzmann
+    )
+    atmospheric_emissivity = 0.53 + 0.06 * math.sqrt(environment.vapor_pressure)
+    air_emission = (environment.air_temperature + 273.15) ** 4 * stefan_boltzmann
+    downward_longwave = (
+        (1.0 - environment.cloud_fraction) * atmospheric_emissivity * air_emission
+        + environment.cloud_fraction * (air_emission - 9.0)
+    )
+    ecosystem_longwave = downward_longwave - upward_longwave
+    partitioned_longwave = ecosystem_longwave * covers
+
+    incoming_shortwave = max(environment.incoming_shortwave, 0.0)
+    transmit = 0.1
+    fsw_tree = 1.0 - math.exp(-extinction[0] * lai[0] * (1.0 - transmit))
+    fsw_c3 = (
+        (1.0 - fsw_tree)
+        * params.c3_understory_fraction
+        * (1.0 - math.exp(-extinction[1] * lai[1]) * (1.0 - transmit))
+    )
+    fsw_c4 = (
+        (1.0 - fsw_tree)
+        * params.c4_understory_fraction
+        * (1.0 - math.exp(-extinction[2] * lai[2]) * (1.0 - transmit))
+    )
+    fsw_ground = 1.0 - fsw_tree - fsw_c3 - fsw_c4
+    shortwave_fractions = np.array((fsw_tree, fsw_c3, fsw_c4, fsw_ground))
+    absorbed_shortwave = incoming_shortwave * shortwave_fractions * (1.0 - albedo)
+
+    # Preserve the native sign/order literally: rn_layer = short - rn_long_layer.
+    net = absorbed_shortwave - partitioned_longwave
+    ecosystem = float(absorbed_shortwave.sum() - ecosystem_longwave)
+    return VISITCNetRadiation(
+        tree=float(net[0]),
+        c3=float(net[1]),
+        c4=float(net[2]),
+        ground=float(net[3]),
+        ecosystem=ecosystem,
+        cover_fractions=tuple(float(value) for value in covers),
+        absorbed_shortwave=tuple(float(value) for value in absorbed_shortwave),
+        partitioned_longwave=tuple(float(value) for value in partitioned_longwave),
+    )
+
+
+def _penman_monteith_flux(
+    *,
+    slope: float,
+    net_radiation: float,
+    heat_capacity: float,
+    air_density: float,
+    vapor_pressure_deficit: float,
+    aerodynamic_resistance: float,
+    surface_resistance: float,
+    day_length: float,
+) -> float:
+    psychrometric_constant = 0.667
+    latent_heat = 695.0
+    numerator = slope * net_radiation + (
+        heat_capacity
+        * air_density
+        * vapor_pressure_deficit
+        / aerodynamic_resistance
+    )
+    denominator = slope + psychrometric_constant * (
+        1.0 + surface_resistance / aerodynamic_resistance
+    )
+    return max(day_length * numerator / denominator / latent_heat, 0.0)
+
+
+def visitc_penman_monteith_fluxes(
+    environment: VISITCPenmanMonteithEnvironment,
+    *,
+    upper_soil_water: float,
+    field_capacity_upper: float,
+) -> VISITCPenmanMonteithFluxes:
+    """Evaluate source-exact PM potentials from native direct dependencies."""
+    if (
+        not np.isfinite(upper_soil_water)
+        or upper_soil_water < 0.0
+        or not np.isfinite(field_capacity_upper)
+        or field_capacity_upper <= 0.0
+    ):
+        raise ValueError("upper soil water/capacity must be finite and valid")
+    saturated = visitc_saturated_vapor_pressure(environment.air_temperature)
+    slope = visitc_saturation_vapor_pressure_slope(environment.air_temperature)
+    density = visitc_air_density(
+        environment.air_temperature,
+        environment.air_pressure,
+        environment.vapor_pressure,
+    )
+    aerodynamic = visitc_aerodynamic_resistance(environment.wind_speed)
+    radiation = visitc_net_radiation(environment)
+    common = dict(
+        slope=slope,
+        heat_capacity=0.2813,
+        air_density=density,
+        vapor_pressure_deficit=environment.vapor_pressure_deficit,
+        aerodynamic_resistance=aerodynamic,
+        day_length=environment.day_length,
+    )
+    interception = tuple(
+        _penman_monteith_flux(
+            **common, net_radiation=value, surface_resistance=0.0
+        )
+        for value in (radiation.tree, radiation.c3, radiation.c4)
+    )
+
+    conductance_conversion = 0.0224 / 1000.0
+    ground_conductance = 1000.0 * upper_soil_water / field_capacity_upper + 100.0
+    soil_resistance = 1.0 / (ground_conductance * conductance_conversion)
+    soil_evaporation = _penman_monteith_flux(
+        slope=slope,
+        net_radiation=radiation.ground,
+        # pm_evap assigns cp twice; the second source assignment is effective.
+        heat_capacity=1014.0,
+        air_density=density,
+        vapor_pressure_deficit=environment.vapor_pressure_deficit,
+        aerodynamic_resistance=aerodynamic,
+        surface_resistance=soil_resistance,
+        day_length=environment.day_length,
+    )
+    transpiration = []
+    for conductance, net_radiation in zip(
+        (
+            environment.canopy_conductance_tree,
+            environment.canopy_conductance_c3,
+            environment.canopy_conductance_c4,
+        ),
+        (radiation.tree, radiation.c3, radiation.c4),
+    ):
+        if conductance > 0.0 and net_radiation > 0.0:
+            canopy_resistance = 1.0 / (
+                conductance * conductance_conversion
+            )
+            value = _penman_monteith_flux(
+                **common,
+                net_radiation=net_radiation,
+                surface_resistance=canopy_resistance,
+            )
+        else:
+            value = 0.0
+        transpiration.append(value)
+    return VISITCPenmanMonteithFluxes(
+        saturated_vapor_pressure=saturated,
+        saturation_vapor_pressure_slope=slope,
+        air_density=density,
+        aerodynamic_resistance=aerodynamic,
+        soil_resistance=soil_resistance,
+        net_radiation=radiation,
+        potential_interception_tree=interception[0],
+        potential_interception_c3=interception[1],
+        potential_interception_c4=interception[2],
+        potential_soil_evaporation=soil_evaporation,
+        potential_transpiration_tree=transpiration[0],
+        potential_transpiration_c3=transpiration[1],
+        potential_transpiration_c4=transpiration[2],
+    )
 
 
 @dataclass(frozen=True)
@@ -332,11 +810,62 @@ def visitc_hydrology_step(
     )
 
 
+def visitc_hydrology_step_with_penman_monteith(
+    state: VISITCHydrologyState,
+    forcing: VISITCHydrologyForcing,
+    parameters: VISITCHydrologyParameters,
+    environment: VISITCPenmanMonteithEnvironment,
+) -> tuple[VISITCHydrologyStep, VISITCPenmanMonteithFluxes]:
+    """Run one source-order hydrology day with transcribed PM potentials.
+
+    Native ``f_hydrology`` receives atmospheric and radiation diagnostics that
+    were prepared earlier by ``f_loct_proc``.  This wrapper preserves that
+    boundary, computes all seven potential fluxes, and then passes them to the
+    already isolated store update.
+    """
+    if not np.isclose(forcing.air_temperature, environment.air_temperature):
+        raise ValueError(
+            "forcing and Penman-Monteith air temperatures must be identical"
+        )
+    potentials = visitc_penman_monteith_fluxes(
+        environment,
+        upper_soil_water=state.upper_soil_water,
+        field_capacity_upper=parameters.field_capacity_upper,
+    )
+    prepared_forcing = replace(
+        forcing,
+        potential_interception_tree=potentials.potential_interception_tree,
+        potential_interception_c3=potentials.potential_interception_c3,
+        potential_interception_c4=potentials.potential_interception_c4,
+        potential_soil_evaporation=potentials.potential_soil_evaporation,
+        potential_transpiration_tree=potentials.potential_transpiration_tree,
+        potential_transpiration_c3=potentials.potential_transpiration_c3,
+        potential_transpiration_c4=potentials.potential_transpiration_c4,
+    )
+    return visitc_hydrology_step(state, prepared_forcing, parameters), potentials
+
+
 __all__ = [
+    "VISITCHydrologyStep",
+    "VISITCCanopyRadiationParameters",
+    "VISITCCanopyConductance",
+    "VISITCCanopyConductanceParameters",
+    "VISITCNetRadiation",
+    "VISITCPenmanMonteithEnvironment",
+    "VISITCPenmanMonteithFluxes",
     "VISITCHydrologyFluxes",
     "VISITCHydrologyForcing",
     "VISITCHydrologyParameters",
     "VISITCHydrologyState",
-    "VISITCHydrologyStep",
+    "visitc_aerodynamic_resistance",
+    "visitc_air_density",
+    "visitc_canopy_conductance",
     "visitc_hydrology_step",
+    "visitc_hydrology_step_with_penman_monteith",
+    "visitc_irradiance_extinction",
+    "visitc_leaf_area_index",
+    "visitc_net_radiation",
+    "visitc_penman_monteith_fluxes",
+    "visitc_saturated_vapor_pressure",
+    "visitc_saturation_vapor_pressure_slope",
 ]

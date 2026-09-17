@@ -12,12 +12,17 @@ analysis track rather than the project driver.
   `5202debd96df6f88beb7d61f8688fff02ace964a`;
 - native `snwa`, `sw30`, and `sww` stores plus the source-order hydrology fluxes
   are inventoried in `visitc_carbon_water_source_ledger.md`;
-- `visitc_hydrology.py` partially transcribes `f_hydrology`, treating the seven
-  Penman-Monteith potentials as effective inputs;
+- `visitc_hydrology.py` transcribes `f_hydrology` and the seven Penman-Monteith
+  potentials, including atmosphere, aerodynamic resistance, LAI/radiation,
+  soil resistance, and canopy-conductance dependencies;
+- minimal native bridges compare every exposed one-day hydrology output and
+  directly execute `hydro_flows.c`, `radiation.c`, and `f_canopy_cond`;
 - the apparent baseflow double subtraction is reproduced and exposed through
   a budget residual, not silently corrected;
 - `coupled_carbon_water.py` implements a four-carbon/four-water continuous ODE
-  with exact internal mass cancellation;
+  with exact internal mass cancellation and water-potential-gradient transport;
+- normalized transport storage was replaced by the native VISITc soil
+  retention relation and a reduced SurEau-Ecos pressure-volume/capacitance relation;
 - instantaneous frozen-water carbon capacity is kept separate from the full
   coupled equilibrium;
 - productivity, transit-time, and interaction effects on capacity are
@@ -26,8 +31,9 @@ analysis track rather than the project driver.
 - the idealized dry-down/re-wetting example records budget residuals and solver
   refinement.
 
-The reduced model's storage-potential and conductance functions are smooth
-placeholders. It is executable theory scaffolding, not a calibrated VISITc or
+The storage-to-potential functions are now source-labelled. Conductance
+magnitudes, plant saturated water/allometry, carbon process parameters, and
+external-flux closures remain illustrative. It is not a calibrated VISITc or
 species model.
 
 ## Completed vertical slices
@@ -132,12 +138,12 @@ control-carbon-era5 \
 Live network checks are intentionally not part of the default pytest suite.
 The suite tests provider parsing and conversion with deterministic fixtures.
 
-Verified in the 2026-09-14 carbon-water checkpoint: `88 passed, 13 skipped`.
-All skips are legacy native VISIT soil/plant tests that require the separately
-pinned `Sachitama2001/VISIT-matrix` source checkout; they are not carbon-water
-test failures. The carbon-water example reported a stable baseline, maximum
-step-refinement state difference below `9e-7`, carbon budget residual below
-`3e-18`, and water budget residual below `3e-16` for the illustrative run.
+Verified after the native hydrology/PM and hydraulic-constitutive milestone:
+`118 passed` when both pinned source checkouts are available. Source-dependent
+native tests skip when their separate checkout is absent. The updated
+carbon-water example reported a stable baseline, maximum step-refinement state
+difference `4.35e-7`, carbon budget residual `2.17e-18`, and water budget
+residual `4.44e-16` for the illustrative run.
 
 ## Known blockers before native VISIT validation
 
@@ -153,10 +159,8 @@ step-refinement state difference below `9e-7`, carbon budget residual below
 
 ## Next scientific milestone
 
-Validate the partial Python hydrology update against a minimal native VISITc C
-bridge, then transcribe the Penman-Monteith dependencies. In parallel, replace
-the reduced model's normalized storage proxy with sourced soil-retention and
-plant pressure-volume/capacitance relations. The first central experiment is
-dynamic water storage versus its quasi-steady Schur reduction under matched
-forcing and carbon equations. Seasonal tracking and R-tipping tests come only
-after this ordinary-dynamics validation.
+The first central experiment is now dynamic water storage versus its
+quasi-steady Schur reduction under matched forcing and carbon equations. It
+should use the transcribed PM chain in a controlled meteorological experiment,
+bound hydraulic parameters, and test whether carbon-dependent saturated water
+capacity is required. Seasonal tracking and R-tipping remain downstream.

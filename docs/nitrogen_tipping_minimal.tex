@@ -1,0 +1,397 @@
+% LuaLaTeX twice; figures: examples/analyze_minimal_nitrogen_tipping.py
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,bm,booktabs,longtable,graphicx}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\setlength{\emergencystretch}{3em}
+\title{炭素と窒素の最小モデルにおけるR-tipping\\
+\large 窒素制限だけの反例から、過剰阻害と再循環の検討へ}
+\author{Control\_carbon\_model}
+\date{2026年9月15日}
+\begin{document}
+\maketitle
+\begin{abstract}
+炭素と水の検討から離れ、生きた炭素と利用可能な窒素の2状態から出発する。
+固定した植物C:N比に従って生産に伴う窒素吸収を決め、枯死後の窒素の行方も明示する。
+窒素不足による生産制限だけのモデルでは、最終環境で正の平衡が存在する限り、
+有限時間の環境変化後に別の安定状態へ移るR-tippingは生じない。
+一方、窒素過剰でも生産が低下するという仮説を加えると、枯死率が定数でも、
+窒素流入の増加が速い場合だけ植生を失う例を構成できる。
+凍結系の安定性、急変時の吸引域への侵入、緩変時の追随を数式で確認し、
+同じ総窒素投入量の数値実験でも結果を比較する。
+これはモデル非依存の仮説検証用の例であり、森林での発生や臨界速度を推定したものではない。
+\end{abstract}
+\tableofcontents
+\clearpage
+
+\section{結論と、候補を絞る手順}
+本稿では、環境を途中の値で止めた系を「凍結系」と呼ぶ。
+凍結系の植生平衡が安定なまま、同じ環境の始点と終点を速く結んだときだけ
+別の吸引域へ移ることをR-tippingの判定とする\cite{ashwin}。
+最終環境で回復する一時的な減少は、ここでのR-tippingではない。
+平衡が消失したり不安定化したりするB-tippingとも区別する。
+
+検討した候補と採否は次のとおりである。
+\begin{enumerate}
+\item 窒素を定数の生産倍率にする炭素1状態：窒素の蓄積・吸収・回復時間を失う。
+      窒素固有の仕組みを調べる出発点としては不十分である。
+\item 炭素と無機態窒素の2状態、単調な窒素制限：元素収支を守る基準モデルに採用する。
+      この系では永続的な転換が起こらない条件を証明できる。
+\item 同じ2状態に窒素過剰による生産低下を加える：条件付きのR-tipping候補とする。
+      炭素量に人為的な最低維持量を置かずとも双安定性が生まれる。
+\item 枯死有機物を加えた3状態：再循環の遅れを検証するための次の段階とする。
+\end{enumerate}
+したがって、単純な枯死は入口にはなるが、\textbf{枯死だけが決め手ではない}。
+窒素については、吸収が弱まると窒素がさらに蓄積して生産を弱める、という
+過剰域のフィードバックが今回の候補の核心である。
+これは窒素不足による森林衰退の説明とは異なる。
+
+\section{保存則から作る2状態モデル}
+\subsection{変数、単位、境界}
+数haの森林を面積当たりの一様な状態で表す。空間的な流出入は外部収支へまとめる。
+植物体の炭素と窒素の質量比$q$を一定とし、植物窒素量を$C/q$とする。
+葉・根・木部の比率変化、貯蔵窒素、菌根、窒素固定の炭素費用は含めない。
+
+\begin{longtable}{p{.17\linewidth}p{.43\linewidth}p{.30\linewidth}}
+\toprule 記号 & 定義 & 単位・位置づけ\\\midrule\endhead
+$t$ & 時間 & 年\\
+$C,D$ & 生きた炭素、枯死有機物炭素 & $\mathrm{kgC\,ha^{-1}}$\\
+$N$ & 植物が利用できる無機態窒素 & $\mathrm{kgN\,ha^{-1}}$\\
+$q$ & 植物と、本稿では枯死物にも共通のC:N比 & $\mathrm{kgC\,(kgN)^{-1}}$、未較正\\
+$N_0$ & 窒素量の規格化尺度 & $\mathrm{kgN\,ha^{-1}}$、未較正\\
+$I$ & モデル領域外からの窒素流入 & $\mathrm{kgN\,ha^{-1}\,yr^{-1}}$\\
+$g$ & 生きた炭素当たりの純一次生産率 & $\mathrm{yr^{-1}}$、総光合成率ではない\\
+$m,\ell,k$ & 枯死・更新、無機態窒素損失、分解の速度係数 & $\mathrm{yr^{-1}}$\\
+$\rho$ & 更新・分解に伴う窒素の無機態への回収率 & 無次元、$0\leq\rho<1$\\
+$c,d,n$ & $C/(qN_0),D/(qN_0),N/N_0$ & 無次元\\
+$i$ & $I/N_0$ & $\mathrm{yr^{-1}}$\\
+$g_0$ & 生産率関数の係数 & $\mathrm{yr^{-1}}$、阻害時の最大値ではない\\
+$T,v$ & 環境移行時間、平均流入変化速度 & 年、$v=(i_f-i_0)/T$は$\mathrm{yr^{-2}}$\\
+\bottomrule
+\end{longtable}
+記号と集約は本稿の定義である。特定の森林モデルの変数をそのまま写したものではない。
+炭素・窒素を別々に収支計算し、吸収・無機化を結合する考え方の比較先として
+MAGICC CNitv1.0\cite{tang}を挙げるが、そのモデルの縮約を主張しない。
+
+\subsection{物理単位での式}
+\begin{equation}\boxed{\begin{aligned}
+\dot C&=[g(N/N_0)-m]C,\\
+\dot N&=I-\ell N-\frac{g(N/N_0)C}{q}+\frac{\rho mC}{q}.
+\end{aligned}}\label{eq:physical}\end{equation}
+生産$gC$は純一次生産（NPP）であり、呼吸をもう一度差し引かない。
+窒素吸収は$gC/q$である。炭素と窒素を同じ単位で足すのではない。
+植物と無機態窒素を合わせた収支は
+\begin{equation}
+\frac{\dd}{\dd t}\left(N+\frac Cq\right)
+=I-\ell N-\frac{(1-\rho)mC}{q}.
+\label{eq:budget}
+\end{equation}
+最後の項はこの2状態の領域から出る窒素であり、消失した元素ではない。
+即時再循環しない部分を外部の遅い有機物へ渡す、または系外へ輸送する集約である。
+その後の再供給まで必要なら2状態のままでは不十分である。
+炭素の$mC$も、ここでは生きた炭素から出るだけであり、大気への即時排出と同一ではない。
+この点を第\ref{sec:three}節で解消する。
+
+規格化すると、解析対象は
+\begin{equation}\boxed{\dot c=[g(n)-m]c,\qquad
+\dot n=i-\ell n-[g(n)-\rho m]c.}\label{eq:two}\end{equation}
+$c=0$は不変境界、$n=0$では$\dot n=i+\rho mc\geq0$であり非負領域を保つ。
+正の初期炭素は有限時間では厳密に正である。
+$s=c+n$について
+\begin{equation}
+\dot s=i-\ell n-(1-\rho)mc
+\leq i-\min\{\ell,(1-\rho)m\}s
+\end{equation}
+となり、有界な流入に対して状態も有界である。
+$\rho=1$ではこの評価と以下の平衡公式をそのまま使えない。
+完全再循環を扱うには別の損失・密度制限などを検討する必要がある。
+
+\section{窒素不足だけでは、今回の意味のR-tippingは起きない}
+まず単調に増加するMonod型の生産率を置く。
+\begin{equation}g_M(n)=g_0\frac n{1+n},\qquad g_0>m.\label{eq:monod}\end{equation}
+この関数型は微生物成長の古典的な資源制限式であり、森林パラメータとしての検証は別問題である。
+増減が釣り合う窒素量は$n_*=m/(g_0-m)$、正の平衡は
+\begin{equation}
+(c_*,n_*)=\left(\frac{i-\ell n_*}{(1-\rho)m},n_*\right),\qquad i>\ell n_*.
+\end{equation}
+同時に存在する裸地平衡$(0,i/\ell)$は、炭素方向に$g_M(i/\ell)-m>0$で不安定である。
+正の平衡でのヤコビ行列は
+\begin{equation}
+J_*=\begin{pmatrix}0&c_*g'(n_*)\\
+-(1-\rho)m&-\ell-c_*g'(n_*)\end{pmatrix}.
+\label{eq:jac}
+\end{equation}
+微量の炭素変化が窒素を変える項も、窒素変化が炭素を変える項も残している。
+$g'>0$なら跡は負、行列式は正であり、局所漸近安定である。
+
+さらに正の領域でDulac因子$1/c$を使うと
+\begin{equation}
+\frac{\partial}{\partial c}\left(\frac{\dot c}{c}\right)
++\frac{\partial}{\partial n}\left(\frac{\dot n}{c}\right)
+=-\frac\ell c-g'_M(n)<0.
+\end{equation}
+従って周期軌道はない。有界性、正の平衡の一意性、裸地平衡の安定多様体が
+$c=0$の境界にあることと合わせ、正の内部の軌道は正の平衡へ収束する。
+環境変化が有限時間で終わり、最終環境で$i_f>\ell n_*$なら、途中で炭素が
+どれだけ減っても数学的には回復する。\textbf{この2状態モデルでは永続的なR-tippingはない}。
+これは全ての炭素・窒素モデルについての否定ではない。
+数値計算で微小炭素をゼロに丸めてしまうと、人工的な不可逆性が生じるので注意する。
+
+\section{過剰阻害を加えると何が変わるか}
+\subsection{最小の追加仮説と出典}
+次に
+\begin{equation}
+g_H(n)=\frac{g_0 n}{1+n+n^2},\qquad
+g'_H(n)=\frac{g_0(1-n^2)}{(1+n+n^2)^2}
+\label{eq:haldane}
+\end{equation}
+を試す。Andrews (1968), p.708, 式(1)の基質阻害関数
+$g_0/(1+K_s/N+N/K_i)$から、$K_s=K_i=N_0$とした関数型である\cite{andrews}。
+元論文は微生物・反応槽を対象とする。\textbf{森林の窒素応答を同定した式ではない}。
+本稿の面積当たり窒素量を濃度の代理にするには、有効土壌深さなども固定する必要がある。
+酸性化、アンモニウム毒性、塩基流亡、養分不均衡を一つの$n$で代用できるかは未検証である。
+最大値は$n=1$で$g_0/3$であり、$g_0$そのものではない。
+
+\subsection{静的な双安定性}
+数値は解析しやすい無較正の試験値として
+\begin{equation}
+g_0=0.4,\quad m=0.1,\quad\ell=1\quad[\mathrm{yr^{-1}}],
+\qquad\rho=0.5
+\label{eq:parameters}
+\end{equation}
+とする。$g(n)=m$の解は
+\begin{equation}n_\pm=\frac{3\pm\sqrt5}{2}
+\simeq 0.381966,\ 2.618034.\end{equation}
+$i>\ell n_+$では、次の三つの平衡が存在する。
+\begin{align}
+F(i)&=\left(\frac{i-\ell n_-}{(1-\rho)m},n_-\right)
+&&\text{安定な植生平衡},\\
+S(i)&=\left(\frac{i-\ell n_+}{(1-\rho)m},n_+\right)
+&&\text{鞍点},\\
+B(i)&=(0,i/\ell)&&\text{安定な裸地平衡}.
+\end{align}
+式\eqref{eq:jac}より、$F$は$g'>0$なので安定、$S$は$g'<0$なので行列式が負となる。
+$B$の固有値は$g(i/\ell)-m$と$-\ell$で、いずれも負である。
+したがって$i:3\to10$の全経路で植生平衡は存在し安定であり、局所分岐を通らない。
+鞍点の安定多様体は吸引域の境界の候補であるが、以下の証明はその全体形状を仮定しない。
+
+初期値は$F(3)=(52.360680,0.381966)$。
+最終環境の$F(10)=(192.360680,0.381966)$、
+$S(10)=(147.639320,2.618034)$、$B(10)=(0,10)$である。
+遅い窒素増加なら植生が増えて窒素を吸収する。
+急増なら吸収の増加が追いつかず過剰域へ入り、生産と吸収がともに弱まる。
+生産の二次的な炭素依存や炭素のAllee効果は置いていない。
+
+\section{R-tippingが可能であることの数式による導出}
+\subsection{急変が裸地側へ入ることの十分条件}
+$i=10$へ瞬間的に変えた場合をまず考える。
+領域
+\begin{equation}\mathcal R=\{0<c\leq60,\ n\geq3\}\end{equation}
+では$g(n)\leq g(3)=0.09230769<m$なので炭素は減少する。
+下側境界$n=3$では
+\begin{equation}
+\dot n\geq10-3-[g(3)-0.05]60=4.461538>0.
+\end{equation}
+よって$\mathcal R$から外には出ず、
+$c(t)\leq c(t_b)e^{-0.0076923(t-t_b)}\to0$、$n(t)\to10$となる。
+これは裸地の吸引域の一部を不等式で特定したものである。
+
+初期平衡からこの領域へ入ることも確認できる。
+$n\leq3,c\leq60$である間、$g\leq0.4/3$より
+\begin{equation}
+\dot n\geq 10-3-(0.4/3-0.05)60=2.
+\end{equation}
+従って$n=3$へ到達する時間は
+$t_b\leq(3-n_-)/2=1.309017$年である。
+その間の炭素の上限は
+\begin{equation}
+c(t_b)\leq52.360680\exp[(0.4/3-0.1)1.309017]<60.
+\end{equation}
+$c=60$を先に越えないため、仮定と結論は整合する。
+急変後の軌道は$\mathcal R$の内部へ入り、その後は裸地へ向かう。
+
+\subsection{有限の速さ、緩やかな変化への拡張}
+有限時間の解の連続依存性より、瞬間変化に十分近い短時間ランプでも
+$\mathcal R$の内部へ入る。従って有限の速さでも裸地へ移る例が存在する。
+一方、$3\leq i\leq10$のコンパクトな経路上で$F(i)$は一様に双曲的かつ安定である。
+十分遅い変化ではその近傍を追随し、最終的に$F(10)$へ収束する。
+この組合せによって、\textbf{同じ経路と終点で、速さによって異なる吸引域へ入ること}
+が示される。臨界速度の閉形式や、全ての速度に対する境界の一意性まで証明したわけではない。
+
+\section{数値実験：総投入量もそろえる}
+移行期間$T$について、局所時刻$u$で
+\begin{equation}
+i_T(u)=3+7h(u/T),\quad
+h(s)=\begin{cases}0&s<0,\\s&0\leq s\leq1,\\1&s>1\end{cases}
+\end{equation}
+とする。平滑化の感度確認では区間内を$h(s)=3s^2-2s^3$に置き換える。
+比較の暦時刻をそろえ、変化の中心を$t_c=100$年、最終評価時刻を$H=1000$年に置く。
+変化の前は初期平衡にあるので、前半の待機を省略して計算してよい。
+両方の$h$で平均値が$1/2$であるため
+\begin{equation}
+\int_0^H i_T(t)\,\dd t
+=3t_c+10(H-t_c)=9300
+\end{equation}
+となり、$T\leq200$年なら同じ始点、終点、総窒素投入量、評価時刻で比較できる。
+実際の窒素量はこれに$N_0$を掛ける。系外損失量や残存窒素量まで等しいわけではない。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../artifacts/minimal_nitrogen_tipping/nitrogen_response.pdf}
+\caption{無較正の試験例。左：単調な制限と過剰阻害。中央・右：同じ総投入量での炭素と窒素。
+速い10年移行では裸地へ向かい、40年・100年移行では植生が維持される。}
+\end{figure}
+線形ランプでは$T\simeq27.20$年付近に結果の境界がある。
+これは$m=0.1\ \mathrm{yr^{-1}}$などの仮の値で決まる時間であり、森林への予測ではない。
+平均速度で表せば$v\simeq7/27.20=0.2574\ \mathrm{yr^{-2}}$である。
+平滑ランプは最大速度が$1.5v$となり、平均速度だけを使って異なる経路の閾値を同一視してはいけない。
+正確な数値区間と平滑化・再循環・許容誤差の比較は
+\code{artifacts/minimal_nitrogen_tipping/summary.json}に再現出力する。
+\begin{center}
+\begin{tabular}{lll}\toprule
+条件 & $T$の数値区間（年） & 意味\\\midrule
+2状態・線形 & $[27.1973,27.2009]$ & 基準\\
+許容誤差を10分の1、最大刻み1年 & $[27.1973,27.2009]$ & 数値精度の対照\\
+2状態・平滑ランプ & $[37.2974,37.3010]$ & 移行形状への依存\\
+3状態・$k=0.02$ & $[19.7046,19.7083]$ & 再循環の記憶\\
+3状態・$k=0.1$ & $[22.3523,22.3560]$ & 同上\\
+3状態・$k=1$ & $[26.5710,26.5747]$ & 同上\\
+3状態・$k=10$ & $[27.1350,27.1387]$ & 即時再循環へ接近\\\bottomrule
+\end{tabular}
+\end{center}
+これらは異なる終状態を持つ二つの計算の局所的な区間であり、厳密区間演算による保証値ではない。
+
+計算は$\log c$を積分して炭素の人為的なゼロ打ち切りを避け、ランプ終端で区間を分ける。
+最終判定は炭素だけの閾値ではなく、既知の平衡に全状態が近づいたことを用いる。
+臨界区間の探索では移行終了後3000年保持する。
+終点近傍の滞在が長く判定できない場合にはエラーとし、裸地とは決めつけない。
+長い保持は数学的な吸引域判定のためであり、現実の気象予測期間ではない。
+
+\section{月・年の状態更新と準定常化を混同しない}
+本稿は年を時間単位にした連続系であり、更新は
+\begin{equation}
+\bm x_{j+1}=\Phi_{\Delta}[\bm x_j;i(t)],\qquad
+\Delta=1/12\ \text{または}\ 1\ \mathrm{yr}
+\end{equation}
+という区間内の数値積分で行える。内部刻みを年に固定した陽的Euler法ではない。
+コードでは連続解を月・年で出力し、内部最大刻みを月以下にする計算との一致も確認する。
+年内の天候・施肥の突発的変化を含まない、平均環境の緩やかな移行の検討である。
+一般には$\overline{g(n)c}\neq g(\bar n)\bar c$なので、日次の式へ年平均を代入しただけで
+正しい年次集約が得られるわけではない。
+
+$\dot n=0$を置くと$n$は$i,c$から陰的に定まる。
+しかし過剰阻害では窒素方程式の$n$微分
+$-\ell-cg'(n)$が常に負とは限らず、代数解の枝の選択にも注意が要る。
+さらに窒素が過剰域へ蓄積する時間を消してしまう。
+窒素が炭素より速いとしても、\textbf{月次・年次出力だから窒素の状態を削除してよいとは限らない}。
+準定常化と動的な窒素の比較は、次の独立した検証課題である。
+
+\section{再循環の記憶を戻す3状態モデル}\label{sec:three}
+炭素と窒素に共通の固定比$q$を持つ枯死物$D$を加える。
+\begin{equation}\boxed{\begin{aligned}
+\dot C&=[g(N/N_0)-m]C,\\
+\dot D&=mC-kD,\\
+\dot N&=I-\ell N-g(N/N_0)C/q+\rho kD/q.
+\end{aligned}}\label{eq:three}\end{equation}
+この場合の保存則は
+\begin{align}
+\dot C+\dot D&=g(N/N_0)C-kD,\\
+\frac{\dd}{\dd t}\left[N+(C+D)/q\right]
+&=I-\ell N-(1-\rho)kD/q.
+\end{align}
+枯死は炭素の内部移動であり、$kD$を分解による系外炭素排出と置いた。
+分解窒素のうち$\rho$が無機化し、残りは明示的な窒素損失と仮定する。
+残りを「有機物中に残る窒素」と解釈するなら、その状態をさらに持たなければ収支が閉じない。
+異なるC:N比、微生物による不動化を表すモデルではこの単純な$D$では足りない。
+
+$k$が大きく$D\simeq mC/k$なら2状態式を回復する。
+平衡は$(C_*,D_*,N_*)=(C_*,mC_*/k,N_*)$であり、$C_*,N_*$は2状態と同じである。
+規格化した$(c,d,n)$での正の平衡のヤコビ行列は
+\begin{equation}
+J_3=\begin{pmatrix}
+0&0&c_*g'(n_*)\\m&-k&0\\-m&\rho k&-\ell-c_*g'(n_*)
+\end{pmatrix}.
+\end{equation}
+3状態では2状態のDulac議論を流用しない。
+試験した$k=0.02,0.1,1,10\ \mathrm{yr^{-1}}$について経路上の固有値を数値確認し、
+安定な植生枝を維持したまま、速い変化と遅い変化で結果が分かれる例を得た。
+線形ランプの境界は概ね$T=19.70,22.35,26.57,27.14$年であり、
+即時再循環の$27.20$年へ近づく。
+これは特定の初期平衡と流入増加に対する結果であり、再循環の遅れが常に保護的とは言えない。
+
+\section{行列アプローチでの位置づけ}
+炭素状態$\bm X=(C,D)^\mathsf T$については
+\begin{equation}
+\begin{gathered}
+\dot{\bm X}=\bm B\mu+\bm A\bm\xi\bm K\bm X,\qquad\mu=g(N/N_0)C,\\
+\bm B=\begin{pmatrix}1\\0\end{pmatrix},\quad
+\bm A=\begin{pmatrix}-1&0\\1&-1\end{pmatrix},\quad
+\bm\xi=\bm I_2,\quad\bm K=\operatorname{diag}(m,k).
+\end{gathered}
+\end{equation}
+輸送構造は一定で、生産入力が窒素と炭素へ依存する。
+入力$\mu$を状態から独立な外力として扱うと、今回のフィードバックを失う。
+窒素について$\bm Z=(C/q,D/q,N)^\mathsf T$と書けば
+\begin{equation}
+\dot{\bm Z}=\begin{pmatrix}0\\0\\I\end{pmatrix}+
+\begin{pmatrix}
+-m&0&u\\m&-k&0\\0&\rho k&-\ell-u
+\end{pmatrix}\bm Z,\qquad
+u=\frac{g(N/N_0)C}{qN}.
+\end{equation}
+$N=0$では$g(n)/N$の連続極限で$u$を定める。
+窒素輸送行列の各列和は$0,-(1-\rho)k,-\ell$で、内部移動と外部損失を区別できる。
+植物と枯死物の窒素は炭素から拘束されるため、$\bm X,\bm Z$を合わせた5成分は
+5個の独立状態ではない。独立な自由度は3である。
+この形式は関数型を交換して比較するための整理であり、VISITやSurEauの転記ではない。
+相互依存する系全体の応答時間は上の結合ヤコビ行列から求める。
+炭素だけの行列を逆にした貯留容量を、結合系の平衡と同一視しない。
+
+\section{実装、再現、残る研究課題}
+すべて本稿のモデル非依存の導出であり、既存VISIT・水モデルの係数は変更しない。
+プログラム内の関数名を、行番号変更に強い出典位置として併記する。
+\begin{longtable}{p{.34\linewidth}p{.58\linewidth}}
+\toprule 数式・検証 & 実装位置\\\midrule\endhead
+式\eqref{eq:monod},\eqref{eq:haldane} & \code{minimal_nitrogen_tipping.py}: \code{growth}, \code{growth_derivative}\\
+式\eqref{eq:two},\eqref{eq:three} & 同ファイル：\code{rhs}\\
+平衡・結合線形化 & 同ファイル：\code{equilibria}, \code{jacobian}\\
+急変時の十分条件 & 同ファイル：\code{fast_step_certificate}\\
+非自律積分・判定・局所区間探索 & 同ファイル：\code{simulate}, \code{classify}, \code{critical_duration}\\
+図、投入量対照、感度結果 & \code{examples/analyze_minimal_nitrogen_tipping.py}\\
+収支、非負性、微分、安定性、刻み検証 & \code{tests/test_minimal_nitrogen_tipping.py}\\
+\bottomrule
+\end{longtable}
+上のモジュールのパスは\code{src/control_carbon/minimal_nitrogen_tipping.py}である。
+図とJSONを再生成してからLuaLaTeXで本書をコンパイルする。具体的なコマンドは
+\code{docs/nitrogen_tipping_minimal.md}を参照されたい。
+
+次に進めるなら、窒素制限域と過剰域のどちらを対象にするかを先に決める。
+窒素不足だけが対象なら、今回の過剰阻害例を採用せず、植物・微生物競合、
+可変C:N比、窒素固定、枯死物の無機化と不動化のどれに回復を妨げる根拠があるかを調べる。
+森林への適用では、$N_0,q$、利用可能窒素の損失時間、実際の過剰応答を制約し、
+輸送・流亡、酸性度などの独立状態が必要かを判断する。
+試験値を物理単位へ換算する尺度を合わせるだけで、現実的な係数と認めてはいけない。
+年次データでも再循環時間を推定し、季節性が重要なら周期的な基準状態を作ってから
+速度の効果を検討する。今回確認したのは、\textbf{元素収支を守る少数次元系における条件付きの可能性}
+と、\textbf{単調な窒素制限だけでは足りないという対照結果}である。
+
+\begin{thebibliography}{9}
+\bibitem{andrews} Andrews, J. F. (1968).
+A mathematical model for the continuous culture of microorganisms utilizing inhibitory substrates.
+Biotechnology and Bioengineering, 10, 707--723.
+\href{https://doi.org/10.1002/bit.260100602}{doi:10.1002/bit.260100602}.
+関数型はp.708, 式(1)。森林への適用・係数は本稿の仮説。
+\bibitem{tang} Tang, G., Nicholls, Z., Norton, A., Zaehle, S., and Meinshausen, M. (2025).
+Synthesizing global carbon--nitrogen coupling effects -- the MAGICC coupled carbon--nitrogen cycle model v1.0.
+Geoscientific Model Development, 18, 2193--2230.
+\href{https://doi.org/10.5194/gmd-18-2193-2025}{doi:10.5194/gmd-18-2193-2025}.
+炭素・窒素結合モデルの比較先。式の転記には使用していない。
+\bibitem{ashwin} Ashwin, P., Perryman, C., and Wieczorek, S. (2017).
+Parameter shifts for nonautonomous systems in low dimension: bifurcation- and rate-induced tipping.
+Nonlinearity, 30, 2185--2210.
+\href{https://doi.org/10.1088/1361-6544/aa675b}{doi:10.1088/1361-6544/aa675b}.
+\end{thebibliography}
+\end{document}

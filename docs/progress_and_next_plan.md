@@ -316,11 +316,11 @@ turnover、respiration、allocationの個別sliceを実装し、native Cと照�
 直近は炭素-水結合とVISITc水文過程の原典検証を優先する。詳細な式、比較条件、
 完了基準は[現在の計画](carbon_water_research_plan.md)に記録した。
 
-1. current VISITcの最小hydrology C bridgeを作る。
-2. `visitc_hydrology.py`と一日全状態・fluxを比較する。
-3. `pm_incep/pm_evap/pm_transp`と抵抗・放射・LAI依存を転記する。
-4. soil retention curveとplant pressure-volume/capacitanceを導入する。
-5. dynamic waterとquasi-steady waterを同一炭素式・同一強制で比較する。
+1. 完了: current VISITcの最小hydrology/PM C bridgeと一日全出力比較。
+2. 完了: `pm_incep/pm_evap/pm_transp`、抵抗・放射・LAI・conductance依存の転記。
+3. 完了: native soil retentionとreduced plant pressure-volume/capacitanceの導入。
+4. 次: dynamic waterとquasi-steady waterを同一炭素式・同一強制で比較する。
+5. 次: PM鎖を制御した気象強制へ接続し、パラメータを較正・範囲化する。
 6. 周期基準軌道を作り、その後にのみR-tippingの可否を調べる。
 
 以下のtree一日更新は既存VISIT-matrix側の後続原典接続課題として保持する。

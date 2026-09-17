@@ -47,12 +47,30 @@ VISITC_DAILY_SCHEME_SOURCE = _source(
     "daily_scheme",
     "daily carbon update and post-update water diagnostics",
 )
+VISITC_HYDRO_FLOWS_SOURCE = _source(
+    "point/hydro_flows.c",
+    "f_airdens/f_vap_pre_sat/f_slope_vps/f_r_aero/pm_incep/pm_evap/pm_transp",
+    "atmospheric diagnostics, resistances, and Penman-Monteith potential fluxes",
+)
+VISITC_RADIATION_SOURCE = _source(
+    "point/radiation.c",
+    "f_net_rad",
+    "LAI-dependent partition of longwave and shortwave net radiation",
+)
+VISITC_CANOPY_CONDUCTANCE_SOURCE = _source(
+    "point/ecophysiology.c",
+    "f_canopy_cond",
+    "LAI, GPP, CO2, and VPD dependence of canopy conductance",
+)
 
 VISITC_SOURCES = (
     VISITC_STRUCTURE_SOURCE,
     VISITC_HYDROLOGY_SOURCE,
     VISITC_LOCATION_SOURCE,
     VISITC_DAILY_SCHEME_SOURCE,
+    VISITC_HYDRO_FLOWS_SOURCE,
+    VISITC_RADIATION_SOURCE,
+    VISITC_CANOPY_CONDUCTANCE_SOURCE,
 )
 
 

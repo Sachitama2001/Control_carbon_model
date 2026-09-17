@@ -22,6 +22,13 @@ from numpy.typing import ArrayLike
 from scipy.integrate import solve_ivp
 from scipy.optimize import least_squares
 
+from .hydraulic_relations import (
+    HYDRAULIC_RELATION_PROVENANCE,
+    PlantPressureVolumeParameters,
+    VISITCSoilTexture,
+    plant_pressure_volume_potential,
+    visitc_soil_total_potential,
+)
 from .provenance import provenance_manifest
 from .visitc_source_map import (
     VISITC_HYDROLOGY_SOURCE,
@@ -67,10 +74,12 @@ def coupled_model_provenance_manifest() -> dict[str, object]:
         ),
     )
     manifest["literature"] = dict(COUPLED_MODEL_LITERATURE)
+    manifest["hydraulic_relations"] = HYDRAULIC_RELATION_PROVENANCE
     manifest["assumptions"] = [
         "single vegetation type; no snow, fire, harvest, nitrogen, or phosphorus states",
         "four aggregated carbon pools and four finite water stores",
-        "smooth illustrative flux laws; defaults are not calibrated VISITc parameters",
+        "VISITc soil retention plus aggregated SurEau-Ecos symplasmic plant pressure-volume curves",
+        "remaining carbon and external water flux defaults are illustrative, not calibrated VISITc parameters",
     ]
     return manifest
 
@@ -106,8 +115,13 @@ class CoupledCarbonWaterParameters:
     photosynthesis_water_half_saturation: float = 0.25
     decomposition_water_half_saturation: float = 0.35
     water_capacities: tuple[float, float, float, float] = (1.5, 12.0, 4.0, 180.0)
-    hydraulic_conductances: tuple[float, float, float] = (7.0, 5.0, 3.0)
+    hydraulic_conductances: tuple[float, float, float] = (1.4, 1.0, 0.7)
     hydraulic_carbon_half_saturation: tuple[float, float, float] = (1.0, 8.0, 0.5)
+    soil_texture: int = int(VISITCSoilTexture.MEDIUM)
+    soil_gravitational_potential: float = -1.0
+    plant_osmotic_potentials: tuple[float, float, float] = (-1.5, -1.3, -1.1)
+    plant_bulk_moduli: tuple[float, float, float] = (12.0, 10.0, 8.0)
+    plant_minimum_relative_water: float = 1.0e-3
     transpiration_water_half_saturation: float = 0.15
     transpiration_leaf_carbon_half_saturation: float = 0.5
     evaporation_water_half_saturation: float = 0.20
@@ -132,6 +146,12 @@ class CoupledCarbonWaterParameters:
             "hydraulic_carbon_half_saturation",
             positive=True,
         )
+        osmotic = _parameter_vector(
+            self.plant_osmotic_potentials, 3, "plant_osmotic_potentials"
+        )
+        bulk_moduli = _parameter_vector(
+            self.plant_bulk_moduli, 3, "plant_bulk_moduli", positive=True
+        )
         scalars = np.asarray(
             [
                 self.soil_respiration_rate,
@@ -142,10 +162,24 @@ class CoupledCarbonWaterParameters:
                 self.transpiration_leaf_carbon_half_saturation,
                 self.evaporation_water_half_saturation,
                 self.drainage_rate,
+                self.plant_minimum_relative_water,
+                self.soil_gravitational_potential,
             ]
         )
-        if not np.all(np.isfinite(scalars)) or np.any(scalars <= 0.0):
+        if not np.all(np.isfinite(scalars)):
+            raise ValueError("scalar parameters must be finite")
+        if np.any(scalars[:-1] <= 0.0):
             raise ValueError("rate and half-saturation parameters must be positive")
+        if np.any(osmotic >= 0.0):
+            raise ValueError("plant_osmotic_potentials must be negative")
+        if np.any(bulk_moduli <= np.abs(osmotic)):
+            raise ValueError("plant bulk moduli must exceed osmotic magnitudes")
+        try:
+            VISITCSoilTexture(self.soil_texture)
+        except ValueError as error:
+            raise ValueError("soil_texture must be VISITc selector 0, 1, or 2") from error
+        if not 0.0 < self.plant_minimum_relative_water < 1.0:
+            raise ValueError("plant_minimum_relative_water must lie in (0, 1)")
         if not np.isclose(allocation.sum(), 1.0):
             raise ValueError("carbon_allocation must sum to one")
         if np.any(allocation < 0.0):
@@ -161,6 +195,8 @@ class CoupledCarbonWaterParameters:
         object.__setattr__(
             self, "hydraulic_carbon_half_saturation", tuple(half_saturation)
         )
+        object.__setattr__(self, "plant_osmotic_potentials", tuple(osmotic))
+        object.__setattr__(self, "plant_bulk_moduli", tuple(bulk_moduli))
 
 
 @dataclass(frozen=True)
@@ -173,6 +209,8 @@ class CoupledCarbonWaterFluxes:
     carbon_input: np.ndarray
     carbon_matrix: np.ndarray
     water_internal: np.ndarray
+    water_potential: np.ndarray
+    effective_hydraulic_conductance: np.ndarray
     transpiration: float
     soil_evaporation: float
     drainage: float
@@ -318,11 +356,32 @@ def _carbon_and_water_fluxes(
         ]
     )
     conductance = np.asarray(parameters.hydraulic_conductances) * carbon_controls
+    plant_potential = np.asarray(
+        [
+            plant_pressure_volume_potential(
+                water[index],
+                PlantPressureVolumeParameters(
+                    saturated_water=capacity[index],
+                    osmotic_potential=parameters.plant_osmotic_potentials[index],
+                    bulk_modulus=parameters.plant_bulk_moduli[index],
+                    minimum_relative_water=parameters.plant_minimum_relative_water,
+                ),
+            )
+            for index in range(3)
+        ]
+    )
+    soil_potential = visitc_soil_total_potential(
+        water[3],
+        capacity[3],
+        parameters.soil_texture,
+        gravitational_potential=parameters.soil_gravitational_potential,
+    )
+    water_potential = np.concatenate((plant_potential, (soil_potential,)))
     water_internal = conductance * np.array(
         [
-            relative_water[3] - relative_water[2],
-            relative_water[2] - relative_water[1],
-            relative_water[1] - relative_water[0],
+            water_potential[3] - water_potential[2],
+            water_potential[2] - water_potential[1],
+            water_potential[1] - water_potential[0],
         ]
     )
 
@@ -356,6 +415,8 @@ def _carbon_and_water_fluxes(
         carbon_input=carbon_input,
         carbon_matrix=carbon_matrix,
         water_internal=water_internal,
+        water_potential=water_potential,
+        effective_hydraulic_conductance=conductance,
         transpiration=transpiration,
         soil_evaporation=soil_evaporation,
         drainage=drainage,

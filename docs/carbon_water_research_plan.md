@@ -147,13 +147,14 @@ normal and edge cases, and every residual has a named source branch.
 4. Compute instantaneous carbon capacity separately.
 5. Partition the Jacobian and test the water Schur complement.
 
-The first executable version of these items is now in the repository. The
-hydraulic constitutive laws remain placeholders.
+The first executable version of these items is now in the repository. Soil
+retention and plant pressure-volume relations are source-labelled; their
+parameters and the remaining conductance/external-flux closures still require calibration.
 
 ### WP3 - Constitutive grounding and calibration
 
-- Replace normalized storage with soil water-retention and plant
-  pressure-volume relations.
+- Calibrate and sensitivity-test the implemented soil water-retention and
+  plant pressure-volume relations.
 - Select conductance/vulnerability and stomatal response formulations from a
   declared model family (e.g. SurEau-Ecos, FETCH, CLM5 hydraulics).
 - Reconcile water units and area bases explicitly.
@@ -222,7 +223,8 @@ Only use “R-tipping” when:
 Implemented:
 
 - pinned source map for current `visit-manager/VISITc`;
-- partial source-order hydrology transcription with explicit budget audit;
+- native-validated source-order hydrology, atmospheric, radiation,
+  canopy-conductance, and Penman-Monteith transcription;
 - executable eight-state coupled ODE and flux diagnostics;
 - instantaneous carbon capacity and Wei-style finite-change decomposition;
 - coupled equilibrium, Jacobian blocks, and Schur complement;
@@ -231,10 +233,8 @@ Implemented:
 
 Next highest-value actions:
 
-1. compile a native VISITc hydrology comparison harness;
-2. trace and transcribe Penman-Monteith helpers;
-3. replace normalized water storage with sourced \(W\leftrightarrow\psi\)
-   relations;
-4. implement dynamic-vs-quasi-steady water experiments;
+1. implement dynamic-vs-quasi-steady water experiments under matched processes;
+2. connect the PM chain to controlled meteorological forcing;
+3. calibrate/bound plant saturated water, pressure-volume, and conductance parameters;
+4. test alternate compartment resolution and carbon-dependent allometry;
 5. only then expand toward seasonal or tipping analyses.
-

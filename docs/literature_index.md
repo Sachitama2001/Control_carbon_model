@@ -42,11 +42,26 @@ the canonical article is at
 
 ## Tipping and nonautonomous tracking
 
+For the 2026-09-15 user-requested minimal-model analysis, see
+[`water_tipping_minimal.tex`](water_tipping_minimal.tex) and
+[`water_tipping_minimal.md`](water_tipping_minimal.md).
+The new benchmark is independent of the native VISIT adapters.
+
 | Reference | Primary link | Use here |
 |---|---|---|
 | Ashwin et al. (2012), “Tipping points in open systems…” | [Royal Society article](https://royalsocietypublishing.org/rsta/article/370/1962/1166/114607/Tipping-points-in-open-systems-bifurcation-noise), [doi:10.1098/rsta.2011.0306](https://doi.org/10.1098/rsta.2011.0306) | Definitions separating B-, N-, and R-tipping; need a nonautonomous tracking formulation |
 | Alkhayuon & Ashwin (2018), periodic attractors | [doi:10.1063/1.5000418](https://doi.org/10.1063/1.5000418) | Phase-dependent partial/total tipping when the reference attractor is periodic |
 | Feudel (2023), basin boundaries and transients | [Open article](https://npg.copernicus.org/articles/30/481/2023/) | Basin-boundary and unstable-state evidence needed to distinguish R-tipping from a long transient |
+| Ashwin, Perryman & Wieczorek (2017), parameter shifts | [Author version](https://arxiv.org/abs/1506.07734), [DOI](https://doi.org/10.1088/1361-6544/aa675b) | Low-dimensional tracking and basin-stability background; the new finite-ramp integral is derived separately in the TeX |
+| Siero et al. (2019), Grazing Away the Resilience of Patterned Ecosystems | [Primary article](https://doi.org/10.1086/701669), Appendix A1/A6 | Source for the Klausmeier-family water uptake structure, with grazing and spatial terms removed; not forest parameter calibration |
+| Kiers (2020), Rate-Induced Tipping in Discrete-Time Dynamical Systems | [Author version](https://arxiv.org/abs/1907.11601), [DOI](https://doi.org/10.1137/19M1276297) | Why a discrete update must be specified rather than assumed equivalent to the ODE |
+
+The additional sources support `src/control_carbon/minimal_water_tipping.py`,
+`tests/test_minimal_water_tipping.py`, and `examples/analyze_minimal_water_tipping.py`.
+The TeX records units (years and ground-area stocks), all new assumptions,
+monthly/yearly interval maps, and the distinction between analytical examples
+and source-faithful equations. VISITa was inspected separately at commit
+`5c513196f21c1b1efb9ead540e3d40865b15e07e`; no coefficients were imported.
 
 ## Evidence-to-equation routing
 
@@ -54,9 +69,9 @@ the canonical article is at
 |---|---|---|
 | Carbon compartment signs and capacity | Luo et al.; Sierra & Müller; Wei et al. | Implemented with tests |
 | Native VISITc water bookkeeping | `point/hydro_balance.c`, `structure.h`, `location_proc.c`, `daily_scheme.c` | Partial source-order transcription implemented |
-| Soil \(W\leftrightarrow\psi\) | SurEau-Ecos soil retention section plus selected soil curve source | Not implemented; normalized storage is a placeholder |
-| Plant \(W\leftrightarrow\psi\) and capacitance | SurEau-Ecos; FETCH2/FETCH3 | Not implemented |
-| Stomata/photosynthesis-hydraulic coupling | VISITc PM/ecophysiology source; Kennedy; Sperry or SOX | Not implemented in source-faithful form |
+| Soil \(W\leftrightarrow\psi\) | Current VISITc `location_proc.c` texture branches; SurEau-Ecos as structural context | Native VISITc diagnostic relation implemented |
+| Plant \(W\leftrightarrow\psi\) and capacitance | SurEau-Ecos; FETCH2/FETCH3 | Reduced SurEau-Ecos symplasmic P-V relation implemented; parameters uncalibrated |
+| Stomata/photosynthesis-hydraulic coupling | VISITc PM/ecophysiology source; Kennedy; Sperry or SOX | Native `f_canopy_cond` and PM dependencies implemented; reduced-ODE closure remains idealized |
 | Dynamic vs quasi-steady water comparison | SurEau-Ecos capacitance-removal design; Jacobian Schur complement | Analysis tools implemented; experiment pending |
 | Periodic reference and R-tipping | Ashwin; Alkhayuon & Ashwin; Feudel | Deferred until ordinary dynamics are validated |
 

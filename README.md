@@ -1,5 +1,9 @@
 # Control Carbon Model
 
+2026-09-15: Added a separate [minimal carbon–nitrogen R-tipping study](docs/nitrogen_tipping_minimal.md)
+with a Japanese TeX/PDF report, elemental budgets, a monotone-limitation no-tipping
+result, and a conditional excess-nitrogen benchmark. This is not a calibrated forest model.
+
 A research project for analyzing terrestrial ecosystem carbon-cycle models
 through matrix equations, explicit water dynamics, control theory, impulse
 responses, quasi-static equilibria (QSEs), and source-sink diagnostics.
@@ -12,7 +16,8 @@ The active research question is now:
 
 The first implementation has two deliberately separate tracks:
 
-- an auditable, source-order partial transcription of current VISITc hydrology;
+- an auditable, native-validated transcription of current VISITc hydrology and
+  its Penman-Monteith dependency chain;
 - a reduced continuous model with leaf/stem/root/soil carbon and water stores.
 
 R-tipping is a later, conditional analysis rather than a required result. See
@@ -37,6 +42,20 @@ separate.
 The existing Python matrix implementation in `VISIT-matrix/visit_matrix` is useful prior work, but the VISIT C source is treated as the authority for state definitions, update order, process equations, and provenance.
 
 ## Start here
+
+Japanese mathematical report (2026-09-15):
+[PDF](docs/carbon_water_matrix_report.pdf) /
+[TeX source](docs/carbon_water_matrix_report.tex) /
+[build instructions](docs/carbon_water_matrix_report_build.md).
+It develops the model-agnostic carbon–water matrix framework and records
+corrections and outstanding unit/boundary issues in the earlier equation notes.
+
+Minimal R-tipping follow-up: [Japanese TeX](docs/water_tipping_minimal.tex) /
+[PDF](docs/water_tipping_minimal.pdf) /
+[reproduction and scope](docs/water_tipping_minimal.md).
+This is an independent, uncalibrated theoretical benchmark, not evidence of
+R-tipping in VISIT. It includes a rainfall-only no-tipping result, an analytical
+finite-rate threshold for a paired environmental path, and a two-state water-memory example.
 
 For coding agents and new contributors:
 
@@ -79,11 +98,22 @@ illustrative, not calibrated VISITc.
 
 `src/control_carbon/visitc_hydrology.py` follows
 `point/hydro_balance.c::f_hydrology` in source order while taking seven
-Penman-Monteith potentials as effective inputs. It deliberately exposes the
+Penman-Monteith potentials as effective inputs. It also transcribes the native
+atmospheric, LAI/radiation, canopy-conductance, and PM dependency chain. It deliberately exposes the
 apparent double subtraction of baseflow instead of silently correcting it.
 
+`src/control_carbon/visitc_native.py` builds minimal bridges against the pinned
+current VISITc source. One-day hydrology stores/fluxes, PM potentials,
+radiation partitioning, and canopy conductance are compared directly with C.
+
+`src/control_carbon/hydraulic_relations.py` implements the VISITc soil
+storage-to-potential relation and an explicitly reduced SurEau-Ecos
+pressure-volume/capacitance relation for plant stores. The full mathematical
+specification is in
+[`docs/carbon_water_differential_equations.md`](docs/carbon_water_differential_equations.md).
+
 `src/control_carbon/coupled_carbon_water.py` implements the eight-state reduced
-ODE, incidence-based water balance, frozen carbon capacity, Wei-style capacity
+ODE with potential-gradient SPAC transport, incidence-based water balance, frozen carbon capacity, Wei-style capacity
 decomposition, coupled equilibria, finite-difference Jacobian blocks, the water
 Schur complement, and time integration.
 

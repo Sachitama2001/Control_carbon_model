@@ -1,0 +1,533 @@
+% LuaLaTeX, twice. Figures: python examples/analyze_minimal_water_tipping.py
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,bm,booktabs,longtable,graphicx}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\src}[1]{\par\noindent{\small 出典・位置づけ：#1}\par}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\setlength{\emergencystretch}{3em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.16}
+\title{水過程を最小化した森林炭素モデルで\\R-tippingは起こり得るか\\
+\large 枯死・自己維持・環境変化の速さを分ける研究ノート}
+\author{Control\_carbon\_model}
+\date{2026年9月15日}
+\begin{document}
+\maketitle
+\begin{abstract}
+詳細なSPACを一旦外し、生きた炭素量と一つの水貯留から出発する。
+枯死だけではR-tippingの十分条件にならない。まず、低植生になると水利用と生産が弱くなり、
+枯死を補えなくなる自己維持の閾値を仮定する。この仮定により森林状態と低植生状態が共存する。
+水を準定常化した1状態のモデルでは、降水だけの単調減少によるR-tippingを排除できる。
+一方、降水と水損失を同時に変える特定の経路では、静的な森林平衡が安定なまま、
+変化が速い場合だけ低植生側へ移ることを解析的に示せる。
+さらに、水を動的に残す2状態モデルでは、降水だけを減らす数値例も得られる。
+ただしその例は静的限界に近く、森林への適用を保証しない。
+本稿は候補の比較、採否の根拠、再現可能な計算結果を記録するものであり、
+VISITのR-tippingの発見や、現実の森林の臨界速度の推定を主張するものではない。
+\end{abstract}
+\tableofcontents
+\clearpage
+
+\section{先に結論：最初に何を残すべきか}
+本稿でいうR-tippingは、環境を各瞬間の値で止めれば森林平衡が存在し安定であるのに、
+同じ始点・終点の環境変化を速く進めた場合だけ、最終的に別の状態へ移る現象である。
+大きく減っても最終的に森林平衡へ戻る応答は、ここではR-tippingと呼ばない。
+平衡そのものが消える転換（B-tipping）とも区別する\cite{ashwin,feudel}。
+
+最小構成として次の階層を提案する。
+\begin{enumerate}
+\item \textbf{解析の基準：生きた炭素量$C$のみ。} 水量$W$は代数式で決める。
+森林を維持できる最低炭素量、追随の遅れ、臨界速度を明示できる。
+\item \textbf{水の記憶を検証：$C$と$W$の2状態。} 準定常化で失われるR-tippingがあるかを調べる。
+月・年の解析に最初から葉・幹・根の水を別々に持つ必要はない。
+\item \textbf{生態系の炭素収支：枯死有機物$D$を追加。} 枯死した炭素は消滅せず$C$から$D$へ移る。
+$D$が植生へ戻らない設定なら、R-tippingの判定に必要な能動的な自由度は増えない。
+\end{enumerate}
+したがって、枯死はよい入口である。ただし最も重要なのは、枯死率の曲線を複雑にすることではなく、
+\textbf{減った後でも再生できるのか、それとも自己維持できない側へ入るのか}を定めることである。
+本稿の例では、枯死率自体は定数でもR-tippingが起こる。
+
+\section{最小の炭素・水収支と、その強い仮定}
+\subsection{出発点は二つの保存則}
+地表面積当たりの生きた炭素量を$C$、利用可能な水量を$W$とする。
+時間$t$の基本単位は年であり、月次更新では$\Delta=1/12$年を用いる。
+\begin{equation}\boxed{\begin{aligned}
+\dot C&=\eta U-mC,\\
+\dot W&=P-eW-U,\qquad U=\kappa WC^2.
+\end{aligned}}\label{eq:parent}
+\end{equation}
+\src{水利用が$WC^2$に比例する形はKlausmeier型モデル。Sieroら\cite{siero}付録式(A1),(A6)から空間項・摂食項を外した同族の式である。植物量を炭素量へ読み替えた係数・面積単位は本稿で定義する。VISIT由来ではない。}
+ここで$U$は水利用・蒸散の速度、$\eta U$はNPP、$mC$は枯死・ターンオーバーによる
+生きた炭素の損失である。$eW$は蒸発と利用されない排水をまとめた線形損失とする。
+水を炭素へ物質変換する意味ではなく、水利用に比例する炭素固定という経験的な生産則である。
+樹冠の季節性、雪、気孔、植物内水理、養分、攪乱、空間パターンはここでは省く。
+年平均または月平均で有効な係数を持つ概念モデルであり、日過程を厳密平均化した式ではない。
+
+\begin{longtable}{p{.18\linewidth}p{.49\linewidth}p{.26\linewidth}}
+\toprule 記号 & 意味 & 単位\\\midrule\endhead
+$C,D,C_0$ & 生きた炭素、枯死有機物、一定の炭素尺度 & MgC ha$^{-1}$\\
+$W$ & 利用可能な水貯留 & mm\\
+$P,U,eW$ & 降水供給、水利用、その他の水損失 & mm yr$^{-1}$\\
+$m,k_D,e,e_0$ & 枯死率、枯死有機物分解率、水損失係数、その基準値 & yr$^{-1}$\\
+$\eta$ & 水利用量当たりのNPP & MgC ha$^{-1}$ mm$^{-1}$\\
+$\kappa$ & $WC^2$を水利用速度へ変換する係数 & (MgC ha$^{-1}$)$^{-2}$ yr$^{-1}$\\
+$c=C/C_0$ & 規格化した生きた炭素 & 1\\
+$\lambda,\Lambda$ & 環境経路の位置、その終点 & 1\\
+$a=\eta P_0/(mC_0)$ & 生産と枯死の比を表す基準パラメータ & 1\\
+$x=c/\lambda$ & 移動する炭素尺度から見た状態 & 1\\
+$x_-,x_+$ & 規格化した不安定・安定の正の平衡 & 1\\
+$r=\dot\lambda/\lambda$ & 環境の相対変化速度 & yr$^{-1}$\\
+$r_\infty,r_{\rm crit}$ & 無限継続時の境界、有限変化の臨界速度 & yr$^{-1}$\\
+$T,\Delta$ & 環境の移動期間、状態更新の間隔 & yr\\
+$w=\eta e_0W/(mC_0)$ & 動的モデルでの規格化水量 & 1\\
+$J$ & 状態に関するヤコビ行列 & 規格化状態ではyr$^{-1}$\\
+\bottomrule
+\end{longtable}
+数haの林分にも同じ面積基準を使う。水1 mmは地表面積当たり1 kg m$^{-2}$に相当する。
+
+\subsection{非線形性の本質は、低植生での正の密度依存}
+$U\propto WC^2$には、単に植物が多いほど吸水する効果だけでなく、
+植生が水へのアクセスや局所的な水利用を促進する正の密度依存を含めている。
+低植生では生産が$C^2$、損失が$C$のオーダーとなるため、損失が勝つ。
+これは強いAllee効果に相当する。\textbf{この仮定は森林一般の事実ではない。}
+種子供給、林冠の保護、根系による水利用などを代表し得るが、対象森林で検証が必要である。
+乾燥地植生のモデル構造を、較正せず森林へ適用してよいという主張ではない。
+定数の外部更新・加入があれば$C=0$は平衡でなくなる。小さな加入で低植生の安定状態が
+残る場合もあるが、加入が大きければ二安定性は消え得る。
+
+対照として$U=\kappa_1WC$に替え、水を準定常化すると
+\begin{equation}
+\dot C=C\left(\frac{\eta\kappa_1P}{e+\kappa_1C}-m\right).
+\end{equation}
+正の平衡がある場合は$C_*={\eta P}/{m}-{e}/{\kappa_1}>0$であり、
+$C=0$は不安定、すべての正の初期値が$C_*$へ収束する。
+有限期間の環境変化で$C$は厳密な0に到達しないので、環境を最終値で固定した後は回復する。
+この対照モデルでは、正の最終平衡が残る限り、永続的な枯死側へのR-tippingは起こらない。
+数値計算で小さい$C$を0へ丸めて転換を作ってはいけない。
+
+\subsection{Luo型行列との接続：枯死を消失としない}
+$D$を加えると、$\mu=\eta U$、$\bm X=(C,D)^{\mathsf T}$として
+\begin{equation}
+\dot{\bm X}=B\mu+A\xi K\bm X,\quad
+B=\begin{pmatrix}1\\0\end{pmatrix},\quad
+A=\begin{pmatrix}-1&0\\1&-1\end{pmatrix},\quad
+\xi=I,\quad K=\begin{pmatrix}m&0\\0&k_D\end{pmatrix}.
+\end{equation}
+\src{Luoら\cite{luo}Box 1式(B1)の分解規約に従う本稿の2炭素区画例。$\mu$が$C,W$に依存するので系全体は非線形。}
+$\dot C+\dot D=\eta U-k_DD$であり、枯死は内部移動として相殺される。
+本稿が示す$C\to0$は、生きた植生の喪失であって、生態系総炭素の即時消失ではない。
+水ポテンシャルが必要なら後から$\psi=\Psi(W)$を追加できるが、
+この最小解析では独立な記憶を増やさないので診断変数として省略する。
+
+\section{水を準定常化すると、一つの式になる}
+水が炭素・環境の変化に比べて十分速く緩和する場合、
+\begin{equation}
+W_q=\frac{P}{e+\kappa C^2},\qquad
+\boxed{\dot C=\frac{\eta P\kappa C^2}{e+\kappa C^2}-mC.}\label{eq:scalar}
+\end{equation}
+\src{式\eqref{eq:parent}から$\dot W=0$を用いた本稿の導出。準定常水の時間尺度は$\tau_W=(e+\kappa C^2)^{-1}$。}
+これは「水が重要でない」近似ではなく、水の独立した記憶を捨て、水の制限を非線形関数に残す近似である。
+準定常版では$P=eW_q+U$という代数的収支を使う。診断値$W_q(t)$自体は変化するので、
+その時間微分まで含む厳密な貯留収支を満たすとは主張しない。水貯留の過渡収支が必要なら
+式\eqref{eq:parent}へ戻る。準定常版での転換は、水の記憶ではなく水を介した非線形性による。
+環境を固定した正の平衡は
+\begin{equation}
+C_\pm=\frac{\eta P\pm\sqrt{(\eta P)^2-4m^2e/\kappa}}{2m}.
+\label{eq:rootsphysical}
+\end{equation}
+$(\eta P)^2>4m^2e/\kappa$のとき$C=0$と$C_+$が安定、$C_-$が不安定であり、
+$C_-$が両者の吸引域の境界になる。境界より上なら森林へ、下なら低植生へ向かう。
+等号で正の平衡が衝突するのが静的なサドルノード分岐である。
+
+\subsection{否定結果：降水だけの単調減少では起こらない}
+$e,\kappa,m,\eta$を一定とし、$P(t)$のみを単調に減らす。
+全期間で正の二平衡が残り、初期値を$C_+(P(0))$とする。
+$C_+(P)$は$P$に対して増加するから、$C_+(P(t))$は下へ動く。
+仮に軌道がこの安定平衡を上から下へ横切ろうとする時刻では
+\begin{equation}
+\left.\frac{\dd}{\dd t}\{C-C_+(P(t))\}\right|_{C=C_+}
+=-\frac{\dd C_+(P(t))}{\dd t}\geq0.
+\end{equation}
+したがって横切れず、常に$C(t)\geq C_+(P(t))>C_-(P(t))$となる。
+段階的な降水減少でも、更新時に安定平衡が下がるので同じ結論になる。
+\textbf{この1状態モデルでは、降水減少を速めるだけではR-tippingにならない。}
+静的限界を越えて枯れるならB-tippingである。
+この否定結果を無視して死亡関数の係数を調整し、R-tippingと呼ぶべきではない。
+
+\section{解析できるR-tipping：維持の閾値が上へ動く環境経路}
+\subsection{環境経路を明示する}
+\begin{equation}
+C_0=\sqrt{e_0/\kappa},\quad P=P_0\lambda,
+\quad e=e_0\lambda^2,\quad
+c=C/C_0,\quad a=\eta P_0/(mC_0)>2.
+\label{eq:path}
+\end{equation}
+\src{解析のため本稿で選んだ環境経路。VISIT、SurEau、Klausmeier原典の気候変化シナリオではない。}
+降水は$\lambda$倍、水が利用されずに失われる係数は$\lambda^2$倍になる。
+同じ植生量では水が利用しにくくなり、それを補うにはより大きな植生量が必要となる。
+ただし\textbf{これは降水減少ではなく、降水増加と水損失増加の組合せ}である。
+$e$を気温やVPDに直接同一視せず、その変化を代表する有効係数と考える。
+温暖化した森林で実際にこの経路に近づくかは、別途気象・水文データから検証する。
+
+式\eqref{eq:scalar}は
+\begin{equation}\boxed{
+\dot c=mc\left(\frac{a\lambda c}{\lambda^2+c^2}-1\right).
+}\label{eq:main}
+\end{equation}
+に簡約される。固定環境の平衡は
+\begin{equation}
+c_0^*=0,\qquad c_-^*(\lambda)=\lambda x_-,\qquad
+c_+^*(\lambda)=\lambda x_+,\qquad
+x_\pm=\frac{a\pm\sqrt{a^2-4}}2,quad x_-x_+=1.
+\end{equation}
+正の平衡での固有値は
+\begin{equation}
+f_c(c_\pm^*,\lambda)=m\frac{1-x_\pm^2}{1+x_\pm^2}.
+\label{eq:stability}
+\end{equation}
+$x_+>1>x_-$より、森林平衡はすべての$\lambda>0$で安定、境界は不安定である。
+しかも固有値は$\lambda$によらない。この環境経路上に静的な分岐はない。
+
+\subsection{移動する基準から見ると、速さが式に現れる}
+環境を初期に$\lambda=1$で固定し、$t=0$で移動を始め、$t=T$で止める。
+\begin{equation}
+\lambda(t)=\begin{cases}1,&t\leq0,\\e^{rt},&0<t<T,\\\Lambda,&t\geq T,\end{cases}
+\qquad T=\frac{\log\Lambda}{r},\quad r>0,\quad c(0)=x_+.
+\end{equation}
+途中では$x=c/\lambda$とおくと
+\begin{equation}\boxed{
+\dot x=x\left[m\left(\frac{ax}{1+x^2}-1\right)-r\right].
+}\label{eq:moving}
+\end{equation}
+$-rx$は追加の枯死ではなく、移動座標に伴う項である。
+大きくなる維持基準に対して、生きた炭素がどれだけ遅れるかを表している。
+関数$x/(1+x^2)$の最大値は$x=1$で$1/2$なので、
+\begin{equation}
+r_\infty=m\left(\frac a2-1\right)
+\label{eq:infinite}
+\end{equation}
+を境に移動座標系の正の平衡が消える。
+$r<r_\infty$なら正の平衡は
+\begin{equation}
+x_{r,\pm}=\frac{a\pm\sqrt{a^2-4(1+r/m)^2}}{2(1+r/m)}.
+\end{equation}
+初期$x_+$は移動座標の安定な$x_{r,+}>1$へ近づき、$x_-<1$を下回らない。
+$r=r_\infty$でも$x=1$へ上から漸近する。$r>r_\infty$ではすべての$x>0$で$\dot x<0$となる。
+ここでの分岐は\emph{移動座標系}の分岐であり、式\eqref{eq:stability}の
+元の固定環境系が安定性を失ったわけではない。
+
+\subsection{有限の環境変化には、もう一つ条件が要る}
+「$r>r_\infty$なら必ず枯れる」は、有限の環境変化には正しくない。
+途中で変化が止まれば回復できる場合がある。
+環境を止めた時の吸引域から、R-tippingの必要十分条件は
+\begin{equation}
+c(T)<\Lambda x_-\quad\Longleftrightarrow\quad x(T)<x_-.
+\label{eq:basin}
+\end{equation}
+$r>r_\infty$では式\eqref{eq:moving}を変数分離でき、$x_+$から$x_-$へ到達する時間は
+\begin{equation}
+t_{\rm cross}(r)=\int_{x_-}^{x_+}
+\frac{\dd x}{x\{r+m-ma x/(1+x^2)\}}.
+\label{eq:integral}
+\end{equation}
+したがって有限変化の正確な判定は
+\begin{equation}\boxed{
+r>r_\infty\quad\text{かつ}\quad
+\log\Lambda>\mathcal S(r),\qquad
+\mathcal S(r)=\int_{x_-}^{x_+}
+\frac{r\,\dd x}{x\{r+m-ma x/(1+x^2)\}}.
+}\label{eq:criterion}
+\end{equation}
+等号では変化終了時に不安定平衡に乗る。有限の丸め誤差で左右へ分かれるため、
+数値的な「臨界点」の終点だけを長期積分して結果を決めない。
+環境経路の角を滑らかにした場合も、境界から十分離れた転換・回復の結果が保たれるかを別に確認する。
+
+\paragraph{有限臨界速度の存在と一意性。}
+$g(x)=m\{ax/(1+x^2)-1\}$は$(x_-,x_+)$で正であり、
+$\mathcal S(r)=\int r/[x(r-g(x))]\dd x$。
+被積分関数の$r$微分は$-g(x)/[x(r-g(x))^2]<0$だから$\mathcal S$は狭義単調減少する。
+さらに
+\begin{equation}
+\lim_{r\downarrow r_\infty}\mathcal S(r)=\infty,\qquad
+\lim_{r\to\infty}\mathcal S(r)=\log(x_+/x_-).
+\end{equation}
+前者は$x=1$付近の分母が0に近づくため、後者は被積分関数が$1/x$に近づくためである。
+従って
+\begin{equation}\boxed{
+\Lambda>\frac{x_+}{x_-}\ \Longrightarrow\
+\mathcal S(r_{\rm crit})=\log\Lambda\text{ を満たす一意な }r_{\rm crit}>r_\infty\text{ が存在する。}}
+\end{equation}
+$r>r_{\rm crit}$で転換、$0<r<r_{\rm crit}$で回復する。
+$\Lambda\leq x_+/x_-$なら、どんな有限速度でも転換しない。
+非常に速い変化では炭素がほぼ動かず、初期森林$x_+$が最終境界$\Lambda x_-$より
+下に取り残される、という幾何学的説明とも一致する。
+これらは本稿の特定の式・経路についての導出であり、一般モデル共通の臨界速度公式ではない。
+
+\section{数値例：月更新・年更新で同じ判定を得る}
+\subsection{解析値と軌道}
+数値例は$a=2.05$、$m=0.1$ yr$^{-1}$、$\Lambda=2$とする。
+$x_-=0.8$、$x_+=1.25$、$\Lambda>x_+/x_-=1.5625$を満たす。
+\begin{align}
+r_\infty&=0.0025\ {\rm yr}^{-1},\\
+r_{\rm crit}&=0.00507617318728\ {\rm yr}^{-1},\\
+T_{\rm crit}&=\log2/r_{\rm crit}=136.5491592\ {\rm yr}.
+\end{align}
+相対変化速度の約0.508\%/年という値は\textbf{解析例の値であり森林の予測値ではない}。
+有限終点までの変化が短い、すなわち速い方で転換する。
+\begin{center}
+\begin{tabular}{llll}
+\toprule $r$ [yr$^{-1}$] & 移動期間[年] & $x(T)-x_-$ & 最終状態\\\midrule
+0.003 & 231.0491 & $+0.1987534$ & 森林へ回復、$c\to2.5$\\
+0.010 & 69.3147 & $-0.1389388$ & 低植生へ、$c\to0$\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../artifacts/minimal_water_tipping/scalar_rate_tipping.pdf}
+\caption{同じ環境経路・始点・終点で速さだけを変えた解析例。右は非自律軌道の環境経路への表示であり、自律系の相図ではない。破線は安定森林平衡、点線は吸引域境界。速い変化では境界の下へ移る。}
+\end{figure}
+比較では初期状態、最終環境、関数、全係数をそろえる。環境停止後の吸引域で判定するので、
+長い過渡応答を枯死と誤認していない。
+一方、移動期間が異なるので、その間の積算降水や積算損失係数は等しくない。
+\begin{equation}
+\int_0^T P/P_0\,\dd t=\frac{\Lambda-1}{r},\qquad
+\int_0^T e/e_0\,\dd t=\frac{\Lambda^2-1}{2r}.
+\end{equation}
+この積算値も再現用JSONへ記録する。「積算曝露まで一定の実験」とは呼ばない。
+本例のR-tippingの根拠は、積算値の差だけでなく、全経路の森林安定性、
+有限速度の必要十分条件、最終吸引域が解析的に示せることにある。
+さらに、$s=t/T$として$\log\lambda=\log\Lambda(3s^2-2s^3)$とする滑らかな移動も確認した。
+同じ移動期間の遅い例・速い例で、それぞれ$x(T)-x_-=+0.14817,-0.19805$となり、
+回復・転換の区別は保たれた。ただし瞬間の相対速度は一定でなくなり、
+式\eqref{eq:criterion}の数値閾値をそのまま適用することはできない。
+
+\subsection{月次・年次の状態写像}
+本稿は日々の気象や葉水理を裏で追加しない。
+月または年の間の環境変化を式\eqref{eq:path}で補間し、
+式\eqref{eq:moving}の期間$\Delta$の流れを$\Phi_r^\Delta$と書けば、
+\begin{equation}\boxed{
+\lambda_{n+1}=e^{r\Delta}\lambda_n,\qquad
+c_{n+1}=\lambda_{n+1}\Phi_r^\Delta(c_n/\lambda_n).
+}\label{eq:map}
+\end{equation}
+これが月更新・年更新の定義である。環境停止をまたぐ区間はそこで分割し、停止後は$r=0$とする。
+$\Phi$は一変数の数値積分で高精度に評価する。内部の数値評価点は日過程の追加ではなく、
+月・年の写像を正確に求めるための計算点である。
+流れの合成則$(\Phi_r^{1/12})^{12}=\Phi_r^1$により、同じ補間を用いる月更新と年更新は一致する。
+\begin{center}
+\begin{tabular}{ll}
+\toprule 判定方法 & $r_{\rm crit}$ [yr$^{-1}$]\\\midrule
+変数分離の積分式 & 0.0050761731872807\\
+1年ごとの写像と終点境界探索 & 0.0050761731872807\\
+1か月ごとの写像と終点境界探索 & 0.0050761731872805\\\bottomrule
+\end{tabular}
+\end{center}
+これに対し、月初の外力を1か月固定する方式は別の外力近似であり、上の一致をそのまま主張できない。
+月平均値しかない場合には、補間仮定を宣言し、その感度を調べる必要がある。
+さらに1回の前進Euler更新は別の近似で、固定平衡の乗数が$1+\Delta f_c$となる。
+$|1+\Delta f_c|>1$なら、ODEが安定でも離散化で不安定になり得る。
+本稿の臨界速度はその人工的な不安定化ではない。
+離散写像と連続系でR-tippingの条件が異なることはKiers\cite{kiers}も論じている。
+
+\subsection{森林の時間尺度に読み替えるときの注意}
+同じ$a,\Lambda$なら$r_{\rm crit}/m$は一定なので、$m=0.02$ yr$^{-1}$なら
+$T_{\rm crit}$は約682.75年へ延びる。月次出力にしただけで月スケールの枯死が出るわけではない。
+本例の定数枯死だけで現実の急激な干ばつ枯死を説明するのは難しい可能性がある。
+また$C_0=100$ MgC ha$^{-1}$、$\eta=0.02$ MgC ha$^{-1}$ mm$^{-1}$、$e_0=12$ yr$^{-1}$と
+\emph{例示的に}置くと、$P_0=1025$ mm yr$^{-1}$となり、経路終点は降水2倍・水損失係数4倍である。
+この大きな変化と強い密度依存を正当化できるかが、理論例から森林研究へ進む際の課題となる。
+
+\section{降水減少だけを扱うなら、水の記憶を戻す}
+\subsection{2状態の最小モデルと安定性}
+式\eqref{eq:parent}で$e=e_0$を一定とし、$C_0=\sqrt{e_0/\kappa}$、
+$w=\eta e_0W/(mC_0)$、$a(t)=\eta P(t)/(mC_0)$とおく。
+\begin{equation}\boxed{
+\dot c=m(wc^2-c),\qquad
+\dot w=e_0\{a(t)-(1+c^2)w\}.
+}\label{eq:dynamic}
+\end{equation}
+平衡は$(0,a)$および$(c_\pm,1/c_\pm)$で、$c_\pm=(a\pm\sqrt{a^2-4})/2$。
+正の平衡のヤコビ行列は
+\begin{equation}
+J=\begin{pmatrix}m&mc_\pm^2\\-2e_0&-e_0(1+c_\pm^2)\end{pmatrix},\quad
+\det J=me_0(c_\pm^2-1),\quad
+\operatorname{tr}J=m-e_0(1+c_\pm^2).
+\end{equation}
+下側は鞍点、上側は$m/e_0<1+c_+^2$なら安定である。特に$m/e_0<2$なら$a>2$の全範囲で上側は安定。
+正の状態領域は不変である。$c=0$では$\dot c=0$、$w=0$では$\dot w=e_0a>0$となる。
+また$z=c+(m/e_0)w$について
+\begin{equation}
+\dot z=m(a-c-w)\leq ma-\min(m,e_0)z
+\end{equation}
+なので、有界な降水に対して状態が無限大へ発散する例でもない。
+
+水の平衡$w_q=a/(1+c^2)$より実際の水が下回ると、
+準定常モデルより生産が小さくなる。降水が急減すると、過去の環境に対応した大きな植生量と
+少ない水量の組合せが残り、水・炭素の過渡応答が鞍点の安定多様体を越え得る。
+この2次元系の吸引域境界は一般に$c=c_-$という直線ではない。
+
+\subsection{今回確認した条件付きの数値例}
+時間を水の損失時間$1/e_0$で測り、$e_0=1$、$m=1.8$とする。
+$a$を10から2.002まで直線的に減らし、その後150時間単位固定する。
+始点は初期森林平衡とする。固定系は全経路で安定森林を持つ。
+最終森林は$(1.04573254,0.95626746)$、鞍点は$(0.95626746,1.04573254)$である。
+\begin{center}
+\begin{tabular}{llll}
+\toprule 移動期間 & 動的水の最終$c$ & 準定常水の最終$c$ & 動的水の判定\\\midrule
+100 & 約$3.3\times10^{-111}$ & 約1.045733 & 低植生側\\
+1000 & 約1.04573254 & 約1.045733 & 森林へ回復\\\bottomrule
+\end{tabular}
+\end{center}
+準定常水との比較では、同じ炭素過程・降水経路・初期森林を使い、水の記憶だけを変えている。
+最終環境の領域
+\begin{equation}
+\mathcal R=\{0<c<1/a_f,\quad 0<w\leq a_f\},\qquad a_f=2.002
+\end{equation}
+は低植生側の十分条件になる。この領域では$wc<1$で炭素が減り、
+$w=a_f$の境界では$\dot w=-e_0a_fc^2<0$なので外へ出ない。
+最初の$c$を$c_b<1/a_f$とすれば$\dot c\leq-m(1-a_fc_b)c$、従って$c\to0$である。
+速い例の最終状態はこの領域に入っており、単なる長い過渡応答ではないことを確認した。
+これは十分条件領域への数値的な到達確認であり、全吸引域の厳密な区間演算証明ではない。
+遅い例は安定森林の近傍へ収束した。全速度での一意な臨界値は、この2状態例ではまだ証明していない。
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../artifacts/minimal_water_tipping/dynamic_water_tipping.pdf}
+\caption{降水移動終了後の応答。赤が短い移動期間、青が長い移動期間。右は最終環境での状態軌道。
+白点は鞍点、黒点は安定森林。灰色は$w<a_f$の表示範囲における低植生吸引域の十分条件であり、全境界ではない。}
+\vspace{-1ex}\par{\small 色付きの点は移動終了後0,5,10時間単位、矢印は時間の向きを示す。}
+\end{figure}
+
+\paragraph{この例を過大評価してはいけない理由。}
+終点は静的限界$a=2$よりわずか0.1\%上であり、$m/e_0=1.8$は炭素損失が水の緩和に対して速い設定である。
+成熟した森林の通常のターンオーバーでは、水の方がずっと速い可能性がある。
+この条件をそのまま森林へ当てはめて、R-tippingが一般的に起こるとは言えない。
+本例は「最小2状態で可能」という存在例であって「現実的な森林パラメータで頑健」という結果ではない。
+最初の粗い探索で$m/e_0=0.1,0.45,1$等も調べたが、同じ終点近傍への急変で転換は確認できなかった。
+探索で起きなかったことは、その全パラメータ範囲での不可能性の証明ではない。
+また降水を$a(t)=a_0+(a_f-a_0)(3s^2-2s^3)$という端点で滑らかな形に替えると、
+移動期間100では森林へ回復し、移動期間10では低植生へ移った。
+従って、端点の角だけで転換が生じたわけではないが、\textbf{移動の形によって転換条件は変わる}。
+始点・終点と平均速度だけから、あらゆる気象経路に共通な臨界値は定まらない。
+この感度も再現用スクリプトと試験に含める。
+
+\section{枯死を水分依存に拡張するなら}
+現実の干ばつ枯死を表す次の候補は、式\eqref{eq:parent}の$m$を
+\begin{equation}
+m(W)=m_0+\frac{m_d}{1+(W/W_d)^h},\quad
+m_0>0,\quad m_d\geq0,\quad W_d>0,\quad h>0
+\label{eq:mortality}
+\end{equation}
+へ置き換えることである。$m_0,m_d$はyr$^{-1}$、$W_d$はmm、$h$は無次元。
+\src{本稿の未較正の候補関数。VISITaの枯死式の転記ではない。}
+これは水が少ないほど枯死が増える滑らかな関数で、パラメータも少ない。
+ただし$m(W)$へ替えた後に、式\eqref{eq:criterion}の臨界速度を使い回してはいけない。
+平衡・ヤコビ行列・吸引域を再計算し、全経路の安定森林を確認する必要がある。
+月・年の記憶が水量だけで不足する場合に初めて、損傷や更新能力を第3の能動状態として検討する。
+損傷蓄積や一度越えたら死亡するスイッチを先に導入すると、
+一時的な閾値越えをR-tippingと呼んでしまいやすい。
+有限の生長・再生時間と最終吸引域で判定できるモデルを先に用意する。
+
+\section{VISITaの確認結果：月次過程の参考として}
+今回確認した版は\code{visit-manager/VISITa}のコミット
+\code{5c513196f21c1b1efb9ead540e3d40865b15e07e}である。
+VISITcとは別の版として扱い、本稿の解析用係数は移植していない。
+\begin{longtable}{p{.35\linewidth}p{.58\linewidth}}
+\toprule 原典ファイル・行 & 確認内容\\\midrule\endhead
+\code{README.md} 13行、\code{setting.h} 26--29行 & 全球版・月次の説明、\code{ASTEP=12}。\code{DSTEP=24}も存在し、全内部計算が月1評価だけという意味ではない。\\
+\code{cal_gcmclim2.c} 125--169行 & 月ループで\code{grid->m}を更新し、環境更新を呼ぶ経路を確認。全実行設定の検証ではない。\\
+\code{hydrology.c}, \code{f_waterbudget}, 16--154行 & 積雪と2土壌水区画の月次逐次更新。67行で基底流を控除し、93行の下側更新後に95行で報告流出へ加える。VISITcの日関数と同じ二重控除とは扱わない。\\
+\code{litterfall.c}, \code{f_mortality}, 15--36行 & 温度係数と実験用水分係数から葉・幹・根のターンオーバー係数を作る。\\
+\code{setting.h} 916--918行 & \code{EX_DROUGHT_MOTAL=0}。干ばつ枯死とコメントされた実験分岐は、このヘッダでは無効。\\
+\code{forestpro.c}, \code{greenperiod}, 59--81行 & 日数\code{MDN}を掛けてリター量を求め、生体から控除する月更新。続いて生産を計算。\\
+\code{ecophysiology.c} 143--144行 & ターンオーバー係数を作る\code{f_mortality}の呼出し。\\
+\bottomrule
+\end{longtable}
+\src{原典URL：\url{https://github.com/visit-manager/VISITa/tree/5c513196f21c1b1efb9ead540e3d40865b15e07e}。ソースの読取り監査のみ。全球モデルは実行していない。}
+実験分岐の演算は
+\begin{equation}
+f_{\rm drt}=1-0.001(100-W)\quad (W<100\ {\rm mm})
+\end{equation}
+であり、有効にすると$0\leq W<100$の範囲で係数は1から0.9へ\emph{小さくなる}。
+\code{litterfall.c} 33--35行で基準ターンオーバーへ掛かり、同47,61,75行で炭素量に掛かるので、
+字面どおりには乾燥でターンオーバーを弱める方向である。
+「干ばつで枯死が増える式」として採用することはできない。コメントから意図を推定して符号を直すこともしない。
+この確認は今回の最小モデルがVISIT由来であるという誤解を避けるためにも重要である。
+
+\section{検討の記録と次の判断}
+\begin{longtable}{p{.25\linewidth}p{.36\linewidth}p{.32\linewidth}}
+\toprule 候補 & 今回の結果 & 判断\\\midrule\endhead
+線形水利用＋枯死 & 正の最終平衡の吸引域が全正領域 & 永続的R-tippingの対照モデル\\
+$WC^2$水利用＋準定常水、降水だけ減少 & 平衡の順序から境界を越えられない & 単なる乾燥強化のR-tippingは否定\\
+同じ1状態、降水と損失の同時移動 & 有限変化の臨界速度を解析導出、月・年写像で一致 & 理論の最小基準として採用。気候経路は仮説\\
+動的水の2状態、降水だけ減少 & 最終森林が残るのに速い例だけ低植生へ & 条件付き存在例。近分岐・時間尺度の留保\\
+水分依存枯死を追加 & 関数形を提示、転換条件は未検証 & 次の実証・感度分析候補\\
+\bottomrule
+\end{longtable}
+次に進むなら、枯死関数をすぐ複雑化するより、まず対象森林に次の二点があるかを調べたい。
+第一に、低い生体炭素量からの更新を阻む正の密度依存があるか。
+第二に、月・年の炭素応答と競合する水または損傷の緩和時間があるか。
+両方が支持されれば2状態モデルを主軸にできる。支持されなければ、
+無理にR-tippingを作らず、有限の炭素損失・回復時間の研究へ戻るのが妥当である。
+
+本稿は季節周期ではなく、平均環境の移動に対する平衡追随を扱った。
+月別の季節性を導入する場合は一年周期軌道の吸引域を基準に再解析する。
+年平均化が閾値を保存する保証はなく、日干ばつ死亡の観測をそのまま年係数へ置き換えることもできない。
+
+\appendix
+\section{再現手順と検証範囲}
+\begin{verbatim}
+python -m pytest tests/test_minimal_water_tipping.py -q
+python examples/analyze_minimal_water_tipping.py
+cd docs
+lualatex -interaction=nonstopmode -halt-on-error water_tipping_minimal.tex
+lualatex -interaction=nonstopmode -halt-on-error water_tipping_minimal.tex
+\end{verbatim}
+図と集計値は\code{artifacts/minimal_water_tipping/}へ出力する。
+\code{summary.json}には臨界速度、月・年写像での照合、終点境界からの距離、
+動的水と準定常水の比較、積算外力、VISITaの参照コミットを含む。
+図の生成にはmatplotlibを用いる。PDFはLuaLaTeXとLuaTeX-jaで生成する。
+キャッシュに書き込めない環境の指定方法は既存の
+\code{carbon_water_matrix_report_build.md}と同じである。
+
+専用試験では平衡残差、安定性、非負領域の境界、炭素・水収支、
+結合ヤコビ行列、有限臨界速度、1年写像と12か月写像の合成、
+元の炭素ODEと移動座標式の一致、長時間の行先、数値許容誤差への頑健性を確認する。
+既存のVISITc実装や8状態モデルの係数は変更していない。
+これは既存の実モデルでのR-tipping検証ではなく、独立した解析用ベンチマークの追加である。
+今回の検証結果は専用試験11件、リポジトリ全体129件の成功である。
+
+\begin{thebibliography}{9}
+\bibitem{ashwin} Ashwin, P., Perryman, C., and Wieczorek, S. (2017).
+Parameter shifts for nonautonomous systems in low dimension: bifurcation- and rate-induced tipping.
+\textit{Nonlinearity}, 30, 2185--2210.
+\url{https://doi.org/10.1088/1361-6544/aa675b};
+著者公開版\url{https://arxiv.org/abs/1506.07734}.
+低次元系の追随・吸引域に関する理論的背景。本稿の有限積分式は独自に導出した。
+\bibitem{feudel} Feudel, U. (2023).
+Rate-induced tipping in ecosystems and climate: the role of unstable states, basin boundaries and transient dynamics.
+\textit{Nonlinear Processes in Geophysics}, 30, 481--502.
+\url{https://doi.org/10.5194/npg-30-481-2023}.
+吸引域の境界と過渡応答の区別の背景。
+\bibitem{siero} Siero, E., Siteur, K., Doelman, A., van de Koppel, J., Rietkerk, M., and Eppinga, M. B. (2019).
+Grazing Away the Resilience of Patterned Ecosystems.
+\textit{The American Naturalist}, 193, 472--480.
+\url{https://doi.org/10.1086/701669}.
+参照箇所：付録(A1),(A6)。本稿では空間過程と摂食を除き、森林炭素への解釈を区別する。
+\bibitem{kiers} Kiers, C. (2020).
+Rate-Induced Tipping in Discrete-Time Dynamical Systems.
+\textit{SIAM Journal on Applied Dynamical Systems}.
+\url{https://doi.org/10.1137/19M1276297};
+著者公開版\url{https://arxiv.org/abs/1907.11601}.
+離散化によって転換条件が変わり得ることの背景。
+\bibitem{luo} Luo, Y. et al. (2022).
+Matrix Approach to Land Carbon Cycle Modeling.
+\textit{Journal of Advances in Modeling Earth Systems}, 14, e2022MS003008.
+\url{https://doi.org/10.1029/2022MS003008}. Box 1式(B1)。
+\bibitem{visita} visit-manager/VISITa.
+\url{https://github.com/visit-manager/VISITa/tree/5c513196f21c1b1efb9ead540e3d40865b15e07e}.
+2026年9月15日取得・原典照合。関数・行番号は第8節。
+\end{thebibliography}
+\end{document}
