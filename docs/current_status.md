@@ -1,5 +1,48 @@
 # Current implementation status
 
+## Native summer-state checkpoint (2026-09-21)
+
+- Latest workbook: `artifacts/visit_matrix_workbook/VISIT_TKY_matrix_equations_native_20000715.xlsx`.
+- Pinned 2013 source run from spinup with supplied TKY data; all 37 states and
+  15 history variables populated for the start of 2000-07-15.
+- Missing inputs: 70 -> 2; both remaining values are undefined source diagnostics.
+- Native versus workbook one-day update: 37/37 states, max scaled error 5.44e-16.
+- Corrected workbook runtime capacities: upper 104.810272811 mm and deep
+  704.059727189 mm after Saxton overwrite, rather than raw Config 64.21/808.87.
+- Native vapor pressure follows a source `strcmp` comparison omission; retained
+  for exactness and documented rather than silently repaired.
+- Full repository verification: 163 passed, 7 skipped.  The skipped cases are
+  optional native/dependency paths, not failures of the generated workbook.
+
+## Summer forcing import checkpoint (2026-09-17)
+
+- New dated workbook: `artifacts/visit_matrix_workbook/VISIT_TKY_matrix_equations_20000715.xlsx`.
+- Reference 2000-07-15, actual supplied visitb meteorology/deposition/GHG;
+  24 inputs resolved, missing scalar inputs 70 → 46. Forty-one sheets.
+- Ten history values reconstructed from prior temperature with unknown initial
+  memory; only values fixed by resets are admitted. No arbitrary zero fill.
+- Summer stocks unavailable: daily output contains fluxes, not pool states.
+  Twenty-one spinup-end restart stocks are shown separately, never adopted as summer X.
+- Pinned Config/model retained. Source differences and humidity inconsistency
+  are documented in the workbook and `docs/visit_matrix_workbook.md`.
+- New import tests and the existing workbook tests: 16 passed. Excel application
+  recalculation remains untested; generation checks formula caches and structure.
+- Full test suite after import changes: 162 passed, 7 skipped.
+
+## TKY C/N/water Excel checkpoint (2026-09-17)
+
+- Delivered workbook target: `artifacts/visit_matrix_workbook/VISIT_TKY_matrix_equations.xlsx`.
+- Japanese guide and exact scope: `docs/visit_matrix_workbook.md`.
+- Selected old `visit_local` daily pathway (`FLUX_SCHEME=0`), TKY DBF,
+  37 states / 132 fluxes / B(37×78), plus phenology and previous-day gc memory.
+- Includes real, acyclic Excel formulas, cached results, Config_TKY defaults,
+  source function/line provenance, C/N/water budgets and explicit missing inputs.
+- Seven artificial cases / 1,379 native-C comparisons agree at rounding scale;
+  13 dedicated tests pass. Full driver, all branches, unresolved diagnostics,
+  and actual Excel-engine recalculation are outside this verification.
+- This transcribes the daily plant--NSC loop for inspection. It does not itself
+  establish an attracting alternative trajectory or validate an ODE embedding.
+
 ## Capacity/QSE exploration checkpoint (2026-09-17)
 
 - `capacity_qse_attractor_exploration.tex` derives the nonlinear capacity map

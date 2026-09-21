@@ -19,6 +19,7 @@ control-carbon-era5 = "control_carbon.era5_cli:main"
 dev = ["pytest>=7"]
 era5 = ["cdsapi>=0.7", "h5py>=3.8"]
 analysis = ["matplotlib>=3.8"]
+workbook = ["openpyxl>=3.1"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

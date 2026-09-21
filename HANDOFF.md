@@ -1,5 +1,37 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-21 native-state follow-up: pinned 2013 VISIT was compiled and run
+> with supplied TKY forcing/deposition/GHG and reconstructed text parameters.
+> `VISIT_TKY_matrix_equations_native_20000715.xlsx` now has all 37 start states,
+> 15 histories and post-location forcing for 2000-07-15. Missing inputs fell
+> 70 -> 2 (only two source-undefined diagnostics). All 37 one-day endpoints
+> match native C, maximum scaled error 5.44e-16. Runtime Saxton capacities
+> replace raw Config capacities (104.8103 / 704.0597 mm). Native execution also
+> exposed a missing `==0` in a `strcmp` vapor-pressure branch; actual TKY vp is
+> retained and flagged. See `docs/visit_native_snapshot_20000715.md`.
+
+> 2026-09-17 actual-data follow-up: summer snapshot workbook
+> `artifacts/visit_matrix_workbook/VISIT_TKY_matrix_equations_20000715.xlsx`.
+> `visit_workbook_data.py` imports supplied visitb data read-only, retaining the
+> pinned equations/Config. 24 of 70 missing inputs resolved (14 forcing/aggregate
+> inputs, 10 histories reconstructed with initially unknown memory); 46 remain.
+> All 37 summer states remain unknown. The 21 spinup-end restart stocks are a
+> separate reference sheet, not substituted into summer X. New sheets 06–08
+> record conversion, provenance, restart and SHA256 comparisons. Older template
+> remains unchanged. Source-version differences in mean-temperature period,
+> annual-rain accumulation and VPD branch are documented; pinned rules win.
+
+> 2026-09-17 TKY matrix workbook: see `docs/visit_matrix_workbook.md`.
+> User-requested Excel audit covers the selected old `visit_local` daily
+> C/N/water path with 37 states, 132 flux channels and a 37×78 B matrix.
+> Config_TKY defaults are imported; actual states/weather/history remain blank.
+> `visit_workbook.py`, `_export.py`, `_validation.py` generate real Excel formulas,
+> cached values and source/unknown inventories. Seven artificial cases match
+> 1,379 native-C values to rounding error; 13 dedicated tests pass. It is a
+> source-order daily effective-rate representation, not a continuous VISIT ODE
+> or the 30-minute pathway. Native baseflow/N-unit/undefined-gas issues are
+> exposed, not silently fixed. Excel-application recalculation remains untested.
+
 > 2026-09-17 capacity/QSE exploration: `docs/capacity_qse_attractor_exploration.*`
 > derives the state-dependent capacity map, its self-consistency equation, and
 > the full-equilibrium Jacobian `J=M(I-D capacity)`. A model-agnostic positive
