@@ -1,6 +1,6 @@
 # Literature index: matrix land-carbon models and explicit water dynamics
 
-Last verified: 2026-09-17. Prefer DOI and publisher links because local PDFs
+Last verified: 2026-09-22. Prefer DOI and publisher links because local PDFs
 may differ by accepted-manuscript or typeset version. A local copy is listed
 only when it is present in `docs/` and redistribution appears permitted.
 
@@ -42,6 +42,11 @@ the canonical article is at
 
 ## Tipping and nonautonomous tracking
 
+The new temperature–precipitation factorial track is specified in
+[`temperature_precipitation_tipping_research_plan.md`](temperature_precipitation_tipping_research_plan.md).
+It uses a four-carbon/one-water theoretical model and must remain distinct from
+the native VISIT audits and the eight-state explicit-SPAC synthesis.
+
 The current capacity-focused synthesis is in
 [`capacity_qse_attractor_exploration.tex`](capacity_qse_attractor_exploration.tex),
 with the VISIT equation screen in
@@ -64,6 +69,18 @@ The new benchmark is independent of the native VISIT adapters.
 | Ashwin, Perryman & Wieczorek (2017), parameter shifts | [Author version](https://arxiv.org/abs/1506.07734), [DOI](https://doi.org/10.1088/1361-6544/aa675b) | Low-dimensional tracking and basin-stability background; the new finite-ramp integral is derived separately in the TeX |
 | Siero et al. (2019), Grazing Away the Resilience of Patterned Ecosystems | [Primary article](https://doi.org/10.1086/701669), Appendix A1/A6 | Source for the Klausmeier-family water uptake structure, with grazing and spatial terms removed; not forest parameter calibration |
 | Kiers (2020), Rate-Induced Tipping in Discrete-Time Dynamical Systems | [Author version](https://arxiv.org/abs/1907.11601), [DOI](https://doi.org/10.1137/19M1276297) | Why a discrete update must be specified rather than assumed equivalent to the ODE |
+
+## Temperature, drought, and tropical-forest mortality
+
+| Reference | Primary link | Use here | Constraint |
+|---|---|---|---|
+| Huntingford et al. (2017), improved plant respiration | [Open article](https://doi.org/10.1038/s41467-017-01774-z) | Instantaneous respiration response and acclimation alternative to fixed Q10 | Leaf-to-whole-plant aggregation remains model dependent |
+| O'Sullivan et al. (2017), thermal limits across biomes | [DOI](https://doi.org/10.1111/gcb.13477) | Tcrit/Tmax variation and thermal-safety-margin context | Short heat assays are not monthly mortality functions |
+| Faber et al. (2024), thermal death time in plants | [DOI](https://doi.org/10.1093/jxb/erae096) | Temperature-duration damage accumulation for a later daily extension | Do not reconstruct acute dose from monthly means |
+| Aleixo et al. (2019), Amazon tree mortality | [Article](https://doi.org/10.1038/s41558-019-0458-0) | Observational evidence that drought and heat are associated with mortality and delayed effects | Does not uniquely identify an ODE mortality law |
+| Nepstad et al. (2002), partial throughfall exclusion | [DOI](https://doi.org/10.1029/2001JD000360) | Eastern-Amazon experimental context for rainfall reduction | Early response paper, not a complete mortality calibration |
+| Rowland et al. (2015), tropical drought death | [Article](https://doi.org/10.1038/nature15539) | Hydraulic constraint on drought mortality and warning against a carbon-starvation-only mechanism | A one-bucket water state remains phenomenological |
+| Sanchez-Martinez et al. (2025), long-term experimental drought | [Article](https://doi.org/10.1038/s41559-025-02702-x) | Long-term adjustment under Amazon rainfall exclusion | Site response is not a universal tropical parameter set |
 
 The additional sources support `src/control_carbon/minimal_water_tipping.py`,
 `tests/test_minimal_water_tipping.py`, and `examples/analyze_minimal_water_tipping.py`.

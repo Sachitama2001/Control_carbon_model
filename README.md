@@ -1,5 +1,14 @@
 # Control Carbon Model
 
+2026-09-22: Added a
+[temperature–precipitation tipping research plan](docs/temperature_precipitation_tipping_research_plan.md)
+for a deliberately low-dimensional theoretical track. It starts from four
+carbon pools plus one root-zone water store, treats temperature and
+precipitation as the only varying external drivers, and separates quantitative
+compound effects, frozen-system bifurcations, and genuine rate-induced basin
+transitions. It complements rather than replaces the native VISIT audits and
+the eight-state carbon–water ODE.
+
 2026-09-17: Added a [VISIT process screening report](docs/visit_r_tipping_process_screening.md)
 and a [capacity/QSE/attractor exploration](docs/capacity_qse_attractor_exploration.md).
 The latter proves that a state-dependent Luo-style capacity is a map whose

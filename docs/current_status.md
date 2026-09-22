@@ -1,5 +1,21 @@
 # Current implementation status
 
+## Temperature–precipitation theory plan (2026-09-22)
+
+- `temperature_precipitation_tipping_research_plan.md` defines a separate
+  low-dimensional track with leaf, stem, root, and soil carbon plus one
+  root-zone water store;
+- temperature and precipitation are the only varying external inputs, with
+  continuous ODE dynamics and monthly forcing resolution;
+- the experiment design contains baseline, temperature-only,
+  precipitation-only, and combined runs plus pathway-clamped attribution;
+- the plan distinguishes quantitative non-additivity, frozen-system
+  bifurcation, and rate-induced basin transitions;
+- an eastern/southern Amazon seasonal-forest-type idealized site is the first
+  ecological context, not a calibrated site model;
+- no five-state implementation, parameter calibration, or R-tipping result is
+  claimed yet.
+
 ## Native summer-state checkpoint (2026-09-21)
 
 - Latest workbook: `artifacts/visit_matrix_workbook/VISIT_TKY_matrix_equations_native_20000715.xlsx`.

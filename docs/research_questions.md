@@ -2,6 +2,16 @@
 
 This document keeps the implementation tied to the scientific questions.
 
+## New low-dimensional track: temperature–precipitation interaction
+
+The paper-oriented theoretical plan is in
+[temperature_precipitation_tipping_research_plan.md](temperature_precipitation_tipping_research_plan.md).
+It asks whether simultaneous temperature and precipitation change creates
+equilibria, stability boundaries, path dependence, or rate-induced basin
+transitions that are absent when either external driver is fixed. Its initial
+state is four carbon pools plus one root-zone water store. This track does not
+replace the native VISIT audit or the explicit-SPAC carbon–water track.
+
 ## Current focus: explicit water storage in the matrix framework
 
 The active question is whether dynamic water storage and SPAC transport change

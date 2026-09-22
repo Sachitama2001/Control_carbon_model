@@ -1,5 +1,14 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-22 temperature–precipitation plan: see
+> `docs/temperature_precipitation_tipping_research_plan.md`. The new theoretical
+> track starts from four carbon pools plus one root-zone water store, monthly
+> temperature/precipitation forcing, and a four-run factorial design. It keeps
+> quantitative interaction, frozen-system bifurcation, and R-tipping claims
+> separate. It complements rather than replaces the native 37-state workbook,
+> VISITc audit, and eight-state explicit-SPAC model. No implementation or
+> calibration is claimed at this checkpoint.
+
 > 2026-09-21 native-state follow-up: pinned 2013 VISIT was compiled and run
 > with supplied TKY forcing/deposition/GHG and reconstructed text parameters.
 > `VISIT_TKY_matrix_equations_native_20000715.xlsx` now has all 37 start states,

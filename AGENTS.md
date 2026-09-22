@@ -13,17 +13,25 @@ The active scientific question is how dynamic water changes carbon storage
 capacity, signed disequilibrium, and response time. R-tipping is conditional
 and downstream; do not tune the model merely to produce tipping.
 
+A separate paper-oriented low-dimensional track now studies temperature and
+precipitation as the only varying external drivers. Its specification is
+`docs/temperature_precipitation_tipping_research_plan.md`. Keep its
+four-carbon/one-water theoretical model distinct from both native VISIT and the
+eight-state explicit-SPAC synthesis. Quantitative compound effects, frozen
+bifurcations, and genuine rate-induced basin transitions are separate claims.
+
 ## Read first
 
 Before carbon-water coding, read in this order:
 
 1. `docs/carbon_water_research_plan.md`
-2. `docs/coupled_carbon_water_equations.md`
-3. `docs/visitc_carbon_water_source_ledger.md`
-4. `docs/literature_index.md`
-5. `HANDOFF.md`
-6. `docs/current_status.md`
-7. `docs/architecture_and_conventions.md`
+2. `docs/temperature_precipitation_tipping_research_plan.md`
+3. `docs/coupled_carbon_water_equations.md`
+4. `docs/visitc_carbon_water_source_ledger.md`
+5. `docs/literature_index.md`
+6. `HANDOFF.md`
+7. `docs/current_status.md`
+8. `docs/architecture_and_conventions.md`
 
 ## Two VISIT source boundaries
 
