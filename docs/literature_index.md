@@ -42,6 +42,11 @@ the canonical article is at
 
 ## Tipping and nonautonomous tracking
 
+The temperature-only NSC track is specified in
+[`temperature_nsc_r_tipping_research_plan.md`](temperature_nsc_r_tipping_research_plan.md).
+It adapts organ-level NSC bookkeeping to an area-based theoretical model and keeps
+frozen-system multistability, B-tipping, and R-tipping as separate claims.
+
 The new temperature–precipitation factorial track is specified in
 [`temperature_precipitation_tipping_research_plan.md`](temperature_precipitation_tipping_research_plan.md).
 It uses a four-carbon/four-water theoretical model and must remain distinct from
@@ -69,6 +74,15 @@ The new benchmark is independent of the native VISIT adapters.
 | Ashwin, Perryman & Wieczorek (2017), parameter shifts | [Author version](https://arxiv.org/abs/1506.07734), [DOI](https://doi.org/10.1088/1361-6544/aa675b) | Low-dimensional tracking and basin-stability background; the new finite-ramp integral is derived separately in the TeX |
 | Siero et al. (2019), Grazing Away the Resilience of Patterned Ecosystems | [Primary article](https://doi.org/10.1086/701669), Appendix A1/A6 | Source for the Klausmeier-family water uptake structure, with grazing and spatial terms removed; not forest parameter calibration |
 | Kiers (2020), Rate-Induced Tipping in Discrete-Time Dynamical Systems | [Author version](https://arxiv.org/abs/1907.11601), [DOI](https://doi.org/10.1137/19M1276297) | Why a discrete update must be specified rather than assumed equivalent to the ODE |
+
+## NSC, leaf flush, and carbon-starvation mortality
+
+| Reference | Primary link | Use here | Constraint |
+|---|---|---|---|
+| Ninomiya et al. (2023), SEIB-DGVM-NSC v1.0 | [Open article](https://gmd.copernicus.org/articles/16/4155/2023/), [DOI](https://doi.org/10.5194/gmd-16-4155-2023) | Organ-level leaf/trunk/root NSC pools; NSC use for metabolism and bud flush; model-structure reference | Individual-based DGVM; the reduced area-based ODE is an adaptation, not a transcription |
+| Dietze et al. (2014), “Nonstructural Carbon in Woody Plants” | [DOI](https://doi.org/10.1146/annurev-arplant-050213-040054), [author PDF](https://people.bu.edu/dietze/manuscripts/annurev-arplant-050213-040054.pdf) | NSC as a buffer for maintenance and growth; storage/allocation model taxonomy | NSC regulation and mortality linkage remain uncertain |
+| Klein et al. (2016), growth, phenology, and storage | [DOI](https://doi.org/10.1093/treephys/tpw030) | Empirical basis for stored-carbon consumption during spring leaf flush | Three temperate deciduous species; not a universal tropical parameterization |
+| Barker Plotkin et al. (2021), defoliation and stored-carbon threshold | [DOI](https://doi.org/10.1111/1365-2435.13891), [author PDF](https://harvardforest1.fas.harvard.edu/publications/pdfs/BarkerPlotkin_FunctionEcol_2021.pdf) | Evidence linking low TNC concentration after defoliation with high mortality risk | Oak/defoliation-specific threshold; necessary-like rather than universally sufficient condition |
 
 ## Temperature, drought, and tropical-forest mortality
 

@@ -1,5 +1,14 @@
 # Control Carbon Model
 
+2026-09-22: Added a separate
+[temperature–NSC R-tipping research plan](docs/temperature_nsc_r_tipping_research_plan.md).
+It specifies a homogeneous, area-based four-structural-carbon/four-mobile-carbon
+model informed by the organ-level NSC structure of Ninomiya et al. (2023).
+Only temperature is varied; leaf-dependent photosynthesis, temperature-dependent
+respiration, NSC-funded leaf flush, and NSC-concentration-dependent mortality are
+tested for basin geometry and genuine rate-induced transitions. No R-tipping result
+is claimed by the plan itself.
+
 2026-09-22: Added a
 [temperature–precipitation tipping research plan](docs/temperature_precipitation_tipping_research_plan.md)
 for a deliberately low-dimensional theoretical track. It starts from matching

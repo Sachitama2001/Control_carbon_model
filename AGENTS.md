@@ -20,18 +20,26 @@ four-carbon/four-water theoretical model distinct from both native VISIT and
 the source-grounded explicit-SPAC implementation. Quantitative compound effects, frozen
 bifurcations, and genuine rate-induced basin transitions are separate claims.
 
+A newer, separate theoretical track is specified in
+`docs/temperature_nsc_r_tipping_research_plan.md`. It uses four structural-carbon
+and four mobile/labile-carbon states, varies temperature only, and tests whether
+NSC-funded leaf flush and concentration-dependent mortality can create the basin
+geometry required for R-tipping. Do not merge this model with the four-carbon/
+four-water track, and do not assume that an NSC threshold proves tipping.
+
 ## Read first
 
 Before carbon-water coding, read in this order:
 
 1. `docs/carbon_water_research_plan.md`
-2. `docs/temperature_precipitation_tipping_research_plan.md`
-3. `docs/coupled_carbon_water_equations.md`
-4. `docs/visitc_carbon_water_source_ledger.md`
-5. `docs/literature_index.md`
-6. `HANDOFF.md`
-7. `docs/current_status.md`
-8. `docs/architecture_and_conventions.md`
+2. `docs/temperature_nsc_r_tipping_research_plan.md`
+3. `docs/temperature_precipitation_tipping_research_plan.md`
+4. `docs/coupled_carbon_water_equations.md`
+5. `docs/visitc_carbon_water_source_ledger.md`
+6. `docs/literature_index.md`
+7. `HANDOFF.md`
+8. `docs/current_status.md`
+9. `docs/architecture_and_conventions.md`
 
 ## Two VISIT source boundaries
 
