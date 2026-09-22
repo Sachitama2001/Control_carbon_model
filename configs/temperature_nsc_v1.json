@@ -1,0 +1,24 @@
+{
+  "experiment_id": "autonomous_v1_final",
+  "description": "Uncalibrated structural exploration; ranges fixed before first run. Not empirical bounds.",
+  "parameters": {},
+  "temperatures": [10, 15, 20, 25, 30, 35, 40],
+  "spinup_years": 1000,
+  "spinup_chunk_years": 50,
+  "rhs_tolerance": 1e-9,
+  "drift_tolerance": 1e-7,
+  "max_step_days": 30,
+  "rtol": 1e-8,
+  "atol": 1e-12,
+  "refinement_tolerance": 0.00001,
+  "budget_tolerance": 1e-11,
+  "ramp_temperatures": [20, 25],
+  "ramp_days": [30, 365, 3650, 36500],
+  "hold_years": 500,
+  "scan": {
+    "mu_max": [0.002, 0.02],
+    "hill": [2, 4, 8],
+    "transfer_multiplier": [0.3, 1, 3],
+    "target_mode": ["constant", "supported"]
+  }
+}

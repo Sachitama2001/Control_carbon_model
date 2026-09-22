@@ -2,7 +2,10 @@
 
 Last updated: 2026-09-22
 
-Status: 設計段階。方程式、パラメータ、平衡構造、R-tippingはいずれも未検証である。
+Status: 2026-09-22に自律系の第一段階を実行。
+結果と未完項目は `temperature_nsc_first_results.md`、実装の仮定は
+`temperature_nsc_equations.md` を参照。未較正であり、R-tippingは未検出。
+以下の計画本文は初期計画として保持する。
 
 ## 1. 一文で表した目的
 

@@ -1,5 +1,16 @@
 # Current implementation status
 
+## Temperature–NSC autonomous checkpoint (2026-09-22)
+
+See `temperature_nsc_first_results.md` and the Japanese TeX report. An independent
+eight-carbon-state theoretical model and source/assumption ledger are implemented.
+Forty-two standard spinups converge; a supported-canopy closure creates bistability
+and a fold, but 8 rate-family runs and 24 controls do not establish R-tipping.
+Near-fold transients are checked to 2000 years. NSC mortality is not necessary
+for the observed bistability. Numeric parameter constraints, disconnected
+branches/cycles and seasonal extension remain open; no ecological calibration
+or universal no-tipping result is claimed. Existing water work is unchanged.
+
 ## T/P v2 explicit spinup and configurable processes (2026-09-22)
 
 - Plan revision 1.1 adds only initialization/nonnegativity §4.4; exact previous

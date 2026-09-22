@@ -1,0 +1,229 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=24mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,longtable,graphicx,hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue,linkcolor=blue}
+\title{温度と非構造性炭水化物の結合系\\第一段階の方程式・平衡構造・速度実験}
+\author{Control Carbon Model：探索的計算記録}
+\date{2026年9月22日}
+\begin{document}
+\maketitle
+\section{何を検証するか}
+水分を固定し、温度だけを変化させる8状態の独立した理論モデルを構成した。
+NSCはnon-structural carbohydrates（非構造性炭水化物）である。
+本モデルはNinomiyaらの器官別炭素収支に着想を得たものであり、
+VISITやSEIB-DGVMを忠実に再現したものではない。
+第一実装の係数は未較正であり、以下の温度は現実の森林の枯死温度を推定する値ではない。
+
+問うべきことは「NSCが減るか」ではなく、正の追跡対象が存続する温度経路において、
+変化の速度だけで別の吸引域へ移るか、である。
+平衡の消失はB-tipping、速度に依存する吸引域間の遷移はR-tippingとして区別する。
+単なる一時的な炭素低下は、いずれの証拠にもならない。
+
+\section{出典と本研究の仮定}
+Ninomiyaら\cite{ninomiya}の式(1)--(11)は、器官別のNSC貯蔵と順序付き配分を記述する。
+同論文\S2.2.2は呼吸不足の補填、展葉、turnoverを扱う。
+ここではその構造を連続時間の収支へ適応し、原モデルの日次優先順位や個体競争は再現しない。
+Dietzeら\cite{dietze}はNSCによる成長・生存の支援と未解決点を整理している。
+Kleinら\cite{klein}の観測は展葉を貯蔵炭素から支払うことの根拠である。
+Barker Plotkinら\cite{barker}は低TNCと死亡の関連を示すが、低濃度でも生存例があり、
+普遍的な死亡速度関数や全植物平均閾値が得られるわけではない。
+
+具体的な連続関数形・係数は本研究の仮定である。
+原論文の式をそのまま転記した項はない。
+詳細な出典台帳、全パラメータ表、実装関数との対応は
+\texttt{docs/temperature\_nsc\_equations.md}に保存した。
+
+\section{状態と単位}
+\begin{center}
+\begin{tabular}{lll}\toprule
+記号&意味&単位\\\midrule
+$C_L,C_S,C_R$&葉・幹・根の構造炭素&Mg C ha$^{-1}$\\
+$C_O$&土壌の遅い有機炭素&同上\\
+$N_L,N_S,N_R$&器官別NSC炭素&同上\\
+$N_O$&土壌易分解性炭素（植物NSCではない）&同上\\
+$T,t$&有効温度、時間&$^\circ$C、day\\
+$\chi,\chi_i$&全植物、器官のNSC炭素割合&無次元\\
+$G,R,U,J$&光合成、呼吸、構築投資、転流&Mg C ha$^{-1}$ day$^{-1}$\\
+$\mu,\tau,k,u$&枯死・turnover・移行の速度定数&day$^{-1}$\\\bottomrule
+\end{tabular}
+\end{center}
+$B=\sum_i C_i$, $S=\sum_i N_i$（$i=L,S,R$）として
+\begin{equation}
+\chi=\frac{S}{B+S},\qquad \chi_i=\frac{N_i}{C_i+N_i}.
+\end{equation}
+土壌は濃度に含めない。$B=S=0$では濃度は未定義で、植物の流量がゼロの境界系を別に扱う。
+小さい定数を分母に足して無植生の濃度を決めることはしない。
+乾燥重量基準のNSC割合$q$を炭素割合へ変換するには、NSCと非NSC組織の炭素率$f_N,f_C$を用い
+\begin{equation}
+\chi=\frac{f_Nq}{f_C(1-q)+f_Nq}
+\end{equation}
+とする。器官の対応と炭素率が不明な観測閾値は、そのまま転用できない。
+
+\section{閉じた8状態の微分方程式}
+光合成と維持呼吸を
+\begin{align}
+G&=G_{\max}\exp\left[-\frac{(T-T_{\rm opt})^2}{2\sigma_G^2}\right]
+       (1-e^{-k_L C_L}),\\
+R_i^{\rm dem}&=r_iC_i Q_{10}^{(T-T_{\rm ref})/10},&
+R_i&=R_i^{\rm dem}\frac{N_i}{K_i+N_i}
+\end{align}
+とする。未払い呼吸需要$R_i^{\rm dem}-R_i$は診断量であり、炭素を直接消失させない。
+展葉窓は$\phi=1$で固定し、$D=[L_*-C_L]_+$に対して
+\begin{align}
+U_{LS}&=uD\frac{N_S}{K_f+N_S+N_R},&
+U_{LR}&=uD\frac{N_R}{K_f+N_S+N_R},\\
+U_L&=U_{LS}+U_{LR},& U_S&=k_{gS}N_S,\quad U_R=k_{gR}N_R.
+\end{align}
+供給側NSCがゼロならその側からの引出しもゼロである。$U$は日量ではなく流量であり、
+$U\leq N$のように異なる単位を直接比較しない。
+転流$J_{ij}=g_{ij}N_i$は$LS,LR,SL,RL$の4本とする。
+枯死率と器官損失率は
+\begin{equation}
+\mu=\mu_0+\frac{\mu_{\max}}{1+(\chi/\chi_{\rm crit})^n},\qquad
+\ell_i=\tau_i+\mu.
+\end{equation}
+構築効率$y$と保持率$\eta$を用いると、全系は
+\begin{align}
+\dot C_i&=yU_i-\ell_i C_i \quad(i=L,S,R),\\
+\dot N_L&=G-R_L-\ell_LN_L-J_{LS}-J_{LR}+J_{SL}+J_{RL},\\
+\dot N_S&=J_{LS}-J_{SL}-U_{LS}-U_S-R_S-\ell_SN_S,\\
+\dot N_R&=J_{LR}-J_{RL}-U_{LR}-U_R-R_R-\ell_RN_R,\\
+\dot N_O&=\eta\sum_i\ell_i N_i-k_N f_O(T)N_O,\\
+\dot C_O&=\eta\sum_i\ell_i C_i+\alpha k_N f_O(T)N_O-k_C f_O(T)C_O.
+\end{align}
+ここで$f_O=Q_{10,O}^{(T-T_{\rm ref})/10}$。
+\begin{align}
+R_g&=(1-y)\sum_iU_i,\\
+R_h&=k_C f_O C_O+(1-\alpha)k_N f_O N_O,\\
+E&=(1-\eta)\sum_i\ell_i(C_i+N_i)
+\end{align}
+とすると、内部移行が相殺され
+\begin{equation}
+\boldsymbol1^\mathsf{T}\dot{\boldsymbol x}=G-\sum_iR_i-R_g-R_h-E
+\end{equation}
+が成立する。非負境界で外向きの流量はなく、非負領域は不変である。
+土壌から植物への逆流はなく、土壌2状態は植生の分岐を発生させない。
+
+\section{枯死関数だけでは濃度は下がらない}
+$U=\sum_i U_i$, $R=\sum_iR_i$, $T_C=\sum_i\tau_i C_i$, $T_N=\sum_i\tau_iN_i$と置くと
+\begin{equation}
+\dot B=yU-T_C-\mu B,\qquad
+\dot S=G-R-U-T_N-\mu S.
+\end{equation}
+従って
+\begin{equation}
+\dot\chi=\frac{B(G-R-U-T_N)-S(yU-T_C)}{(B+S)^2}.
+\end{equation}
+同率の枯死項は消える。枯死が濃度を変えるには、葉量や成長・呼吸を変える間接経路が必要である。
+閾値の鋭い枯死関数を加えただけでは、多安定性もR-tippingも保証されない。
+
+\section{2状態補助系で分かる不成立条件}
+8状態の厳密な縮約ではなく、固定葉割合、共通turnover、線形成長投資$U=kS$という
+追加仮定を置いた補助系を考える。
+\begin{align}
+\dot B&=ykS-(\mu(\chi)+\tau)B,\\
+\dot S&=G(B,T)-r(T)B\frac{S}{K+S}-kS-(\mu(\chi)+\tau)S.
+\end{align}
+成長呼吸$(1-y)kS$とNSC turnoverを明示したため、研究計画の模式式より収支を厳密にしている。
+正の平衡の第1式は
+\begin{equation}
+yk\frac{\chi}{1-\chi}=\mu(\chi)+\tau
+\end{equation}
+である。左辺は狭義増加、右辺は非増加なので$\chi_*$は一意に決まる。
+$z=\chi_*/(1-\chi_*)$, $\ell=\mu(\chi_*)+\tau$とすれば、残る条件は
+\begin{equation}
+H(B,T)=\frac{G(B,T)}{B}-r(T)\frac{zB}{K+zB}-(k+\ell)z=0.
+\end{equation}
+今回の飽和型GPPでは$H$は$B>0$で狭義減少し、正の平衡は高々1個である。
+存在条件は$G_B(0,T)>(k+\ell)z$。
+従ってこの補助系に正の平衡同士のfoldは生じない。
+さらに正の領域全体で
+\begin{equation}
+\operatorname{div}F=-k-2(\mu(\chi)+\tau)
+ -r(T)\frac{BK}{(K+S)^2}<0
+\end{equation}
+となり、濃度依存枯死の微分項は相殺される。
+Bendixsonの判定から内部の周期軌道は存在しない。
+正の平衡では$\det DF=-F_{1,S}B\partial_BH>0$であり、負のtraceと合わせて局所安定である。
+これは8状態系全般の不存在証明ではないが、どの追加フィードバックが必要かを見極める反例である。
+
+\section{目標葉量の仮定が変える境界構造}
+標準モデルは$L_*=3$で一定。
+比較モデルは支持組織$H=C_S+C_R$に依存する
+\begin{equation}
+L_*=3\frac{H}{30+H}
+\end{equation}
+を用いる。この形は文献から同定したものではなく、計画の未指定部分に対する感度試験である。
+
+全植物を$\varepsilon$倍したとき、一定目標では展葉が$O(\varepsilon)$であるのに対し、
+支持組織依存では$O(\varepsilon^2)$になる。
+後者では無植生近傍で葉の再建が一次の損失を補えず、無植生が局所的に安定になる。
+従って多安定性が見つかっても、それをNSC枯死のみに帰してはならない。
+実際、支持組織依存モデルではNSC依存枯死を除いても正の安定平衡と鞍点が見つかる。
+
+一定目標では、微小植生の輸送行列の支配固有ベクトルから濃度の漸近方向を求め、
+共通枯死率を引いた侵入指数を計算できる。10--40℃の試験点では指数が正であり、
+無植生を安定な代替吸引状態とは扱えない。
+原点に通常のヤコビアンを強引に割り当てた計算ではない。
+
+\section{実験と結果の読み方}
+標準モデルでは10--40℃の7温度、6初期条件の42本をspinupした。
+初期条件には微小植生、低・高バイオマスと低・高NSCの組合せ、基準平衡の近傍を含めた。
+正の根探索、log座標pseudo-arclength continuation、固有値計算を別に実施した。
+36組の構造探索は死亡上限、Hill指数、転流速度、目標葉量の仮定を変更したもので、
+観測に拘束されたパラメータ不確実性分布ではない。
+
+標準モデルの42本は各温度で同じ正の平衡へ収束した。
+支持組織依存モデルには安定な正の平衡、鞍点、局所安定な無植生が共存し、
+約37.50696℃にfoldがある。20℃と30℃で初期条件による帰結の違いを調べた。
+\IfFileExists{artifacts/temperature_nsc/report_v1/figures/branches.pdf}{
+\begin{figure}[htbp]\centering
+\includegraphics[width=.95\linewidth]{artifacts/temperature_nsc/report_v1/figures/branches.pdf}
+\caption{凍結温度系の枝。赤は不安定な枝、青は安定な枝。対数軸なので無植生の零平衡は省略。
+これはR-tipping相図ではない。}
+\end{figure}}{}
+
+速度実験は必ず一定温度spinupの終端から開始する。
+20→25℃の標準モデルと20→30℃の比較モデルで、同じ経路形の継続時間を
+30日、1年、10年、100年に変更し、終点で500年保持する。
+追加探索では比較モデルの終点を30、35、37、37.4℃とし、step、速い・遅い昇温、
+線形ランプ、一時的高温、緩慢な温度復帰を比較する。
+数値集計、完了した本数、刻み誤差、未完項目は同名のMarkdown報告に記録する。
+
+主速度族8本と追加対照24本ではR-tippingを検出しなかった。
+37.4℃では500年後に最大$4.31\times10^{-3}$の尺度化偏差が残ったが、
+2000年保持後には最大$1.24\times10^{-11}$へ減少した。
+これは別の吸引状態への遷移ではなく、fold近傍の長い過渡応答と整合する。
+主速度族の最大刻み半減・許容誤差1/10による状態差は最大$1.66\times10^{-9}$だった。
+これらの有限個の試験から、全パラメータ・全経路でのR-tipping不存在は主張しない。
+
+\IfFileExists{artifacts/temperature_nsc/report_v1/figures/rates.pdf}{
+\begin{figure}[htbp]\centering
+\includegraphics[width=.95\linewidth]{artifacts/temperature_nsc/report_v1/figures/rates.pdf}
+\caption{速度を変えた昇温と長期保持。最終的な吸引状態の違いを判定する。}
+\end{figure}}{}
+
+\section{検証範囲と次の判断}
+状態はlog座標で積分し、負値の切上げはしない。
+独立に積分した外部炭素収支、最大刻み半減、許容誤差変更を比較する。
+月次・年次は観測する時間解像度であり、数値積分には内部の適応刻みを用いる。
+微小量での停止を、そのまま死亡の証拠にはしない。
+
+現時点の重要な成果は、NSC閾値だけでは不十分であり、葉の再建則が吸引域を大きく変える点である。
+今回の数値を生態学的に妥当な領域とみなすことはできない。
+特に面積当たりNSCの絶対量で呼吸を制限すると、微小植生で単位構造炭素あたり呼吸がゼロへ近づく。
+個体の濃度を維持したまま植生密度だけが下がる場合の近似として適切か、吟味が必要である。
+状態数を増やす前に、目標葉量と呼吸制限の定義を文献・観測で拘束する。
+自律系でR-tippingの根拠が揃わないまま、季節版や被覆・損傷・順化状態を追加しない。
+
+\begin{thebibliography}{9}
+\bibitem{ninomiya} Ninomiya et al. (2023), Geosci. Model Dev. 16, 4155--4170.
+\url{https://doi.org/10.5194/gmd-16-4155-2023}.
+\bibitem{dietze} Dietze et al. (2014), Annu. Rev. Plant Biol. 65, 667--687.
+\url{https://doi.org/10.1146/annurev-arplant-050213-040054}.
+\bibitem{klein} Klein et al. (2016), Tree Physiol. 36, 847--855.
+\url{https://doi.org/10.1093/treephys/tpw030}.
+\bibitem{barker} Barker Plotkin et al. (2021), Functional Ecology 35, 2156--2167.
+\url{https://doi.org/10.1111/1365-2435.13891}.
+\end{thebibliography}
+\end{document}

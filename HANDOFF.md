@@ -1,5 +1,20 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-22 NSC first campaign: independent 4 structural + 4 NSC/labile
+> continuous model, no water coupling. Read `docs/temperature_nsc_first_results.md`
+> and `temperature_nsc_equations.md` (Japanese TeX also supplied). Standard
+> constant leaf target: 42/42 multiseed spinups converge; supported leaf target:
+> stable positive + saddle + bare, numerical fold at 37.50696 C. No R-tipping
+> found in 8 core ramps or 24 follow-up controls. Near-fold 500-year deviations
+> disappear by 2000 years. Bistability remains without NSC mortality: do NOT
+> attribute it solely to the NSC threshold. All numeric coefficients assumed,
+> NOT literature-calibrated. Next constrain canopy rebuilding and absolute-pool
+> versus concentration-based maintenance before adding states or seasonality.
+> Final artifacts under `artifacts/temperature_nsc/`: `autonomous_v1_final`,
+> `supported_followup_v1`, `controls_v1`, `audit_v2`, `report_v1`. Earlier failed
+> runs retained separately; fixed log-Jacobian avoids num_jac overflow. No clipping.
+> Tests: 204 passed / 7 skipped, including 14 dedicated NSC tests.
+
 > 2026-09-22 T/P v2: explicit constant-climate spinup (375–400 years), JSON
 > process selection, accepted-step/dense-sample nonnegativity guards, and
 > native C checks of old-VISIT formula components are implemented separately.
