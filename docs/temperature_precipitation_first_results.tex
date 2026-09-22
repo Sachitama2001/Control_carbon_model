@@ -1,0 +1,210 @@
+% Build from repository root using LuaLaTeX; see companion Markdown for runs.
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,bm,booktabs,longtable,graphicx}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\newcommand{\dd}{\mathrm d}
+\setlength{\emergencystretch}{3em}
+\title{温度・降水による炭素・水ダイナミクス\\
+\large 8状態モデルの実装と最初の対照実験}
+\author{Control\_carbon\_model}
+\date{2026年9月22日}
+\begin{document}
+\maketitle
+
+\section{今回わかったことと、その範囲}
+研究計画に従い、葉・幹・根・土壌の炭素と水を各4状態とする連続時間モデルを
+実装した。基準、昇温のみ、降水減少のみ、両者の組合せを比較した。
+通常ターンオーバーのみから始め、温度枯死、水分枯死、加算枯死の順に調べた。
+\textbf{複合応答の非加算性が得られ、水分枯死の例ではその符号が20年後と
+長期平衡で反転した。}一方、R-tipping、吸引域の転換、平衡の一意性はまだ
+示していない。
+
+式の出発点はユーザーの
+\code{docs/temperature_precipitation_tipping_research_plan.md}第6--8節である。
+数値はすべて検証用の仮定値であり、VISITの転記、Tapajósの校正値、
+Amazonの予測結果ではない。水分輸送の閉包と容量保護は今回の実装で明示的に
+追加した。対応表は\code{docs/temperature_precipitation_implementation.md}に記録した。
+
+\section{状態・入力・単位}
+\[
+\bm x=(C_L,C_S,C_R,C_O,W_L,W_S,W_R,W_O)^\mathsf T.
+\]
+添字$L,S,R,O$は葉、幹、根、土壌を表す。変化させる外部入力は気温$T$と
+降水$P$だけである。時間は日、炭素はMg C/ha、水は地表面積当たりmmで表す。
+月降水量は暦月の日数で割り、mm/dayへ変換する。月別区分一定入力の
+積分は月境界で分割する。年次値は集計用であり、年刻みEuler法ではない。
+
+\begin{longtable}{p{.24\linewidth}p{.43\linewidth}p{.24\linewidth}}
+\toprule 記号 & 意味 & 単位\\\midrule\endhead
+$C_i,W_i$ & 炭素・水貯留 & Mg C/ha, mm\\
+$G,R_i,R_h$ & GPP、維持呼吸、土壌呼吸 & Mg C/ha/day\\
+$a_i,\eta_i,\zeta_i$ & 配分、枯死C移行、水還流の割合 & 1\\
+$\tau_i,m_i,\rho_i$ & 通常更新、枯死、維持呼吸の比率 & day$^{-1}$\\
+$\omega_i,\varepsilon_i$ & 炭素当たり容量、容量の正則化 & mm ha/(Mg C), mm\\
+$r_i,r_P,r_G$ & 相対水貯留と集約値 & 1\\
+$g_{ij},q_{ij}$ & 相対水分輸送係数、内部流量 & mm/day\\
+$P,E_L,E_O,D,Q,L_i^W$ & 降水、蒸散、蒸発、排水、流出、器官放出 & mm/day\\
+$W_{\rm dry},W_{\rm fc},W_{\rm sat}$ & 土壌の下限、圃場容水量、飽和容量 & mm\\
+$T,T_0,T_{\rm opt},\sigma_T$ & 気温、基準、最適温度、幅 & $^\circ$C\\
+$k_L,k_E$ & 葉量に対する飽和係数 & ha/(Mg C)\\
+$k_D,k_T$ & 排水率、熱枯死の傾き & day$^{-1}$, $^\circ$C$^{-1}$\\
+$Q_{10},r_{50},n_G,n_Q,\delta$ & 各応答の形状係数 & 1\\
+\bottomrule
+\end{longtable}
+全パラメータの値・単位・由来区分は出力先の\code{parameters.csv}に保存した。
+生態学的な妥当範囲は未設定であり、研究計画のWP5に残している。
+
+\section{炭素の式と行列}
+計画の関数を使い、
+\begin{align}
+G&=G_{\max}\exp\!\left[-\frac{(T-T_{\rm opt})^2}{2\sigma_T^2}\right]
+\frac{r_G^{n_G}}{r_G^{n_G}+r_{50,G}^{n_G}}
+(1-e^{-k_LC_L}),\\
+r_G&=\sqrt{r_Lr_R},\qquad
+\rho_i(T)=\rho_{i,0}Q_{10,R}^{(T-T_0)/10},\\
+h(T,W_O)&=h_0Q_{10,h}^{(T-T_0)/10}\frac{r_O}{r_O+r_{50,h}}
+\end{align}
+とする。$\ell_i=\rho_i+\tau_i+m_i$、$b_i=\tau_i+\eta_i m_i$として、
+\begin{equation}
+\dot{\bm C}=\bm u+M\bm C,\quad
+\bm u=G\begin{pmatrix}a_L\\a_S\\a_R\\0\end{pmatrix},\quad
+M=\begin{pmatrix}
+-\ell_L&0&0&0\\0&-\ell_S&0&0\\0&0&-\ell_R&0\\
+b_L&b_S&b_R&-h
+\end{pmatrix}.
+\end{equation}
+列は供与区画、行は受入区画である。列和を取ると、
+\begin{equation}
+\frac{\dd C_\Sigma}{\dd t}
+=G-\sum_i\rho_iC_i-hC_O-\sum_i(1-\eta_i)m_iC_i.
+\end{equation}
+NEPは$G-\sum_i\rho_iC_i-hC_O$とする。系外輸送がある設定では全炭素変化と
+NEPは異なる。今回の既定値は$\eta_i=1$である。
+
+枯死関数は
+\begin{equation}
+m_T=\frac{m_{T,\max}}{1+e^{-k_T(T-T_{50})}},\qquad
+m_W=\frac{m_{W,\max}}{1+e^{k_W(r_P-r_{50,m})}}
+\end{equation}
+とし、$m_i=0,m_T,m_W,m_T+m_W$の4段階を比較した。
+すべての器官で同じ枯死率を使い、積の相互作用項は追加していない。
+熱枯死は慢性的なハザードであり、急性の葉壊死温度ではない。
+
+\section{水の式と容量を守る条件}
+\begin{align}
+K_i&=\omega_iC_i+\varepsilon_i,\quad r_i=W_i/K_i,\qquad
+r_P=\frac{W_L+W_S+W_R}{K_L+K_S+K_R},\\
+r_O&=\min\left(1,\max\left(0,\frac{W_O-W_{\rm dry}}{W_{\rm fc}-W_{\rm dry}}\right)\right),\\
+q_{ij}&=g_{ij}\phi(r_i-r_j),\qquad
+\phi(z)=\frac{(z_+)^2}{z_++\delta},\quad z_+=\max(z,0).
+\end{align}
+$K_i$はここでは水容量であり、炭素の分解率行列とは別の記号である。
+内部辺は土壌$\to$根、根$\to$幹、幹$\to$葉とする。
+$\phi$はC1で逆勾配のときゼロであり、乾いた供与区画からの流出を作らない。
+これは相対水分差による仮定であって、Darcy則との同一性は主張しない。
+
+水の放出は計画の第一候補を補い、
+\begin{equation}
+L_i^W=\ell_i W_i=(\tau_i+m_i+\rho_i)W_i
+\end{equation}
+とする。呼吸も構造炭素を減らすため、水容量を縮める寄与を加えた。
+土壌への供給$I=P+\sum_i\zeta_iL_i^W$を用いて、
+\begin{align}
+E_L&=E_{L,0}Q_{10,E}^{(T-T_0)/10}\frac{r_L}{r_L+r_{50,E}}(1-e^{-k_EC_L}),\\
+E_O&=E_{O,0}Q_{10,E}^{(T-T_0)/10}\frac{r_O}{r_O+r_{50,E}},\\
+D&=k_D(W_O-W_{\rm fc})_+,\qquad
+Q=I(W_O/W_{\rm sat})^{n_Q}.
+\end{align}
+水収支は
+\begin{equation}
+\dot{\bm W}=
+\begin{pmatrix}0&0&1\\0&1&-1\\1&-1&0\\-1&0&0\end{pmatrix}
+\begin{pmatrix}q_{OR}\\q_{RS}\\q_{SL}\end{pmatrix}
++\begin{pmatrix}-E_L-L_L^W\\-L_S^W\\-L_R^W\\I-E_O-D-Q\end{pmatrix}.
+\end{equation}
+内部辺の列和はゼロなので、
+\begin{equation}
+\frac{\dd W_\Sigma}{\dd t}=P-E_L-E_O-D-Q-\sum_i(1-\zeta_i)L_i^W.
+\end{equation}
+
+物理領域内で$W_i=K_i$なら内部流入はゼロであり、
+\begin{equation}
+\dot K_i-\dot W_i\ \ge\ \omega_i a_iG+\ell_i\varepsilon_i\ \ge\ 0.
+\end{equation}
+土壌上限では$Q=I$、下限ゼロでは土壌からの流出がゼロとなる。
+炭素ゼロ境界での流入も非負である。従ってこれらの境界条件が非負領域と
+動く容量上限を守る。数値解の事後clippingは行わない。
+
+\section{capacityと結合平衡を分ける}
+瞬間のGPPと行列を現在状態で凍結した診断量を
+\begin{equation}
+\widehat{\bm C}_{\rm cap}(\bm x,T,P)=-M(\bm x,T,P)^{-1}\bm u(\bm x,T,P)
+\end{equation}
+とする。GPPも行列も状態に依存するため、この値を代入し直した状態が
+平衡になるとは限らない。完全な結合平衡は8本の右辺$F(\bm x;T,P)=0$を
+同時に満たす必要がある。capacityと現在炭素の差、結合平衡、
+平衡への過渡軌道を別々に保存することが、本実験と行列アプローチの接続となる。
+
+\section{数値結果}
+基準は$(T,P)=(27,6)$、温度端点31、降水端点2とする。
+温度の単位は$^\circ$C、降水はmm/day。全炭素の平衡を表に示す。
+\begin{center}
+\begin{tabular}{lrrrrrr}
+\toprule 枯死 & $C_0^*$ & $C_T^*$ & $C_P^*$ & $C_{TP}^*$ & $I_C^*$ & $I_C(20\mathrm{yr})$\\
+\midrule
+なし &598.804&399.854&430.150&242.007&10.807&3.032\\
+温度 &592.453&350.346&426.283&217.570&33.393&9.241\\
+水分 &596.430&397.608&350.976&189.569&37.416&$-9.901$\\
+加算 &590.231&349.315&350.626&187.432&77.721&8.794\\
+\bottomrule
+\end{tabular}
+\end{center}
+単位はMg C/ha、$I_C=C_{TP}-C_T-C_P+C_0$である。
+両単独効果が炭素を減らすこの例では、正の$I_C$は減少が単独効果の和より小さいことを表す。
+降水端点4の対照では、土壌が圃場容水量を上回り、炭素の降水応答はほぼゼロだった。
+
+水分枯死の場合、20年後には$I_C<0$だが、約33.1年で符号が変わり、
+200年後は37.380となる。全状態は別途計算した平衡へ近づく。
+これは長い過渡応答と平衡効果を混同しないための例である。
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{artifacts/temperature_precipitation/long_hold/water_interaction_long_hold.png}
+\caption{200年間の保持実験。右は8状態軌道の2次元投影であり、全相空間の吸引域図ではない。
+20年の時点で結論を固定すると、相互作用の長期的な符号を取り違える。}
+\end{figure}
+
+各枯死階層で温度27--33、降水6--2の単独軸を各13点ずつ往復した。
+得られた正の枝と4実験の端点は安定だった。ただし自然パラメータ継続のみで、
+別の枝、ゼロ炭素境界、不安定平衡、fold間の接続を調べていない。
+したがって一意性やtipping不可能性の証明にはならない。
+
+\section{検証と、介入実験で残った問題}
+全体テストは176件成功、7件スキップ、専用テストは13件である。
+通常の8状態実験では、炭素・水の瞬間収支残差はそれぞれ
+$5.56\times10^{-17}$、$1.07\times10^{-15}$以下、乾燥比較の端点平衡残差は
+$2.80\times10^{-14}$以下だった。内部最大刻み10日のRadauと5日のBDFを比較し、
+規格化状態差は$2.41\times10^{-8}$以下。非負性・容量の違反はなかった。
+200年後の平衡からの規格化距離は$7.67\times10^{-5}$以下となった。
+
+絶対水量を固定する介入では、炭素減少により容量が縮み、約670--1050日以降に
+容量超過が生じた。\textbf{この介入は不合格として保存し、超過後の結果を
+生態学的な機構帰属に採用しない。}自然な8状態軌跡とは別の問題である。
+次の比較では水量と容量をともに固定するか、相対水分を固定するかを明示する必要がある。
+熱枯死だけを固定する比較と、蒸発散だけに温度効果を残す比較も区別して保存した。
+
+\section{次の作業}
+WP1は合格。WP2は単独軸・4実験・枯死階層・長期保持までを保存したが、
+固定水量介入の修正が残る。次はゼロ炭素境界の侵入安定性、
+不安定枝を含む二変数継続、吸引域の解析を行う。
+その後に同端点の速度族を調べる。状態追加を正当化する証拠はまだない。
+
+コードは\code{src/control_carbon/temperature_precipitation.py}、
+再現用スクリプトは\code{examples/run_temperature_precipitation.py}と
+\code{examples/check_temperature_precipitation_long_hold.py}である。
+全状態・フラックス・dose・固有値・条件数・git commit・ソースハッシュを
+\code{artifacts/temperature_precipitation/}以下へ保存した。
+詳細な手順と制約は同名のMarkdown報告に記載した。
+\end{document}

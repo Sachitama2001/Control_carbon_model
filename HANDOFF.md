@@ -1,5 +1,29 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-22 T/P v2: explicit constant-climate spinup (375–400 years), JSON
+> process selection, accepted-step/dense-sample nonnegativity guards, and
+> native C checks of old-VISIT formula components are implemented separately.
+> See `docs/tp_v2_results.md`, `docs/tp_v2_spinup_and_functions.md`, and
+> `configs/tp_v2_spinup.json`. The original 4 variants reproduce v1 trajectories;
+> negative I_C was never a negative stock. Ten configurations/40 factorial runs
+> passed; equation choice can change interaction sign. Artifacts live only in
+> `artifacts/temperature_precipitation/v2/spinup_comparison/`. Do not overwrite
+> v1 outputs. Previous plan is archived verbatim; revision 1.1 adds only §4.4.
+> Tests: 190 passed / 7 skipped. No R-tipping claim or parameter calibration.
+
+> 2026-09-22 initial T/P implementation: WP1 passes and first WP2 comparisons
+> are in `docs/temperature_precipitation_first_results.md` and companion TeX.
+> New module `temperature_precipitation.py` is an independent theoretical
+> eight-state model with explicitly assumed parameters. Mortality hierarchy,
+> two rainfall endpoints, one-driver continuation, and 200-year hold are saved
+> under `artifacts/temperature_precipitation/`. Water-mortality I_C changes
+> from -9.901 at year 20 to +37.380 at year 200; no R-tipping claim.
+> Fixed absolute-water clamps violate shrinking storage capacities and are
+> rejected after violation (audit.json). Next: valid clamp definition,
+> boundary invasion stability and two-parameter branch/basin analysis.
+> Do not infer uniqueness from stable sampled branches or add states yet.
+> Tests: 176 passed, 7 skipped; dedicated tests: 13.
+
 > 2026-09-22 temperature–precipitation plan: see
 > `docs/temperature_precipitation_tipping_research_plan.md`. The new theoretical
 > track starts from matching leaf/stem/root/soil carbon and water stores, monthly

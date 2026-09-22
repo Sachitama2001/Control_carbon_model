@@ -1,0 +1,125 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,booktabs,graphicx}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\setlength{\emergencystretch}{3em}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\title{温度・降水実験 v2\\\large 明示的spinup・非負性検査・関数形比較}
+\author{Control\_carbon\_model}
+\date{2026年9月22日}
+\begin{document}
+\maketitle
+
+\section{初期化と負値の確認}
+前回は一定気象下の連立平衡方程式を直接解き、その解から実験を開始した。
+時間積分によるspinupの軌跡は省略していたが、未平衡の任意状態から気象を
+変化させていたわけではない。保存済みの32軌跡では全プールが正だった。
+図で負になったのは
+\[
+I_C=C_{TP}-C_T-C_P+C_0
+\]
+という差分診断であり、炭素貯留量そのものではない。
+今回はこの違いが図でも明瞭になるよう、全8貯留量と符号つき診断を分けた。
+
+spinupと非負性は別の要件である。前者は初期非平衡を減らす手続きであり、
+後者は方程式と数値解に課す物理的な条件である。
+
+\section{今回追加したspinupと検査}
+炭素4プールを$(3,40,8,80)$ Mg C/ha、水4プールを$(0.4,2,0.8,120)$ mmとして、
+一定気象27°C・6 mm/dayで時間積分した。各年について
+\[
+\max_i\frac{|x_i(t)-x_i(t-365.25)|}{\max(1,|x_i(t)|)}<10^{-7},
+\qquad \max_i|F_i(x;T_0,P_0)|<10^{-8}
+\]
+を3年連続で満たすことを確認する。右辺の閾値は各プールの単位/dayである。
+25年区間の終端で判定し、最大800年を超えて未収束なら本実験を行わない。
+同じ設定の0/T/P/TPは全く同じspinup終端から分岐する。
+
+通常の最大内部刻みは10日、比較用は5日。全受理ステップ、出力点、各ステップの
+1/4、1/2、3/4点を検査し、負値や容量違反があれば刻みを細分化して再計算する。
+解消しなければ停止し、ゼロへの事後置換で質量を追加する処理は行わない。
+この標本検査に加え、方程式のゼロ境界と容量境界で外向きにならないことをテストした。
+陰的solverのNewton反復が試す仮状態は、受理された物理軌跡とは区別する。
+
+10設定すべてが375--400年で収束した。元と同じ式を使った4設定の本実験は、
+前回の軌跡と最大規格化差$2.13\times10^{-7}$以内で一致した。
+したがって今回の積分spinupは前回の直接平衡初期化を独立に確認している。
+水分枯死の基準設定ではspinup自体も別solver・半刻みで再計算し、
+終端の差は$7.27\times10^{-11}$以下だった。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{artifacts/temperature_precipitation/v2/spinup_comparison/baseline_water/nonnegative_pools.png}
+\caption{水分依存枯死の基準設定。負の時刻はspinup終盤、時刻0で気象を変更する。
+8軸とも下端は0であり、負のプールはない。}
+\end{figure}
+
+\section{VISIT内で見つかった交換候補}
+出典は\code{Sachitama2001/VISIT-matrix}、commit
+\code{3285bd8e131a932e338b59892751648fd9edcc7b} の\code{visit_local/}で統一した。
+今回の設計へ適用できる部品が見つかったため、他モデルから新しい関数を追加していない。
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule 過程 & 追加した候補 & 原典のファイルと行\\\midrule
+光合成の温度応答 & TEM型の有理関数 & photosynthesis.c:78--91\\
+群落光合成 & Monsi--Saeki/Kuroiwa型 & photosynthesis.c:22--42\\
+非気孔の水分制限 & C3土壌水分関数 & photosynthesis.c:103--113\\
+蒸発散の供給制限 & 二次式の小さい根 & hydro\_balance.c:127--175\\
+深部排水 & $0.001W$のbaseflow & hydro\_balance.c:182--202\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+原典の日次量と連続時間フラックスを混同しないよう、供給制限では
+$S=W/\tau$ [mm/day]、$\tau=1$ dayとした。$\tau$は物理的な仮定であり、
+solverの刻みではない。樹木蒸散の供給元も原典の土壌水から本モデルの葉水へ
+変更している。内部の土壌→根→幹→葉輸送は保持した。
+
+群落式は固定光の下で規格化し、既存の最大GPPに尺度を合わせた。
+土壌水分関数には既存の葉・根の水分ゲートを併用する。
+温度有理関数の生理的区間外は0とし、気孔反復や土壌凍結は移植しない。
+baseflowは一度だけ収支へ入れ、原典の二重控除は導入しない。
+これらは明示的な縮約であり、8状態モデルをVISITの完全再現とは呼ばない。
+
+\section{関数形比較の初期結果}
+水分依存枯死を共通にし、それぞれ自分の関数形でspinupした。
+単位はMg C/ha、$I_C$は気象変更20年後の値である。
+\begin{center}
+\begin{tabular}{lrr}
+\toprule 変更箇所 & 基準全炭素 & $I_C(20\mathrm{yr})$\\\midrule
+現行式 &596.430&$-9.901$\\
+温度応答 &596.430&$-28.751$\\
+群落光合成 &620.455&$-33.937$\\
+土壌非気孔制限 &468.143&$+5.360$\\
+蒸発散供給制限 &608.197&$+7.382$\\
+baseflow追加 &596.430&$+1.182$\\
+温度・群落・供給制限 &627.608&$-1.233$\\
+\bottomrule
+\end{tabular}
+\end{center}
+式の選択により相互作用の符号が変わる。初期化不良による負の貯留とは別の話である。
+各設定の基準状態も変わっているため、次は基準点での利得を揃えた比較と
+パラメータ範囲の制約で寄与を分ける必要がある。値は仮定パラメータの理論実験であり、
+R-tippingや現実の森林の応答を確定するものではない。
+
+\section{再現性と保存先}
+全体テストは190件成功、7件スキップ。v2専用は14件。
+原典Cをコンパイルして温度応答6条件、GPP12条件、水供給制限4条件を照合した。
+40本の本実験を異なるsolver・半刻みで再計算し、最大規格化差は
+$2.41\times10^{-8}$以下、最大収支残差は$2.00\times10^{-15}$以下だった。
+集計した1,095,865監査点で負の貯留・容量超過はなく、ゼロ補正による質量追加は0だった。
+途中点の検査は連続時間全域の区間証明ではないことも明記しておく。
+
+計画書revision 1.1は初期化・非負性の§4.4のみを追加し、改訂前の全文を
+\code{temperature_precipitation_tipping_research_plan_v1.md}へ保存した。
+旧ソース・結果は保持し、ハッシュも照合した。
+新結果は\code{artifacts/temperature_precipitation/v2/spinup_comparison/}に分離した。
+
+設定は\code{configs/tp_v2_spinup.json}、実行は\code{examples/run_tp_v2.py}。
+基準・実験気象、初期状態、spinup基準、パラメータ、各過程関数をJSONで指定できる。
+存在する出力ディレクトリは上書きしない。
+全式と出典・変更点は\code{docs/tp_v2_spinup_and_functions.md}、
+詳細結果は\code{docs/tp_v2_results.md}を参照されたい。
+\end{document}

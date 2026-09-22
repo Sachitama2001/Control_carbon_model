@@ -1,5 +1,49 @@
 # Current implementation status
 
+## T/P v2 explicit spinup and configurable processes (2026-09-22)
+
+- Plan revision 1.1 adds only initialization/nonnegativity §4.4; exact previous
+  text is `temperature_precipitation_tipping_research_plan_v1.md`. v1 results
+  and source files are unchanged, with hashes verified using that archive.
+- New `tp_experiments_v2.py` integrates spinup from a non-equilibrium seed.
+  Ten models converge in 375–400 years; 40 factorial experiments follow.
+  The original four mortality variants match v1 trajectories within 2.13e-7.
+- JSON configuration: `configs/tp_v2_spinup.json`. `tp_processes.py` supplies
+  selectable old-VISIT temperature/canopy/soil-scalar/ET-supply/baseflow parts,
+  with explicit ODE mappings and native C component comparisons.
+- Every accepted step plus dense interior samples is guarded against negative
+  pools; retry smaller steps or fail, never silently clip. Audited 1,095,865
+  points, no negative pools/capacity excess, zero clipping mass.
+- The negative v1 plot quantity was I_C, not a stock. Equation choice changes
+  its sign in some v2 comparisons; no rate/basin or ecological claim follows.
+- Results/configuration/provenance: `docs/tp_v2_results.md` and
+  `docs/tp_v2_spinup_and_functions.md`; artifacts in
+  `artifacts/temperature_precipitation/v2/spinup_comparison/`.
+- Validation: 190 passed / 7 skipped, including 14 new dedicated tests.
+
+## Temperature–precipitation first experiments (2026-09-22)
+
+- New independent `temperature_precipitation.py`: eight physical states, T/P
+  forcing, mass budgets, moving water-capacity bounds, carbon capacity,
+  equilibrium and Jacobian. Defaults are uncalibrated assumptions.
+- WP1 passed; first WP2 controls run for none/heat/water/additive mortality.
+  Each hierarchy has 0/T/P/TP, two rainfall endpoints, and 208 total
+  single-driver continuation points including reverse traversal.
+- P=4 mm/day remains above field capacity and yields a carbon-response
+  plateau; P=2 produces quantitative interactions without an explicit product
+  mortality term. All sampled positive branches/endpoints are stable.
+- Water mortality: I_C is -9.901 Mg C/ha after 20 years, crosses zero around
+  year 33.1, and reaches +37.380 after 200 years, approaching the frozen
+  equilibrium contrast +37.416. This is a transient interaction, not R-tipping.
+- Fixed absolute-water interventions leave the moving-capacity domain after
+  670–1050 days; rejected for ecological attribution after violation. Other
+  normal eight-state trajectories pass bounds and budgets.
+- Tests: 176 passed / 7 skipped; 13 dedicated tests. Cross-solver normalized
+  differences <=2.41e-8. WP2 attribution still needs a valid clamp; WP3–5,
+  boundary equilibria, seasonal reference, and rate/basin tests remain pending.
+- Results and reproducibility: `docs/temperature_precipitation_first_results.md`
+  and companion TeX; artifacts under `artifacts/temperature_precipitation/`.
+
 ## Temperature–precipitation theory plan (2026-09-22)
 
 - `temperature_precipitation_tipping_research_plan.md` defines a separate

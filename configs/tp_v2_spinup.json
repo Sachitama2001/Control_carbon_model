@@ -1,0 +1,24 @@
+{
+  "schema_version": 2,
+  "baseline": {"temperature": 27.0, "precipitation": 6.0},
+  "target": {"temperature": 31.0, "precipitation": 2.0},
+  "initial_state": [3.0, 40.0, 8.0, 80.0, 0.4, 2.0, 0.8, 120.0],
+  "years": 20.0,
+  "sample_days": 5.0,
+  "solver": {"method": "Radau", "max_step": 10.0, "rtol": 1e-8, "atol": 1e-10},
+  "spinup": {"max_years": 800, "chunk_years": 25, "consecutive_years": 3,
+    "annual_scaled_change": 1e-7, "rhs_absolute": 1e-8},
+  "parameters": {},
+  "models": [
+    {"name": "baseline_none", "mortality": "none", "processes": {}},
+    {"name": "baseline_heat", "mortality": "heat", "processes": {}},
+    {"name": "baseline_water", "mortality": "water", "processes": {}, "refine_spinup": true},
+    {"name": "baseline_additive", "mortality": "additive", "processes": {}},
+    {"name": "visit_temperature", "mortality": "water", "processes": {"photo_temperature": "visit_tem"}},
+    {"name": "visit_canopy", "mortality": "water", "processes": {"photo_canopy": "visit_monsi"}},
+    {"name": "visit_soil_factor", "mortality": "water", "processes": {"photo_water": "visit_soil_with_plant_gate"}},
+    {"name": "visit_water_supply", "mortality": "water", "processes": {"evap_supply": "visit_quadratic"}},
+    {"name": "visit_drainage", "mortality": "water", "processes": {"drainage": "visit_baseflow_plus_excess"}},
+    {"name": "visit_combined", "mortality": "water", "processes": {"photo_temperature": "visit_tem", "photo_canopy": "visit_monsi", "evap_supply": "visit_quadratic"}}
+  ]
+}
