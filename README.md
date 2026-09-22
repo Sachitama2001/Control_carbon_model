@@ -2,8 +2,8 @@
 
 2026-09-22: Added a
 [temperature–precipitation tipping research plan](docs/temperature_precipitation_tipping_research_plan.md)
-for a deliberately low-dimensional theoretical track. It starts from four
-carbon pools plus one root-zone water store, treats temperature and
+for a deliberately low-dimensional theoretical track. It starts from matching
+leaf/stem/root/soil carbon and water stores (eight states), treats temperature and
 precipitation as the only varying external drivers, and separates quantitative
 compound effects, frozen-system bifurcations, and genuine rate-induced basin
 transitions. It complements rather than replaces the native VISIT audits and

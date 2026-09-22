@@ -2,7 +2,7 @@
 
 > 2026-09-22 temperature–precipitation plan: see
 > `docs/temperature_precipitation_tipping_research_plan.md`. The new theoretical
-> track starts from four carbon pools plus one root-zone water store, monthly
+> track starts from matching leaf/stem/root/soil carbon and water stores, monthly
 > temperature/precipitation forcing, and a four-run factorial design. It keeps
 > quantitative interaction, frozen-system bifurcation, and R-tipping claims
 > separate. It complements rather than replaces the native 37-state workbook,

@@ -9,7 +9,7 @@ The paper-oriented theoretical plan is in
 It asks whether simultaneous temperature and precipitation change creates
 equilibria, stability boundaries, path dependence, or rate-induced basin
 transitions that are absent when either external driver is fixed. Its initial
-state is four carbon pools plus one root-zone water store. This track does not
+state is matching leaf/stem/root/soil carbon and water stores. This track does not
 replace the native VISIT audit or the explicit-SPAC carbon–water track.
 
 ## Current focus: explicit water storage in the matrix framework

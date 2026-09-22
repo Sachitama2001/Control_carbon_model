@@ -15,9 +15,9 @@ and downstream; do not tune the model merely to produce tipping.
 
 A separate paper-oriented low-dimensional track now studies temperature and
 precipitation as the only varying external drivers. Its specification is
-`docs/temperature_precipitation_tipping_research_plan.md`. Keep its
-four-carbon/one-water theoretical model distinct from both native VISIT and the
-eight-state explicit-SPAC synthesis. Quantitative compound effects, frozen
+`docs/temperature_precipitation_tipping_research_plan.md`. Keep its reduced
+four-carbon/four-water theoretical model distinct from both native VISIT and
+the source-grounded explicit-SPAC implementation. Quantitative compound effects, frozen
 bifurcations, and genuine rate-induced basin transitions are separate claims.
 
 ## Read first

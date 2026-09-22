@@ -44,7 +44,7 @@ the canonical article is at
 
 The new temperature–precipitation factorial track is specified in
 [`temperature_precipitation_tipping_research_plan.md`](temperature_precipitation_tipping_research_plan.md).
-It uses a four-carbon/one-water theoretical model and must remain distinct from
+It uses a four-carbon/four-water theoretical model and must remain distinct from
 the native VISIT audits and the eight-state explicit-SPAC synthesis.
 
 The current capacity-focused synthesis is in
