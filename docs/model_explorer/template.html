@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>炭素循環の式をひらく — VISIT</title>
+<style>
+:root{color-scheme:light;--paper:#f5f4ee;--ink:#284238;--muted:#697b6c;--line:#d6ded1;--green:#2b634a;--soft:#ecf0e6}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.9 "Yu Gothic UI","Meiryo",sans-serif}header,main,footer{max-width:1080px;margin:auto;padding:24px 32px}header{padding-top:36px}.brand{font-size:11px;letter-spacing:.16em;color:var(--muted)}h1{font-size:29px;font-weight:600;letter-spacing:.03em;margin:10px 0}h2{font-size:18px}h3{font-size:14px}.intro{font-size:13px;color:var(--muted)}.hero{font-family:Georgia,serif;font-size:38px;text-align:center;padding:24px 0;letter-spacing:.06em;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.hero a{color:var(--green);text-underline-offset:8px;text-decoration-thickness:1px}.hint{text-align:center;font-size:12px;color:var(--muted)}.mode{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:3px 12px;font-size:11px}.topic,details{background:#fffefa;border:1px solid var(--line);border-radius:8px;margin:11px 0}summary{cursor:pointer;padding:15px 18px;font-weight:600;line-height:1.65;overflow-wrap:anywhere}summary::marker{color:var(--green)}summary:hover{background:var(--soft)}summary:focus-visible,a:focus-visible{outline:3px solid #ba893e;outline-offset:3px}summary small{font-size:10px;color:var(--muted);font-weight:400;margin-left:14px;overflow-wrap:anywhere}.inside{padding:3px 20px 19px}.inside p{font-size:13px;overflow-wrap:anywhere}.inside .description{font-size:14px}.nest{border-left:2px solid #d9e3d1;padding-left:15px;margin:16px 0}.nest .topic{box-shadow:none}.equation{font:15px/1.9 "Cambria Math","Yu Gothic UI",monospace;background:var(--soft);border-left:3px solid #81a075;padding:14px 17px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;border-radius:0 5px 5px 0;max-width:100%;margin:15px 0}.unit,.source{color:var(--muted);font-size:11px!important}.source-code{font-size:11px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;background:#f0f1ea;padding:15px}.source-detail{background:#f6f6f0}.source-detail summary{font-size:12px}.process summary{font-size:12px}.process .inside{font-size:12px}.definition{border-bottom:1px solid var(--line);padding:12px 0}.definition:target{outline:3px solid #c9a25b;background:#fff9df}a{color:var(--green)}footer{font-size:11px;color:var(--muted);border-top:1px solid var(--line);margin-top:20px}.template-note{padding:18px;border:1px solid #c5a16a;background:#fff8e8}.template-note:has(+ .topic){display:none}
+@media(max-width:650px){header,main,footer{padding:20px 12px}h1{font-size:23px}.hero{font-size:28px;letter-spacing:0}.inside{padding:2px 9px 12px}.nest{padding-left:7px;margin:12px 0;border-left-width:1px}summary{padding:12px 9px;font-size:13px}summary small{display:block;margin-left:15px}.equation{padding:10px;font-size:12px}.intro{font-size:12px}}
+@media print{body{background:white}header,main,footer{max-width:none;padding:10px}.hero{font-size:26px}.inside{padding:6px}.topic{break-inside:auto}.equation{font-size:10pt}summary{font-size:11pt}.hint{display:none}}
+</style>
+</head>
+<body>
+<header>
+<div class="brand">CONTROL CARBON · EQUATIONS IN CONTEXT</div>
+<h1>炭素循環の式をひらく</h1>
+<p class="intro">一つの式から、貯留の内訳、過程の式、その根拠へ。見出しの三角を押すと、その場で下の階層が開きます。</p>
+<div class="hero" aria-label="概念式">dx/dt = <a href="#open-B">B</a> <a href="#open-mu">μ</a> + <a href="#open-A">A</a> <a href="#open-xi">ξ</a> <a href="#open-K">K</a> <a href="#open-x">x</a></div>
+<p class="hint">式の記号から該当箇所へ進めます。見出しの三角で、式と内訳をその場に展開・折り畳みできます。</p>
+<span class="mode">旧VISIT / TKY / 日次経路</span>
+<p class="intro">上は概念上の微分式です。以下の採用式は、原典の順序を保った1日ごとの増分 Δx/Δt を表します。各階層で採用式を確認できます。</p>
+</header>
+<main>
+<div class="template-note"><strong>これは生成用の雛形です。</strong><br>閲覧には <a href="../../artifacts/model_explorer/index.html">生成済みの index.html</a> を開いてください。VS Codeで開くファイルも index.html です。</div>
+__NESTED_CONTENT__
+</main>
+<footer>VISIT-matrix · 3285bd8e131a932e338b59892751648fd9edcc7b<br>同じモデルの表示を展開します。固定配分の例だけは別の仮定として明記しています。現在の状態値を仮定した計算は行いません。</footer>
+</body>
+</html>
