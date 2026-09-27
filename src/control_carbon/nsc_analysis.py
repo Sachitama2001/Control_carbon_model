@@ -17,7 +17,8 @@ class Trajectory:
     domain_event: bool
 
 
-def integrate(x0, times, driver, p, max_step=30.0, rtol=1e-8, atol=1e-12):
+def integrate(x0, times, driver, p, max_step=30.0, rtol=1e-8, atol=1e-12,
+              evaluator=evaluate):
     """Integrate log stocks, not clipped stocks, plus external carbon integral.
 
     Strictly positive starts required. Exact bare vegetation is an invariant
@@ -32,7 +33,7 @@ def integrate(x0, times, driver, p, max_step=30.0, rtol=1e-8, atol=1e-12):
         raise ValueError("increasing finite times required")
     def fun(t, z):
         x = np.exp(z[:8])
-        dx, d = evaluate(x, driver(t), p)
+        dx, d = evaluator(x, driver(t), p)
         return np.r_[dx/x, d['external']]
     def log_jac(t, z):
         # The cumulative-budget column is identically zero. Supplying it avoids
@@ -72,15 +73,16 @@ def integrate(x0, times, driver, p, max_step=30.0, rtol=1e-8, atol=1e-12):
 
 
 def spinup(seed, temperature, p, years=1000, chunk_years=50, max_step=30,
-           rtol=1e-8, atol=1e-12, rhs_tolerance=1e-9, drift_tolerance=1e-7):
+           rtol=1e-8, atol=1e-12, rhs_tolerance=1e-9, drift_tolerance=1e-7,
+           evaluator=evaluate):
     x = np.asarray(seed, float).copy()
     records, converged = [], False
     for start in np.arange(0, years, chunk_years):
         duration = min(chunk_years, years-start)*365
         tr = integrate(x, np.linspace(0, duration, int(duration/365)+1),
-                       lambda t: temperature, p, max_step, rtol, atol)
+                       lambda t: temperature, p, max_step, rtol, atol, evaluator=evaluator)
         new = tr.states[-1]
-        residual = float(np.max(np.abs(rhs(new, temperature, p))))
+        residual = float(np.max(np.abs(evaluator(new, temperature, p)[0])))
         drift = float(np.max(np.abs(new-tr.states[-2])/np.maximum(1, new)))
         records.append(dict(year=float(start+tr.times[-1]/365), state=new.tolist(),
                             sample_days=(start*365+tr.times).tolist(),
@@ -100,14 +102,14 @@ def spinup(seed, temperature, p, years=1000, chunk_years=50, max_step=30,
                    temperature=temperature)
 
 
-def relative_field(logx, temperature, p):
+def relative_field(logx, temperature, p, evaluator=evaluate):
     x = np.exp(logx)
-    return rhs(x, temperature, p)/x*365
+    return evaluator(x, temperature, p)[0]/x*365
 
 
-def equilibrium(seed, temperature, p):
+def equilibrium(seed, temperature, p, evaluator=evaluate):
     """Positive direct root. Near-boundary roots are never called positive QSE."""
-    fit = least_squares(lambda z: relative_field(z, temperature, p),
+    fit = least_squares(lambda z: relative_field(z, temperature, p, evaluator),
                         np.log(np.maximum(seed, 1e-12)), bounds=(-32, 16),
                         xtol=1e-12, ftol=1e-12, gtol=1e-12, max_nfev=500)
     x = np.exp(fit.x)

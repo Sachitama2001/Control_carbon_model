@@ -1,0 +1,29 @@
+{
+  "experiment_id": "v4_v5_v7_branch_audit_v3",
+  "variants": ["V4", "V5"],
+  "temperatures_c": [10, 15, 20, 25, 30],
+  "mobilization_rates_per_day": [0.03, 0.001, 0.003],
+  "mobilization_provenance": "Exploratory assumptions: leaf uses prior flush_rate; stem/root use prior growth coefficients. New mobilization interpretation, not TKY data.",
+  "multipliers": [0.1, 1.0, 10.0],
+  "reference_days": 1.0,
+  "root_scan_points": 600,
+  "turnover_cases": ["inherited", "tky_turnover_sensitivity"],
+  "rescue_audit": true,
+  "spinup_years": 2000,
+  "max_step_days": 365,
+  "rtol": 1e-8,
+  "atol": 1e-12,
+  "seed_biomass": [0.001, 1, 100],
+  "seed_nsc_fraction": [0.005, 0.15],
+  "fixed_environment": {
+    "ppfd_top": 1000, "day_length": 12, "co2": 370,
+    "ci_fraction": 0.7, "water_scalar": 1, "soil_temperature_offset": 0
+  },
+  "change_from_v2": "Maximum adaptive step increased from 30 to 365 days for autonomous far-branch spinup. Half-step/tighter-tolerance checks retained. Incomplete v2 is preserved separately.",
+  "missing_inputs": [
+    "Fixed PPFD/daylength/ci remain exploratory assumptions, not confirmed TKY forcing.",
+    "Mobilization rates have no native equivalent and are uncalibrated.",
+    "Optimal-LAI cost intermediate dimensional interpretation is unresolved.",
+    "Sliding candidates use a Filippov interpretation; no native daily attractor equivalence established."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "experiment_id": "v0_v3_first_comparison",
+  "variants": ["V0", "V1f", "V1t", "V2", "V3"],
+  "temperatures_c": [10.0, 20.0, 30.0],
+  "reference_temperature_c": 20.0,
+  "fixed_environment": {
+    "ppfd_top": 1000.0,
+    "day_length": 12.0,
+    "co2": 370.0,
+    "ci_fraction": 0.7,
+    "water_scalar": 1.0,
+    "soil_temperature_offset": 0.0
+  },
+  "spinup_years": 500,
+  "spinup_chunk_years": 50,
+  "max_step_days": 30.0,
+  "rtol": 1e-8,
+  "atol": 1e-12,
+  "rhs_tolerance": 1e-9,
+  "drift_tolerance": 1e-7
+}

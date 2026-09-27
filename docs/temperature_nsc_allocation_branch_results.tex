@@ -1,0 +1,285 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,longtable,graphicx,hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue}
+\title{VISITの配分切替をもつ炭素--NSC系\\
+平衡の非存在条件と切替面上の平衡候補}
+\author{Control Carbon Model：探索記録}
+\date{2026年9月25日}
+\begin{document}
+\maketitle
+
+\section{今回の問いと結論}
+NSC不足による枯死を除いた8状態モデルに、VISITの区分的配分を導入した。
+V4は区分的配分、V5はさらにサイズ依存維持呼吸を加えたモデルである。
+従来のturnover（器官更新による損失率）を保つ条件では、
+調べた5温度のすべてで正の平衡が存在しないことを解析的に示せる。
+これに対し、turnoverのみをTKY原典の値へ置換した感度比較では、
+目標葉量の切替面に引き付けられる平衡候補が得られた。
+また、従来のturnoverに救済再配分を加えたV7対照では、
+低葉量の切替面に平衡候補が現れた。
+
+これらは異なるモデル設定の比較である。同一モデル内での健全・不健全の
+多安定性やR-tippingは、まだ検出していない。切替面の平衡は、以下で定義する
+連続時間の解釈に依存する。VISIT本来の日次写像の不動点と同一とは主張しない。
+
+\section{状態、単位、出典}
+状態は
+\[
+ X=(C_L,C_S,C_R,C_O,N_L,N_S,N_R,N_O)^\top
+\]
+とする。$C_i$は構造炭素、$N_i$は植物NSC、$N_O$は土壌易分解性炭素であり、
+窒素ではない。全貯留量の単位はMg C ha$^{-1}$、時間はdayである。
+本モデルはVISITの代数式に基づく縮約炭素プールモデルである。
+
+原典は \texttt{Sachitama2001/VISIT-matrix}、
+commit \texttt{3285bd8e131a932e338b59892751648fd9edcc7b} の
+\texttt{visit\_local/} とする。原典作業ツリーの版を実験開始時に確認した。
+\begin{longtable}{p{33mm}p{79mm}p{28mm}}
+\toprule
+過程&出典・位置&今回の扱い\\\midrule
+葉の配分率&\texttt{allocation.c}, \texttt{f\_allocation}, 25--77行&正のEPP、活動期、非作物\\
+最適LAI&\texttt{ecophysiology.c}, \texttt{f\_opt\_lai}, 271--299行&有効な代数分岐\\
+群落GPP&\texttt{photosynthesis.c}, \texttt{f\_gpp}, 22--42行&代数式の転記\\
+サイズ依存呼吸&\texttt{ecophysiology.c}, 326--366行&V5で需要式を置換\\
+NSC容量&\texttt{ecophysiology.c}, 77--87行&V6の原式監査\\
+貯蔵の更新順序&\texttt{plant\_proc.c}, 209--233行&V6の逐次写像監査\\
+救済再配分&\texttt{allocation.c}, 125--154行&V7の独立対照\\\bottomrule
+\end{longtable}
+
+\begin{longtable}{p{27mm}p{65mm}p{47mm}}
+\toprule
+記号&意味&単位・値の由来\\\midrule
+$L=\gamma C_L$&片面LAI、$\gamma=2.2\,\mathrm{SLA}/200$&m$^2$ m$^{-2}$、TKY SLA=150\\
+$C_*(T)$&最適LAIから換算した目標葉炭素& Mg C ha$^{-1}$、原典式\\
+$a_f,a_s$&葉基準配分、残余の幹配分&無次元、TKYで0.1、0.67\\
+$m_i=\kappa_iN_i$&各NSCからの動員速度&Mg C ha$^{-1}$ day$^{-1}$\\
+$V=\sum_i m_i$&総動員速度&同上\\
+$\kappa$&NSC動員係数&day$^{-1}$、仮定値$(.03,.001,.003)$\\
+$y$&構造への変換収率&無次元、従来仮定の0.75\\
+$\ell_i=\tau_i+\mu_0$&器官損失と背景死亡の合計&day$^{-1}$、NSC不足死亡は0\\
+$K_i$&呼吸支払いの半飽和NSC量&Mg C ha$^{-1}$、従来仮定\\
+$R_i$&実際に支払われる維持呼吸&Mg C ha$^{-1}$ day$^{-1}$\\
+$\Delta t_{\rm ref}$&原典の1日量へ換算する基準時間&1 day、積分刻みとは独立\\\bottomrule
+\end{longtable}
+動員係数は、従来の展葉速度と幹・根成長速度の数値を、新しい動員則へ読み替えた
+探索上の仮定である。TKYで測定された動員速度ではない。
+全係数を0.1、1、10倍する感度比較を行った。
+
+PPFD=1000 $\mu$mol photon m$^{-2}$ s$^{-1}$、日長12 h、CO$_2$=370 ppm、
+$c_i=0.7c_a$、水制限係数1は前段階から継承した仮定である。
+元の計画が求めた参照日由来の$c_i$等は未確定であり、
+今回の結果をTKY森林の定量予測として扱わない。
+最適LAI式の呼吸中間量についても、数値転記の検証と次元解釈の解決を区別する。
+
+\section{区分的配分を保存則に組み込む}
+$E=V\Delta t_{\rm ref}$と置く。TKYの$a_f=0.1>0.05$では原典の葉配分率は
+\begin{equation}
+c_f=\begin{cases}
+0,&C_L>C_*,\\
+a_f,&C_L\le C_*,\quad C_*-C_L\le a_fV\Delta t_{\rm ref},\\
+0.05,&C_*-C_L>a_fV\Delta t_{\rm ref}.
+\end{cases}
+\label{eq:allocation}
+\end{equation}
+$c_S=(1-c_f)a_s$、$c_R=(1-c_f)(1-a_s)$である。
+原典は1日分のEPPを使うが、ここではNSC動員を使う。
+以前の展葉・幹根成長はこの投資に置き換え、同時に残さない。
+原典の器官別成長呼吸率への変更は加えず、共通の$y=0.75$を維持した。
+
+NSC間輸送の行列を$J$（列和ゼロ）、$\mathcal L=\mathrm{diag}(\ell_i)$、
+$\mathcal K=\mathrm{diag}(\kappa_i)$、$e_L=(1,0,0)^\top$とすれば
+\begin{align}
+\dot C&=y\,c\,\boldsymbol{1}^{\top}\mathcal K N-\mathcal L C,\\
+\dot N&=e_LG(C_L,T)+JN-(\mathcal L+\mathcal K)N-R(C,N,T).
+\label{eq:nsc}
+\end{align}
+したがって、NSCから構造への輸送は
+$y\,c\,\boldsymbol{1}^{\top}\mathcal K$という行列で表せる。
+成長呼吸$(1-y)V$を外部損失として分離する。
+全8状態では
+\[
+\boldsymbol{1}^{\top}\dot X
+=G-\sum_iR_i-(1-y)V-R_{\rm soil}-E_{\rm export}.
+\]
+供給元のNSCが0ならその動員も0になるため、連続方程式は非負領域を保つ。
+数値積分は対数座標を使い、切替面に到達した場合には停止する。
+
+\section{平衡問題を1変数に縮約する}
+配分率を固定した各分岐では
+\begin{equation}
+C_i=\frac{yc_iV}{\ell_i}.
+\label{eq:structure}
+\end{equation}
+この式を維持呼吸需要$D_i(C,T)$へ代入する。幹・根のNSC平衡は
+\[
+a_iN_i+\frac{D_iN_i}{K_i+N_i}=b_iN_L
+\]
+となる。$a_i=\ell_i+\kappa_i+$葉への輸送率、
+$b_i=$葉からの輸送率である。左辺は$N_i\ge0$で狭義単調増加なので、
+$N_L$を与えると$N_S,N_R$は一意に求まる。
+具体的には
+\[
+a_iN_i^2+(a_iK_i+D_i-b_iN_L)N_i-b_iN_LK_i=0
+\]
+の非負根である。
+次に$V=\kappa_LN_L+\kappa_SN_S+\kappa_RN_R$から$N_L$を一意に定める。
+最後に葉NSC平衡だけが残り、$F(V,T;c_f)=0$という1変数の根探索となる。
+求めた根は必ず式\eqref{eq:allocation}の分岐条件へ代入して採否を判定する。
+分岐外の形式的な根を、モデルの平衡点として数えない。
+
+植物から土壌への構造・NSC流入を$I_C,I_N$とすると、
+$N_O=I_N/k_N(T)$、$C_O=(I_C+\alpha I_N)/k_C(T)$で土壌平衡を復元できる。
+土壌から植物への戻りは今回のモデルにはない。
+
+\section{従来のturnoverでは正の平衡が存在しない}
+植物全体の定常収支と式\eqref{eq:structure}から、
+\begin{equation}
+G=V+\sum_iR_i+\sum_i\ell_iN_i\ge V.
+\label{eq:bound}
+\end{equation}
+群落GPPは葉量に対して増加し、限界生産性が減少する。
+原点での傾きを$g_0=G'(0)$、上限を$G_\infty$とすれば
+$G(C_L)\le g_0C_L$かつ$G(C_L)\le G_\infty$である。
+
+目標から遠い分岐では$c_f=0.05$なので、
+\[
+V=\frac{\ell_LC_L}{0.05y},\qquad
+\frac{0.05y\,g_0}{\ell_L}<1
+\]
+なら$C_L>0$の平衡は不可能である。
+目標に近い分岐では
+$C_L\ge C_*-a_fV\Delta t_{\rm ref}$と
+$C_L=ya_fV/\ell_L$より
+\begin{equation}
+V\ge V_{\min}
+=\frac{\ell_LC_*}{a_f(y+\ell_L\Delta t_{\rm ref})}.
+\end{equation}
+$G_\infty<V_{\min}$なら、この分岐にも正の平衡はない。
+目標を超えた分岐では葉への投資が0なので正の葉量平衡はない。
+切替面上で配分率を両側の凸結合として解釈しても、同じ下限またはより強い下限が成立する。
+
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+$T$ [$^\circ$C]&$0.05y g_0/\ell_L$&$G_\infty$&$V_{\min}$\\\midrule
+10&0.465&0.07783&0.21457\\
+15&0.567&0.08774&0.19840\\
+20&0.593&0.08959&0.18308\\
+25&0.547&0.08445&0.16847\\
+30&0.399&0.06843&0.15248\\\bottomrule
+\end{tabular}
+\end{center}
+$G_\infty,V_{\min}$の単位はMg C ha$^{-1}$ day$^{-1}$。
+両不等式は全5点で成立する。この結論はNSC動員速度に依存せず、
+維持呼吸が非負ならV4、V5の双方に適用できる。
+温度の連続区間全体については、表の離散点の検証と区別する。
+また、平衡の非存在だけでは周期軌道の非存在までは証明できない。
+
+\section{TKY turnoverを用いた対照と切替面}
+従来の$\tau_L=1/365$に対し、TKY原典の基礎葉損失率は
+$8.2\times10^{-5}$ day$^{-1}$である。幹、根もそれぞれ原典の
+$7.8\times10^{-6}$、$6.4\times10^{-5}$へ置換した対照を別に計算した。
+背景損失$\mu_0$は従来どおり残す。
+原典には季節落葉もあるため、この基礎損失率だけの対照を
+落葉広葉樹の年平均turnoverと同一視してはならない。
+
+$h=C_L-C_*$と置き、$h<0$側の場を$f_-$、$h>0$側を$f_+$とする。
+\[
+\nabla h\cdot f_->0,\qquad \nabla h\cdot f_+<0
+\]
+なら両側から面へ流れが向く。面に沿う場を
+\[
+f_{\rm slide}=\theta f_-+(1-\theta)f_+,\qquad
+\nabla h\cdot f_{\rm slide}=0,\quad 0\le\theta\le1
+\]
+と定義するのが今回の滑り候補の解釈である。
+ここでは実効葉配分が
+$c_f^{\rm eff}=\ell_LC_*/(yV)$となる。
+法線方向の吸引に加え、面に沿う7変数系の固有値を評価する。
+これは通常の片側ベクトル場の零点ではなく、解概念を拡張した平衡である。
+日次写像の閾値往復や有限振幅振動との対応は未検証である。
+
+5温度、3動員倍率、V4/V5の30条件すべてで、
+目標葉量面に吸引的な滑り平衡候補が1つ検出された。
+各分岐内の適合する正の根は検出されなかった。
+ただし探索は有限の走査であり、これを全平衡の一意性証明とはしない。
+
+\section{V6：貯蔵優先の監査から分かった注意点}
+原典の容量は$N_{\rm cap}=0.1S_{\rm sap}+0.3R_{\rm fine}$である。
+元の日次処理は、幹への正の配分を貯蔵へ入れた後に容量を再判定して根を扱う。
+たとえば貯蔵0.9、容量1.0、幹配分0.2、根配分0.3なら、
+幹配分で貯蔵は1.1になり、根配分は構造へ入る。
+容量で切り詰める処理ではない。
+
+さらに、貯蔵へ回した場合も成長呼吸は幹・根の構造量から差し引かれる。
+小さな構造量に大きな配分を与える純関数試験では負の構造量が生じる。
+これは任意の監査入力での結果であり、実際のTKY時系列で発生したという意味ではない。
+今回の「NSC不足による構造損失を再導入しない」という要件に沿うには、
+貯蔵不足時に実際の構造成長用動員を抑える保存的な別モデルが必要になる。
+V6は原式・更新順序・収支の監査までとし、切替面の扱いを確定した後に統合する。
+
+\section{V7：救済再配分を加える対照}
+$C_{\rm crit}=0.1/\gamma$とする。$C_L<C_{\rm crit}$で
+\[
+H_S=C_{\rm crit}a_s\frac{0.05C_S}{0.5C_{\rm crit}+0.05C_S},\quad
+H_R=C_{\rm crit}(1-a_s)\frac{0.1C_R}{0.5C_{\rm crit}+0.1C_R}.
+\]
+構造間の移行として$\dot C$へ
+$(H_S+H_R,-H_S,-H_R)^\top/\Delta t_{\rm ref}$を加える。
+NSCからの支払いに読み替えない。
+\[
+H_S/C_S\le0.1a_s,\qquad H_R/C_R\le0.2(1-a_s)
+\]
+なので、TKY係数では1日再配分だけで供給元を負にしない。
+
+従来のV4へこの救済だけを加えた対照では、
+$C_L=C_{\rm crit}=0.060606\ldots$ Mg C ha$^{-1}$、LAI=0.1に
+吸引的な滑り平衡候補が得られた。
+10、20、30 $^\circ$Cで必要な実効救済割合は
+約0.00210、0.00187、0.00259である。
+これは原典の救済率を変更した係数ではなく、
+切替の両側を平均した場の混合率である。
+面に沿う最大固有値実部はそれぞれ約
+$-6.00,-6.31,-6.45$（単位$10^{-5}$ day$^{-1}$）であった。
+
+\section{科学的な解釈と次の方向}
+異なる設定で、高葉量と低葉量の切替面が生じた。
+同一設定で二つの吸引集合が共存した証拠はないため、
+これを健全・不健全間のR-tippingとは呼ばない。
+滑り平衡は採用した連続時間解釈におけるQSE候補でもあり、
+その存在だけで「QSE以外への吸引」を実証したことにはならない。
+
+次は、同じ構成式について滑りの定義、平滑化幅を縮める近似、
+NSC動員モデルの1日更新を比較し、吸引対象がどこまで共通かを調べる。
+その後に保存的な貯蔵優先V6を追加する。
+季節落葉を除いた基礎turnover対照の解釈と、固定気象・$c_i$の参照値も確定が必要である。
+定常平衡だけでなく周期的な吸引状態も候補に含めるが、
+速度実験に進む前に、同一モデルの凍結環境で吸引集合と境界を確認する。
+
+\section{再現方法と数値結果}
+\path{configs/temperature_nsc_allocation_v4.json}で設定を保存する。
+\path{examples/run_nsc_allocation_audit.py}で再実行できる。
+成果物は
+\path{artifacts/temperature_nsc_visit_allocation/v4_v5_v7_branch_audit_v4/}
+へ保存する。コードと設定、TKY表、原配分ソースのスナップショットと
+SHA-256をmanifestに記録する。
+前段のv2は計算時間のため途中で中断した。v3の監査では極小葉量でのGPPの桁落ちを検出した。
+いずれも部分結果を検証記録として残し、最終的な時系列の結論には用いない。
+GPPの対数の引数が丸めで1になる問題を、平方根差の有理化と
+\texttt{expm1}/\texttt{log1p}で修正した。代数式は等価であり、
+葉量$10^{-100}$まで原点傾きを再現することをテストした。
+原Cとの比較は通常の葉量で行い、極小葉量でCの丸めを模倣するものではない。
+v4では固定環境での適応積分の最大刻みを365日とし、
+182.5日・厳しい許容誤差との比較を行う。積分刻みは
+式の$\Delta t_{\rm ref}=1$ dayを変えない。
+\IfFileExists{../artifacts/temperature_nsc_visit_allocation/v4_v5_v7_branch_audit_v4/numerical_summary.tex}{
+\input{../artifacts/temperature_nsc_visit_allocation/v4_v5_v7_branch_audit_v4/numerical_summary.tex}
+}{数値集計は成果物のJSONを参照。}
+\IfFileExists{../artifacts/temperature_nsc_visit_allocation/v4_v5_v7_branch_audit_v4/comparison.pdf}{
+\begin{figure}[ht]\centering
+\includegraphics[width=\linewidth]{../artifacts/temperature_nsc_visit_allocation/v4_v5_v7_branch_audit_v4/comparison.pdf}
+\caption{非存在条件、異なる設定の切替面候補、固定温度での緩和。
+各パネルは同一モデルでの多安定性を意味しない。}
+\end{figure}}{}
+\end{document}
