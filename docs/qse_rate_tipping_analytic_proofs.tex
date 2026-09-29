@@ -1,0 +1,426 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,booktabs,longtable,graphicx}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\setlength{\emergencystretch}{3em}
+\newtheorem{proposition}{命題}
+\newtheorem{theorem}[proposition]{定理}
+\newtheorem{corollary}[proposition]{系}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\one}{\bm 1}
+\title{QSEの増減から炭素収支を判定できるか\\
+\large 二つの正の安定平衡と速度依存遷移の解析的構成}
+\author{Control Carbon Model：解析主導の研究記録}
+\date{2026年9月29日}
+\begin{document}
+\maketitle
+\begin{abstract}
+凍結環境の平衡（QSE）の増減、実際の炭素収支、追跡する平衡枝の選択を区別する。
+まずQSEの変化だけでは正味収支を判定できないことを示す。
+次に、全環境値で二つの正の安定平衡が存続する系において、
+同じ環境経路の速度だけで終点の吸引域と累積炭素収支の符号が変わることを証明する。
+三次式では有限ランプの臨界速度を一意な積分方程式で与える。
+さらに、上限をもつ二つの生産項と線形損失からなる、炭素ゼロで生産もゼロのモデルを構成し、
+滑らかなランプでも同じ遷移が起こることを証明する。
+これらはモデル非依存の解析的構成であり、VISITの再現や森林の較正値ではない。
+Luo型capacity・potentialの恒等式を否定するのではなく、
+状態依存capacity、集約の仕方、吸引域の情報が必要となる条件を明確にする。
+\end{abstract}
+\tableofcontents
+
+\section{目的、用語、証明の位置づけ}
+目的は「QSEの値を追えば炭素の吸収・放出を判定できるか」という問いを、
+判定可能な数学的命題に分けることである。
+環境$\lambda$を固定した系$\dot x=F(x,\lambda)$の零点をQSEと呼ぶ。
+環境が変化している最中の実軌道が$\dot x=0$であるとは意味しない。
+時変平衡枝$x^*(\lambda(t))$は、一般には元の非自律方程式の解ではない。
+
+二つの安定平衡間のR-tippingの後にも、温度を固定すれば通常は別のQSEへ収束する。
+したがって主張するのは、
+「高炭素QSEが安定なまま存続しても、速い変化でそこへの追跡を失う」である。
+「どのQSEにも永久に達しない」ではない。
+有限時間に厳密に平衡へ到達するか、無限時間で漸近収束するかという区別も保つ。
+
+Luoら\cite{luo}の行列表示とcapacity・potential（Box 1、式(1a)--(1c)）を
+出発点とする。非自律系の低速追跡とR-tippingの一般理論は
+Ashwinら\cite{ashwin}に位置づけられている。
+以下の具体例と証明は本研究用に導出したものであり、R-tippingの存在そのものを
+新規発見と主張しない。論文としての新規性は別途精査する。
+以前の数値的な容量反例とは別の解析用構成である。
+
+\subsection{変数・単位}
+\begin{longtable}{p{26mm}p{79mm}p{34mm}}
+\toprule 記号&定義&単位・由来\\\midrule\endhead
+$C,S$&1プール炭素量、系の総炭素量&例えばMg C ha$^{-1}$\\
+$X$&複数プールの炭素ベクトル&同上\\
+$u,M$&入力ベクトル、移動損失行列&炭素/時間、時間$^{-1}$\\
+$q,\widehat X_c$&外生係数のcapacity、状態依存capacity写像&炭素量\\
+$p,\widehat X_p$&capacityと実状態との差&炭素量、符号付き\\
+$x=C/C_0$&解析例の無次元炭素量&無次元、本稿の構成\\
+$t=t_{\rm phys}/t_0$&解析例の無次元時間&無次元、本稿の構成\\
+$\lambda$&無次元化した環境パラメータ&無次元、温度等へ対応可能\\
+$L,U,H$&低位安定枝、中間不安定枝、高位安定枝&無次元炭素量\\
+$D,\tau,r=D/\tau$&環境総変位、ランプ時間、線形ランプ速度&すべて無次元\\
+$P,R$&解析例の生産と損失&無次元炭素/無次元時間\\
+$q_0(x,\lambda)$&三次ベクトル場に掛ける正の係数&無次元、capacityとは別記号\\
+\bottomrule
+\end{longtable}
+実単位では$\dd C/\dd t_{\rm phys}=(C_0/t_0)F$である。
+$C_0,t_0$や$\lambda$と気温の対応は未較正なので、本稿の速度をそのまま
+$^\circ$C/年に読み替えない。
+炭素貯留の増加を正味吸収と呼ぶ。これが大気との純交換に等しいのは、
+系の境界を適切に定め、側方輸送・収穫・移入等を別途扱う場合に限る。
+
+\section{QSEの変化と現在の炭素収支}
+\begin{proposition}[一意安定平衡でもQSEの増減だけでは足りない]
+$\dot C=I(t)-k(t)C$、$k(t)>0$とする。凍結平衡$q=I/k$について
+\[
+\operatorname{sgn}\dot C=\operatorname{sgn}(q-C)
+\]
+であり、$\operatorname{sgn}\dot q$だけでは$\operatorname{sgn}\dot C$は定まらない。
+\end{proposition}
+\begin{proof}
+$\dot C=k(q-C)$へ書き換える。同じ$I,k,\dot q$の下で、
+$C=q-\varepsilon$と$C=q+\varepsilon$を選べば収支の符号は逆になる。
+$q>\varepsilon>0$なら両状態とも正である。
+\end{proof}
+この命題は、多安定性を仮定しない。なお$p=q-C$を加えれば1プールでは
+収支の符号が厳密に分かる。QSEだけの限界をcapacity・potential全体の限界へ
+直ちに拡張してはならない。
+
+\begin{proposition}[総potentialの符号と総収支]
+$\dot X=u+MX$、$q=-M^{-1}u$、$p=q-X$とする。
+$M$を非対角要素が非負、列和が非正の炭素移動行列とし、
+$w^\top=-\one^\top M\ge0$と置くと
+\begin{equation}
+\dot S=\one^\top\dot X=w^\top p,\qquad S=\one^\top X.
+\label{eq:weighted}
+\end{equation}
+$w=\alpha\one$、$\alpha>0$なら$\operatorname{sgn}\dot S
+=\operatorname{sgn}(\one^\top p)$である。
+逆に全ての微小な符号付き$p$でこの符号一致を要求すると、$w$はこの形でなければならない。
+\end{proposition}
+\begin{proof}
+$\dot X=-Mp$より式\eqref{eq:weighted}を得る。
+$w_i<w_j$なら$w_i/w_j<c<1$を選び、
+$p=\varepsilon(e_i-ce_j)$とすると$\one^\top p>0$だが$w^\top p<0$となる。
+正の$q$に対し$\varepsilon$を小さくすれば$X=q-p$も正に保てる。
+全ての重みが0なら収支が常に0となるため、一般の符号一致にはならない。
+\end{proof}
+具体例は$M=-\mathrm{diag}(1,10)$、$q=(2,2)^\top$、
+$X=(1,2.2)^\top$である。総potentialは0.8で正だが、総収支は$1-2=-1$で負になる。
+ベクトル$p$と行列$M$を保持すれば恒等式から正しく判定できる。
+
+\section{非線形系でcapacityとQSEを区別する}
+\[
+\dot X=u(X,\lambda)+M(X,\lambda)X,\qquad
+\widehat X_c=-M^{-1}u
+\]
+と置けば、可逆な$M$について
+\begin{equation}
+\dot X=M(X-\widehat X_c),\qquad
+X^*=\widehat X_c(X^*,\lambda),\qquad
+J_*=M_*(I-D_X\widehat X_c|_*).
+\label{eq:capacity}
+\end{equation}
+最初の式は代数恒等式、二番目は平衡の固定点条件、三番目は全系の局所安定性である。
+三番目は最初の式を微分し、平衡で$X-\widehat X_c=0$を使えば得られる。
+従って現在状態で計算するcapacity写像と、その自己整合的な固定点であるQSE枝は別の対象である。
+$M_*$だけが安定でも、全ヤコビアン$J_*$が安定とは限らない。
+この整理は既存文書\path{capacity_qse_attractor_exploration.tex}の枠組みを引き継ぐ。
+
+\section{三次式での二つの正の安定平衡}
+\begin{equation}
+\dot x=f(x,\lambda)=-(x-\lambda-1)(x-\lambda-2)(x-\lambda-3),
+\quad 0\le\lambda\le D,\quad 1<D<2.
+\label{eq:cubic}
+\end{equation}
+これは機構を較正した森林モデルではなく、解析しやすい反例である。
+凍結平衡は$L=\lambda+1$、$U=\lambda+2$、$H=\lambda+3$で、
+\[
+f_x(L,\lambda)=-2,\quad f_x(U,\lambda)=1,\quad f_x(H,\lambda)=-2.
+\]
+二つの正の安定平衡は全経路で消失せず、固有値も0にならない。
+非負領域は不変であり、初期値3を含む$[1,D+3]$も全$\lambda$で正に不変である。
+後者は左端で$f\ge0$、右端で$f\le0$から従う。
+
+初期条件は$t\le0$で$\lambda=0,\ x=H(0)=3$とする。
+これは初期スピンアップを省略する仮定ではなく、過去から厳密な平衡にある状態を指定している。
+
+\section{有限線形ランプの臨界速度を証明する}
+\begin{theorem}[同じ環境経路に対する一意な臨界速度]
+式\eqref{eq:cubic}に対し、$\lambda(t)=rt$を$0\le t\le D/r$で与え、
+以後$\lambda=D$で保持する。$D>1$なら
+\begin{equation}
+\mathcal H(r_*)=
+\int_0^1\frac{r_*}{r_*-y+y^3}\,\dd y=D,\qquad
+r_*>\frac{2}{3\sqrt3}
+\label{eq:critical}
+\end{equation}
+を満たす$r_*$がただ一つ存在する。初期値$x(0)=3$からの終点は
+\[
+\lim_{t\to\infty}x(t)=
+\begin{cases}
+D+3,&0<r<r_*,\\
+D+2,&r=r_*,\\
+D+1,&r>r_*.
+\end{cases}
+\]
+真ん中の値は不安定平衡への厳密な到達であり、安定な第三の吸引先ではない。
+\end{theorem}
+\begin{proof}
+ランプ中の移動座標$y=x-\lambda-2$を導入すると、
+\begin{equation}
+\dot y=g(y)-r,\qquad g(y)=y-y^3,\qquad y(0)=1.
+\end{equation}
+$g$の$[0,1]$での最大は$m=2/(3\sqrt3)$である。
+$0<r<m$では$g(y)=r$の大きい正根が$y$の下限となり、
+$r=m$でも$y=1/\sqrt3$への漸近接近で止まる。従って$y=0$を横切らない。
+
+$r>m$なら$y$は1から0へ狭義単調減少し、到達時間は
+\[
+t_{\rm cross}(r)=\int_0^1\frac{1}{r-g(y)}\,\dd y.
+\]
+ランプ終了前に境界$y=0$を越える条件は
+$t_{\rm cross}<D/r$、すなわち$\mathcal H(r)<D$である。
+$y=0$では$\dot y=-r<0$なので、ランプ中に逆向きに再通過することはない。
+また
+\[
+\mathcal H'(r)=-\int_0^1\frac{g(y)}{[r-g(y)]^2}\,\dd y<0.
+\]
+$r\to\infty$では$\mathcal H\to1$である。
+$r\downarrow m$では$y=1/\sqrt3$近傍の分母が
+$(r-m)+\sqrt3(y-1/\sqrt3)^2+O((y-1/\sqrt3)^3)$となり、積分は発散する。
+従って中間値の定理と狭義単調性により、$D>1$に対して一意の$r_*$を得る。
+ランプ後の$y$の正負は最終環境の吸引域を定め、0なら不安定平衡に留まる。
+\end{proof}
+
+$D\le1$では$\mathcal H(r)>1$より、有限速度でこの境界を越えない。
+また$m$は無限に続く一定速度移動に関わる値であり、
+\emph{有限ランプの}臨界速度$r_*$と同一ではない。
+
+\begin{corollary}[QSE増加中の速度依存な累積収支反転]
+$1<D<2$とすると、同じ環境経路の下で
+\begin{equation}
+\int_0^\infty \dot x\,\dd t=
+\begin{cases}
+D>0,&r<r_*,\\
+D-2<0,&r>r_*.
+\end{cases}
+\label{eq:cumulative}
+\end{equation}
+高位QSEは両方で3から$D+3$へ増加する。
+\end{corollary}
+\begin{proof}
+累積収支は終点と初期値3の差である。
+上記定理の極限を代入する。これは収支の恒等式であり、全期間の各瞬間で同じ符号を
+維持するという意味ではない。どちらの終点でも瞬間収支は0へ収束する。
+\end{proof}
+$D=1.5$では低速の終点4.5、累積収支$+1.5$に対し、
+高速の終点2.5、累積収支$-0.5$となる。
+式\eqref{eq:critical}の数値積分は参考値
+$r_*\simeq0.8166612401$、$\tau_*=D/r_*\simeq1.836746899$
+を与える。これらはODEの試行錯誤から求めた閾値ではなく、証明済みの一意な積分方程式の評価である。
+
+\section{滑らかなランプでも成立する十分条件}
+折れ曲がりをもつ外力だけの現象ではないことを示す。
+\begin{theorem}[正の係数を掛けた系への拡張]
+$\dot x=q_0(x,\lambda)f(x,\lambda)$とし、
+$q_0$は不変領域$[1,D+3]\times[0,D]$上で連続かつ正で、
+状態について解の一意性を保証する滑らかさを持つとする。
+$\lambda=D s(t/\tau)$、$s(u)=10u^3-15u^4+6u^5$（$0\le u\le1$）、
+前後は0と1で固定する。
+追跡帯$x-\lambda-2\in[1/2,1]$での$q_0$の下界を$q_->0$、
+全不変領域での上界を$q_+<\infty$、
+$M_D=(D+1)^3-(D+1)$とすると、
+\begin{align}
+\tau&\ge5D/q_- &&\Longrightarrow x(t)\to D+3,\\
+\tau&<(D-1)/(q_+M_D) &&\Longrightarrow x(t)\to D+1.
+\label{eq:smoothbounds}
+\end{align}
+従って滑らかな同一経路でも、遅い変化と速い変化は別の正の安定平衡へ収束する。
+これだけから滑らかなランプの臨界速度の一意性までは主張しない。
+\end{theorem}
+\begin{proof}
+$\max s'=15/8$である。移動座標では
+$\dot y=q_0g(y)-\dot\lambda$となる。
+$y=1$で$\dot y=-\dot\lambda\le0$、
+$y=1/2$で$\dot y\ge3q_-/8-15D/(8\tau)\ge0$。
+従って遅い条件では$[1/2,1]$が不変となり、
+ランプ終了時には最終不安定平衡より上にある。
+
+速い条件では不変領域上で$|f|\le M_D$を使い、
+$|x(\tau)-3|\le q_+M_D\tau<D-1$。
+従って$x(\tau)<D+2$であり、最終不安定平衡より下にある。
+どちらも以後は一次元自律系なので、該当する安定根へ収束する。
+\end{proof}
+三次式$q_0=1,D=1.5$では、$\tau\ge7.5$と$\tau<4/105$
+がそれぞれ十分条件となる。これは保守的な上下界であり、最適な閾値ではない。
+
+\section{上限のある炭素入力と線形損失で実現する}
+多安定性を作るために負の入力やNSC不足枯死を導入する必要はない。
+次は炭素ゼロで生産もゼロになる、独立した理論モデルである。
+$s=\lambda+2$として
+\[
+\sigma_1=3s,\quad \sigma_2=3s^2-1,\quad \sigma_3=s^3-s,
+\]
+\begin{align}
+a&=\frac{\sigma_1-\sigma_2+
+ \sqrt{(\sigma_1+\sigma_2)^2-4\sigma_3}}{2},&
+p&=\sigma_1+1-a,& h^2&=a+\sigma_2
+\end{align}
+と置く。このとき
+\begin{equation}
+\boxed{\quad
+\dot x=P(x,\lambda)-R(x),\qquad
+P=\frac{p x}{1+x}+\frac{a x^2}{h^2+x^2},\quad R=x
+\quad}
+\label{eq:bounded}
+\end{equation}
+は、単調飽和する生産項と協同的な生産項の和、および線形損失からなる。
+係数は根を明示するために本稿で構成したものであり、VISIT由来や観測較正値ではない。
+
+\begin{proposition}[炭素収支としての性質と二つの正の安定根]
+$\lambda\ge0$で$p,a,h^2$は正、
+$P(0,\lambda)=R(0)=0$、$0\le P(x,\lambda)<p+a$（有限の$x\ge0$）であり、
+\begin{equation}
+P-R=-\frac{x(x-\lambda-1)(x-\lambda-2)(x-\lambda-3)}
+              {(1+x)(h^2+x^2)}.
+\label{eq:factor}
+\end{equation}
+従って原点は不安定、$L,H$は安定、$U$は不安定である。
+\end{proposition}
+\begin{proof}
+$a$は$(\sigma_1-a)(a+\sigma_2)=\sigma_3$の正根である。
+$\sigma_1\sigma_2-\sigma_3=8s^3-2s>0$より
+$0<a<\sigma_1$。従って$p>1,h^2>0$を得る。
+通分後の分子を$x$で割ると
+\[
+-x^3+(p+a-1)x^2+(a-h^2)x+(p-1)h^2
+=-x^3+\sigma_1x^2-\sigma_2x+\sigma_3.
+\]
+これが式\eqref{eq:factor}である。
+正の根では三次式に正の係数
+$q_0=x/[(1+x)(h^2+x^2)]$を掛けただけなので安定性の符号は保たれる。
+原点の傾きは$\sigma_3/h^2>0$。
+各生産項は非負で上限があり、原点で0であることも式から直ちに分かる。
+\end{proof}
+
+不変領域$[1,D+3]$では$q_0>0$なので、滑らかなランプの定理がそのまま適用できる。
+このモデルでも低速で累積吸収、高速で累積放出が起こることが、数値積分なしに分かる。
+$D=1.5$について
+\[
+q_-\ge\frac{2.5}{(D+4)\{3(D+2)+3(D+2)^2-1+(D+3)^2\}}
+=\frac{10}{1463},\qquad q_+\le\frac1{11}
+\]
+を使えば、$\tau\ge1097.25$で高位枝、
+$\tau<44/105$で低位枝という明示的な十分条件が得られる。
+大きな低速条件は不等式評価が保守的なためであり、森林の応答年数を示してはいない。
+また、三次式の$r_*$をこのモデルへ転用してはならない。
+凍結相図は同じでも、$q_0$が動く環境に対する追跡速度を変える。
+
+\section{行列表示との接続：何が不十分で、何が有効か}
+式\eqref{eq:bounded}は、1プールの
+$B=1,\ \mu=P(x,\lambda),\ A=-1,\ \xi=1,\ K=1$
+として、$\dot X=B\mu+A\xi KX$にそのまま含まれる。
+この表示での点ごとのcapacityは$\widehat c=P(x,\lambda)$、
+potentialは$\widehat p=P(x,\lambda)-x=\dot x$である。
+従って\emph{正しく定義したpotentialはここでも現在の収支を正確に与える}。
+多安定性によってこの恒等式が壊れたわけではない。
+
+一方、高位QSEからの距離$H(\lambda)-x$は、
+低位枝の吸引域に入った後には収支の符号を表さない。
+たとえば$\lambda=0,\ x=1.5$では$H-x=1.5>0$だが、
+式\eqref{eq:factor}より$\dot x<0$である。
+高位QSEからの距離を、現在状態のpotentialと無条件に同一視できない。
+
+従って論文の問題提起は、行列法の否定ではなく、
+「単一のQSE枝の変化またはそこへの距離だけでは、状態依存系の収支と行先を
+診断できない。capacityの固定点構造と吸引域を併せて扱う必要がある」とするのが適切である。
+
+\section{どの炭素過程を探すべきか：必要条件}
+\begin{proposition}[単調な比増加率では二つの正の安定平衡を作れない]
+$F(x)=P(x)-R(x)=xh(x)$、$x>0$とする。
+$P(x)/x$が非増加、$R(x)/x$が非減少で、その差が狭義減少なら、
+正の平衡は高々一つである。
+二つの正の双曲安定平衡が存在し、中間の根も孤立した単純根なら、
+その間に少なくとも一つの不安定平衡が必要であり、
+どこかで$h'(x)>0$が必要になる。
+\end{proposition}
+\begin{proof}
+前半は$h$の狭義減少性から従う。
+後半は低位安定根の右で$h<0$、高位安定根の左で$h>0$となるため、
+連続性から間に根が必要である。単純根なら少なくとも一つは下から上への横断となる。
+また負から正への増加を平均値の定理へ適用すると、ある点で$h'>0$を得る。
+\end{proof}
+
+$P(0)=0$かつ$P$が凹なら$P(x)/x$は非増加である。
+従って通常の単調飽和GPPと一定の単位炭素当たり損失だけでは、
+この1変数系の二つの正の安定平衡を作れない。
+式\eqref{eq:bounded}では
+\[
+\frac{P}{x}=\frac{p}{1+x}+\frac{a x}{h^2+x^2}
+\]
+の二番目の項が途中で増加し、この単調性を崩す。
+必要なのは単に「非線形であること」ではなく、
+ある量の範囲で比純増加率を押し上げる状態フィードバックである。
+
+\begin{longtable}{p{35mm}p{58mm}p{47mm}}
+\toprule 候補&数学的に調べる量&未証明の点\\\midrule\endhead
+光合成の単調飽和&$P/x$の減少&単独では今回の多安定性源にならない\\
+支持組織と葉の協同効果&中間域での$(P/x)'>0$&実在する機構・定量範囲が必要\\
+サイズ依存維持費&$(R/x)'<0$&低下だけでは三つの交点を保証しない\\
+NSC貯蔵優先と成長切替&消去後の有効$P,R$と分岐条件&保存則、境界の解釈、安定性が必要\\
+内部再配分だけ&植物総収支では移行が相殺&間接的に生産・損失を変える機構が必要\\
+\bottomrule
+\end{longtable}
+これは1次元系の命題である。8状態系へ適用するには、
+平衡消去の一意性と分岐適合性を示し、全ヤコビアンの安定性を別途確かめる必要がある。
+NSC枯死は今回の構成に不要であり、再導入していない。
+
+\section{論文に向けた到達点と次の検証}
+今回、数値軌道へ依存せずに示したのは、収支符号の情報不足、
+有限線形ランプの一意な臨界速度、滑らかなランプの低速・高速の十分条件、
+非負かつ有界な生産を持つ炭素収支モデルでの実現である。
+凍結安定平衡の消失も外部ノイズも使っていない。
+
+未実証なのは、VISIT準拠の8状態系または実際の森林において、
+同じフィードバックの形と強さが得られるかである。
+次は、既存の支持組織依存配分・サイズ依存維持費・保存的なNSC貯蔵優先から、
+有効比純増加率$h$の非単調性を導けるかを調べる。
+係数を調整して現象を出すより先に、許容される関数形に必要条件を課す。
+厳密な原式から導けない場合は、近似の範囲を明示して別の理論モデルとして扱う。
+
+数学的な可能性の証明はここまでで成立した。
+既存R-tipping理論との差別化と、陸域炭素診断への追加価値については、
+既往研究との比較を継続する。単なる三次式の例を、そのまま新規な森林予測とはしない。
+
+\section{検証と再現}
+補助コードは\path{src/control_carbon/qse_rate_theory.py}、
+検証は\path{tests/test_qse_rate_theory.py}である。
+検証するのは式の因数分解、非負生産と上限、根の安定性、
+積分方程式の臨界速度、追跡帯の上下界であり、証明を数値軌道で置き換えていない。
+図は証明中の関数・分岐を直接評価して生成する。
+
+\IfFileExists{artifacts/qse_rate_theory/analytic_proofs_20260929/proof_diagram.pdf}{
+\begin{figure}[ht]\centering
+\includegraphics[width=\linewidth]{artifacts/qse_rate_theory/analytic_proofs_20260929/proof_diagram.pdf}
+\caption{左：存続する二つの安定枝と境界。中央：有限ランプの臨界速度を一意に定める積分。
+右：有界生産・線形損失モデルの比純増加率。数値軌道の相図ではない。}
+\end{figure}}{}
+
+\begin{thebibliography}{9}
+\bibitem{luo} Luo, Y. et al. (2022).
+Matrix Approach to Land Carbon Cycle Modeling.
+\textit{Journal of Advances in Modeling Earth Systems}, 14, e2022MS003008.
+\url{https://doi.org/10.1029/2022MS003008}.
+Box 1、式(1a)--(1c)と非線形過程の議論を参照。
+\bibitem{ashwin} Ashwin, P., Perryman, C., and Wieczorek, S. (2017).
+Parameter shifts for nonautonomous systems in low dimension:
+Bifurcation- and Rate-induced tipping.
+\textit{Nonlinearity}, 30, 2185--2210.
+\url{https://doi.org/10.1088/1361-6544/aa675b}.
+著者版：\url{https://arxiv.org/abs/1506.07734}.
+\end{thebibliography}
+\end{document}
