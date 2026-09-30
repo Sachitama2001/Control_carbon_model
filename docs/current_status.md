@@ -1,5 +1,31 @@
 # Current implementation status
 
+## Forest–grass analytic checkpoint (2026-09-30)
+
+Visualization: [Japanese five-page phase atlas](forest_grass_phase_atlas.md)
+and PNG/vector-PDF figures in docs/figures/forest_grass_phase_atlas/.
+The atlas distinguishes frozen basins, stochastic mean escape times, ramp
+endpoints, and asymptotic rate-dependent destinations; it does not change the model.
+
+Read the two user-provided PDFs; see forest_grass_nbr_tipping.md and its
+Japanese TeX/PDF. Kumar K & Dutta (2026), (2.3)/(4.1), supplies a fire-mediated
+cover model, NOT native VISIT. Kéfi et al. (2010) is vegetation–water, not
+forest–grass; its steady water budget explains why retaining feedback matters.
+Analytic results: two interior stable communities; nondegenerate B-folds;
+reflected-noise first-passage formula for N; no low-to-high R-tipping for
+alpha-only forcing confined to a bistable interval; a constructed coupled
+alpha/phi1 path has low-speed tracking, high-speed tipping, and a unique
+critical duration. The constructed path is an existence witness, NOT a
+calibrated temperature response or a reproduction of the paper's rate value.
+New independent module/tests/runner: forest_grass_tipping.py,
+test_forest_grass_tipping.py, analyze_forest_grass_tipping.py.
+Artifacts: artifacts/forest_grass_tipping/analytic_20260930/ (git-ignored).
+VISIT source audit confirms top-down shade but does not establish native
+bistability or a grass–fire closure. No native code or older experiment changed.
+Validation: 7 dedicated tests; full suite 257 passed / 7 skipped.
+Next: constrain an ecologically justified reciprocal feedback and forcing path,
+then attach mass-conserving carbon pools before making flux/capacity claims.
+
 ## Temperature–NSC autonomous checkpoint (2026-09-22)
 
 See `temperature_nsc_first_results.md` and the Japanese TeX report. An independent

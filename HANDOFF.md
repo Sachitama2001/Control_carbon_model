@@ -1,5 +1,20 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-30 forest–grass theory: read docs/forest_grass_nbr_tipping.md
+> and the Japanese TeX/PDF first for the new track. Two supplied papers were
+> read; only Kumar K & Dutta (2026) is a forest–grass model, with fire feedback.
+> Proven: two interior stable cover states, B-folds, reflected-noise N escape,
+> conditional no-R theorem for alpha-only forcing, and existence/unique rate
+> threshold on an explicitly constructed alpha/phi1 path. The last path is
+> mathematical, not empirical; no native VISIT tipping or temperature threshold
+> is claimed. VISIT canopy shading is one-way in the audited light-only slice;
+> N/water/other couplings are not excluded. Native code unchanged.
+> New module forest_grass_tipping.py; 7 dedicated tests pass.
+> Reproduce with examples/analyze_forest_grass_tipping.py and a fresh output
+> directory; saved artifacts are git-ignored. Use forward/backward matching,
+> not direct forward endpoint shooting near the unstable critical trajectory.
+> Next: biological feedback/forcing constraints, then carbon pool accounting.
+
 > 2026-09-22 NSC first campaign: independent 4 structural + 4 NSC/labile
 > continuous model, no water coupling. Read `docs/temperature_nsc_first_results.md`
 > and `temperature_nsc_equations.md` (Japanese TeX also supplied). Standard

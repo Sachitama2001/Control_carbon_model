@@ -1,5 +1,20 @@
 # Literature index: matrix land-carbon models and explicit water dynamics
 
+## Forest–grass additions (verified 2026-09-30)
+
+The user supplied the following local PDFs. Main text and appendices were read;
+external electronic supplements were not used. See the Japanese analytic report
+forest_grass_nbr_tipping.tex and summary forest_grass_nbr_tipping.md.
+
+| Reference / local file | Primary link | Use and boundary |
+|---|---|---|
+| Kumar K, R. & Dutta, P. S. (2026), *Rate-induced tipping in savanna–forest ecosystems: effects of fast-varying fitness parameters in the framework of compactification*; rspa.2025.0803.pdf | [DOI](https://doi.org/10.1098/rspa.2025.0803) | Fire-mediated cover model, (2.3)/(4.1); two interior stable grass/forest communities and R-tipping are already published. Our analytic path is separately constructed, not a calibrated VISIT response. |
+| Kéfi, S., Eppinga, M. B., de Ruiter, P. C. & Rietkerk, M. (2010), *Bistability and regular spatial patterns in arid ecosystems*; s12080-009-0067-z.pdf | [DOI](https://doi.org/10.1007/s12080-009-0067-z) | Vegetation–water feedback, not forest–grass competition. Surface-water loss permits nonspatial bistability; removing it eliminates coexistence with stable bare soil in that homogeneous model. Spatial conclusions must be treated separately. |
+
+Hashes of these supplied PDFs are recorded in
+artifacts/forest_grass_tipping/analytic_20260930/manifest.json.
+No additional permission to redistribute the provided PDFs is inferred.
+
 Last verified: 2026-09-22. Prefer DOI and publisher links because local PDFs
 may differ by accepted-manuscript or typeset version. A local copy is listed
 only when it is present in `docs/` and redistribution appears permitted.

@@ -1,0 +1,17 @@
+{
+  "source_sha256": {
+    "examples/plot_forest_grass_phase_atlas.py": "d10af3e054dbb8a09890cd4a364fdd782868a75c32b51ab6e3bcbc784dffb8dc",
+    "src/control_carbon/forest_grass_tipping.py": "d99dee75eb50ed1e6119b78a99f7fcfad0242d7da2149d43f0b0e13dfaf703a6",
+    "docs/forest_grass_nbr_tipping.tex": "7ed2b46e293ab53e71a2353448a94c7ced440278ac133039490aa80051d27e67"
+  },
+  "assumptions": "same published cover model; N reflected noise; R constructed path; NOT VISIT",
+  "phase_classes": {
+    "0": "boundary only",
+    "1": "one interior",
+    "2": "two interior stable",
+    "3": "one interior plus boundary"
+  },
+  "rate_endpoint_checks": "36 rates bracket the analytic threshold; no equality classified",
+  "numerical_guards": "no state clipping; bounds and basin checks; matching residual < 1e-9",
+  "grid_note": "phase colors sampled numerically; narrow regions near the cusp are under-resolved; black fold curves are analytic"
+}

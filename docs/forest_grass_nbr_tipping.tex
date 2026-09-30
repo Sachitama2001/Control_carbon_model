@@ -1,0 +1,709 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=23mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,longtable,graphicx}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\setlength{\emergencystretch}{3em}
+\newtheorem{proposition}{命題}
+\newtheorem{theorem}[proposition]{定理}
+\newcommand{\dd}{\mathrm d}
+\title{森林と草本の競合における多安定性とN・B・R-tipping\\
+\large 指定された2論文の読解、解析的な成立条件、VISITとの対応と限界}
+\author{Control Carbon Model：独立した解析研究}
+\date{2026年9月30日}
+\begin{document}
+\maketitle
+\begin{abstract}
+草本被覆率が低い状態と高い状態が、ともに森林を残した安定平衡となる条件を、
+Kumar K・Dutta (2026) の草地--森林部分系から導く。
+その同じ関数形について、雑音による吸引域からの脱出（N）、
+平衡の消失（B）、安定平衡が存続したままでの速度依存遷移（R）を区別する。
+Rについては、森林加入率だけを変える場合には起こらないという条件付きの否定結果と、
+一つの環境変数が加入率・火災死亡率の両方を変える場合には起こるという存在証明を与える。
+後者の具体例では、有限ランプの臨界継続時間が一意であることも証明する。
+Kéfiら (2010) は森林--草本モデルではなく、植生--水の正のフィードバックを扱う。
+同論文からは、非線形な関数の存在だけでなく、定常収支に残る相互作用を確認する必要を学ぶ。
+VISITの層状の遮光は確認できるが、それだけで本稿の双安定性を再現したとはいえない。
+本稿は被覆率の理論であり、VISIT本体の改変、炭素量の予測、実際の温暖化速度の推定ではない。
+\end{abstract}
+\tableofcontents
+
+\section{結論と研究上の位置づけ}
+最小構成として、森林と草本の面積占有を表す1自由度のモデルで十分である。
+ただし、その双安定性を支えるのは、指定論文では
+\[
+\text{草本の増加}\ \longrightarrow\
+\text{火災を通じた森林死亡の増加}\ \longrightarrow\
+\text{草本の増加}
+\]
+という正のフィードバックである。木本が草本を遮光する、という一方向の作用だけとは異なる。
+
+Nはnoise-induced（雑音誘起）であり、窒素の意味ではない。
+Bはbifurcation-induced（分岐誘起）、Rはrate-induced（速度誘起）とする。
+分類の一般的背景はAshwinら\cite{ashwin}にある。
+以下ではNとRの試験中に凍結系の分岐を起こさず、Rの試験には雑音を加えない。
+混合要因の遷移は別の課題とする。
+
+環境を固定した系の平衡をQSEと呼ぶ。R-tippingの後に環境を固定すれば、
+本稿の解は別の安定QSEへ収束する。「どのQSEにも永久に達しない」のではなく、
+「追跡していた安定QSEが存続しているのに、その吸引域を失う」が正確な主張である。
+森林--草本系でのR-tipping自体は指定論文\cite{kumar}が既に示している。
+本稿の証明や炭素研究への利用を、それ自体で新規発見と主張しない。
+
+\section{2本の文献は何を示しているか}
+\subsection{Kumar K・Dutta (2026)}
+対象は指定PDF \path{docs/rspa.2025.0803.pdf} の本文・付録である。
+ファイル名には2025とあるが、出版年は2026である。
+本文の式(2.1)は草本$G$、サバンナ稚樹$S$、サバンナ成木$T$、森林$F$を扱い、
+$G+S+T+F=1$とする。火災の効果は実効的な草本量に依存するシグモイド関数で表される。
+森林死亡率の式(2.3)と、$S=T=0$に制限した式(4.1)（p.\,10）が本稿の出発点である。
+この制限面は元の方程式でも不変である。
+
+図3（p.\,11）は低草本・高草本の双安定領域を示す。
+図4--5（pp.\,12--14）では森林加入率$\alpha$と火災に関する死亡率$\phi_1$を
+連動させ、吸引域の位置関係とR-tippingを調べている。
+論文後半の稚樹--成木部分系や振動的な遷移は重要だが、本稿では1自由度の部分系に絞る。
+電子補足資料は今回の読解・再現対象に含めていない。
+
+本稿は原論文の図4の二次曲線や、図5の臨界速度の再現計算ではない。
+同じ式(4.1)で解析を閉じるため、後述する別の環境経路を明示的に構成する。
+これは存在証明のための例であり、観測から選ばれた環境応答ではない。
+
+\subsection{Kéfiら (2010)}
+対象は指定PDF \path{docs/s12080-009-0067-z.pdf} の本文・付録である。
+DOIに2009とあるが、巻号の出版年は2010である。
+この論文\cite{kefi}は森林と草本の競合ではない。
+植生によって水が集まる正のフィードバックと、
+植生--裸地の双安定性・空間パターンの関係を調べている。
+
+式(1)--(3)（p.\,260）から空間拡散を除くと、表面水$O$、土壌水$W$、植生$P$について
+\begin{align}
+ \dot O&=R-i(P)O-\ell_o O,&
+ i(P)&=\alpha_w\frac{P+k_2 W_o}{P+k_2},\label{eq:kefiO}\\
+ \dot W&=i(P)O-g_w\frac{W}{W+k_1}P-r_wW,\\
+ \dot P&=\left(cg_w\frac{W}{W+k_1}-d\right)P
+\end{align}
+となる。原論文の$\alpha,g$を、本稿の森林加入率・草本率と区別するため
+$\alpha_w,g_w$と書いた。
+正の植生平衡では$cg_w>d$を仮定し、
+\[
+ W_*=\frac{dk_1}{cg_w-d},\qquad O_*=\frac{R}{i(P_*)+\ell_o}.
+\]
+これを水収支に戻すと、付録1（p.\,266）と同値な二次方程式
+\begin{gather}
+ A P_*^2+B P_*+C=0,\\
+ A=\frac dc(\alpha_w+\ell_o),\qquad
+ B=\frac dc k_2(\alpha_w W_o+\ell_o)
+      +(\alpha_w+\ell_o)r_wW_*-R\alpha_w,\nonumber\\
+ C=r_wW_*k_2(\alpha_w W_o+\ell_o)-R\alpha_w k_2 W_o
+\end{gather}
+を得る。$A>0,B<0,C>0,B^2-4AC>0$なら正の根が2つある。
+$C>0$は裸地平衡への微小な植生侵入が減衰する条件とも一致する
+（$W_o>0$等の正の係数を仮定）。
+ただし、平衡の根の数と、空間擾乱を含めた安定性は区別すべきであり、
+原論文は後者を別途解析している。
+
+特に$\ell_o=0$では、定常状態で降水がすべて浸透するため
+\begin{equation}
+ R=\frac dc P_*+r_wW_*.
+\end{equation}
+正の植生平衡は高々1つとなり、その存在条件では裸地が侵入に対して不安定である。
+したがって、この場合の空間一様系では安定な裸地と正の植生平衡の共存は得られない。
+空間パターンを含む場合まで否定したわけではない。
+森林--草本への教訓は「非線形な浸透関数や遮光関数がある」だけでは足りず、
+閉じた収支と戻りの作用を調べる必要がある、ということである。
+
+\section{最小の草地--森林モデル}
+\subsection{式と生態学的な意味}
+指定論文\cite{kumar}の式(2.3), (4.1)に従い、
+\begin{align}
+ \dot g&=f(g;p)=(1-g)\{\phi(g;p)-\alpha g\},\qquad 0\le g\le1,\label{eq:model}\\
+ F&=1-g,\qquad
+ \phi(g;p)=\phi_0+\Delta L(g),\qquad
+ L(g)=\frac{1}{1+\exp[-(g-\theta)/w]},\qquad
+ \Delta=\phi_1-\phi_0>0.\label{eq:sigmoid}
+\end{align}
+$g$は草本の面積被覆率、$F$は森林の面積被覆率であり、炭素貯留量ではない。
+森林死亡による草本への置換$\phi(g)F$と、
+森林加入による草本から森林への置換$\alpha gF$の差が$\dot g$である。
+$\dot F=-\dot g$なので、面積割合の和は保存される。炭素質量保存を意味しない。
+
+$f(0)=\phi(0)>0,f(1)=0$なので、正の係数の下で$[0,1]$は前向き不変である。
+強制的な負値切上げは不要である。$g=1$は森林消失の境界平衡だが、
+本稿の関心は$0<g<1$にある二つの安定平衡である。
+
+\subsection{変数・単位・出典}
+\begin{longtable}{p{27mm}p{74mm}p{42mm}}
+\toprule 記号&意味&単位・出典\\\midrule\endhead
+$g,F$&草本・森林の面積被覆率&無次元、\cite{kumar}式(4.1)\\
+$t$&モデルの時間&モデル時間。年との対応は未較正\\
+$\alpha$&森林加入の係数&時間$^{-1}$、\cite{kumar}式(4.1)\\
+$\phi_0,\phi_1$&森林死亡率の低・高草本側の極限&時間$^{-1}$、\cite{kumar}式(2.3)\\
+$\theta,w$&死亡率の切替位置・幅&被覆率、原論文の$\theta_2,s_2$\\
+$h,f$&$h=\phi-\alpha g$, $f=(1-g)h$&時間$^{-1}$、本稿の略記\\
+$g_L,g_U,g_H$&低位安定・中間不安定・高位安定平衡&被覆率\\
+$\lambda$&一つの外生的な環境指標&無次元、本稿の仮定\\
+$\tau,u=t/\tau$&環境変化の継続時間・規格化した時刻&時間、無次元\\
+$\sigma,W_t$&雑音振幅・標準Wiener過程&時間$^{-1/2}$、時間$^{1/2}$\\
+$V,\mathcal T$&ポテンシャル・平均初到達時間&時間$^{-1}$、時間\\
+$P,W,O,R$&Kéfiモデルの植生・土壌水・表面水・降水&
+g C\,m$^{-2}$、mm、mm、mm\,日$^{-1}$。\cite{kefi}p.\,259、表1\\
+$\alpha_w,\ell_o,r_w,d$&浸透・表面水損失・土壌水損失・植生損失係数&日$^{-1}$、同上\\
+$g_w,c,k_1,k_2,W_o$&吸水係数、変換効率、半飽和定数2種、裸地相対浸透&
+mm\,m$^2$\,(g C)$^{-1}$\,日$^{-1}$、g C\,m$^{-2}$\,mm$^{-1}$、mm、g C\,m$^{-2}$、無次元\\
+\bottomrule
+\end{longtable}
+Kéfiモデルの$P$は原論文で炭素質量として定義された植物密度であり、
+本稿の草本被覆率$g$とは異なる。
+以下の時間・速度・雑音の数値も森林の実際の年数や$\mathrm{^\circ C/年}$へ換算しない。
+
+\section{二つの正の安定平衡を得る解析条件}
+$h(g)=\phi(g)-\alpha g$とすると、内部平衡は$h(g)=0$である。
+\[
+ h'(g)=\frac{\Delta}{w}L(g)(1-L(g))-\alpha .
+\]
+\begin{theorem}[低草本・高草本の双安定性の十分条件]
+$\Delta>4\alpha w$とし、
+\begin{equation}
+ z_\pm=\frac{1\pm\sqrt{1-4\alpha w/\Delta}}2,\qquad
+ g_\pm=\theta+w\log\frac{z_\pm}{1-z_\pm}.
+\end{equation}
+さらに
+\begin{equation}
+ 0<g_-<g_+<1,\quad h(0)>0,\quad
+ h(g_-)<0,\quad h(g_+)>0,\quad h(1)<0\label{eq:bistable}
+\end{equation}
+が成り立てば、内部平衡はちょうど3つであり、
+$0<g_L<g_U<g_H<1$のうち$g_L,g_H$が安定、$g_U$が不安定である。
+\end{theorem}
+\begin{proof}
+$h'$は$g_-,g_+$でのみ零となり、符号は負・正・負である。
+各単調区間で式\eqref{eq:bistable}の符号を用いれば、
+零点が1つずつ存在し、それ以外に零点はない。
+内部平衡では$f'=(1-g)h'$なので、安定性の符号も負・正・負となる。
+境界$g=1$では$f'(1)=-h(1)>0$であり、領域内から反発する。
+\end{proof}
+単に「シグモイドがある」では足りず、その最大傾きが加入率を上回り、
+さらに極値が零線をまたぐ必要がある。
+
+原論文の図3に合わせて
+\begin{equation}
+ (\phi_0,\phi_1,\theta,w,\alpha)=(0.1709,0.9,0.432,0.082,1.2)
+ \label{eq:baseline}
+\end{equation}
+とすると、上の条件を満たし、
+\[
+ (g_L,g_U,g_H)\simeq(0.164950,\ 0.415204,\ 0.735328).
+\]
+両安定状態とも森林は正であり、
+森林被覆率は約$0.835050$と$0.264672$である。
+低草本を健全、高草本を不健全と呼ぶかは、生態系と評価目的次第である。
+
+\section{B-tipping：平衡が消える場合}
+$\phi_0,\phi_1,\theta,w$を固定し、$\alpha$のみを準静的に変える。
+鞍点--節点分岐の候補は
+\begin{equation}
+ h=0,\quad h_g=0
+ \quad\Longleftrightarrow\quad
+ g\,\phi'(g)=\phi(g),\qquad
+ \alpha_{\mathrm{fold}}=\frac{\phi(g)}g. \label{eq:fold}
+\end{equation}
+式\eqref{eq:baseline}の死亡率関数では
+\[
+ (g,\alpha_{\mathrm{fold}})\simeq
+ (0.271229,\ 0.961810),\qquad
+ (0.549564,\ 1.382246).
+\]
+両点で$h_\alpha=-g\ne0$かつ
+$h_{gg}=\Delta L(1-L)(1-2L)/w^2\ne0$であるから非退化な分岐となる。
+局所的には$y=g-g_{\mathrm{fold}}$について
+\begin{equation}
+ \dot y=(1-g_{\mathrm{fold}})\left[
+ -g_{\mathrm{fold}}(\alpha-\alpha_{\mathrm{fold}})
+ +\tfrac12\phi''(g_{\mathrm{fold}})y^2\right]+\text{高次項}.
+\end{equation}
+低草本状態から加入率を下げて下側分岐を越え、
+例えば$\alpha=0.95$に固定すれば、低草本平衡が失われて高草本状態へ向かう。
+逆に高草本状態から$\alpha$を上側分岐より増やせば低草本側へ移る。
+変化速度を非常に小さくしても起こり得るため、これはRではなくBである。
+分岐を一瞬だけ越えて戻すパルスでは回復もあり得るので、
+「分岐点を越えた」だけを有限パルスの不可逆遷移と同一視しない。
+
+\section{N-tipping：安定性を変えず雑音で吸引域を越える場合}
+式\eqref{eq:baseline}を固定し、ここで新しく雑音を仮定する。
+\begin{equation}
+ \dd g=f(g)\dd t+\sigma\dd W_t+\dd L_t^0-\dd L_t^1,\qquad \sigma>0.
+ \label{eq:sde}
+\end{equation}
+$L^0,L^1$は、それぞれ境界0と1に達したときのみ増える反射項であり、
+被覆率を$[0,1]$に保つ。この反射付き加法雑音は指定論文やVISITの実装ではなく、
+確率的脱出を明確に調べるための本稿の追加仮定である。
+境界で雑音を消す乗法雑音では別の到達性解析が必要となる。
+
+$V'(g)=-f(g),V(0)=0$と置くと、安定平衡は$V$の極小、
+不安定平衡は極大に当たる。低草本側の障壁は
+\[
+ \Delta V_L=V(g_U)-V(g_L)>0.
+\]
+目標$b_N\in(g_U,g_H)$への初到達時間の期待値を$\mathcal T(x)$とすれば、
+下端反射・目標吸収の後退方程式は
+\begin{equation}
+ \frac{\sigma^2}{2}\mathcal T''+f\mathcal T'=-1,\quad
+ \mathcal T'(0)=0,\quad \mathcal T(b_N)=0.
+\end{equation}
+積分因子を使って直接解くと
+\begin{equation}
+ \mathcal T(x)=\frac{2}{\sigma^2}
+ \int_x^{b_N}e^{2V(y)/\sigma^2}
+ \left[\int_0^y e^{-2V(z)/\sigma^2}\dd z\right]\dd y.
+ \label{eq:mfpt}
+\end{equation}
+有限区間で連続な$V$と$\sigma>0$の下では有限であり、最終的な到達確率は1となる。
+有限の観測期間では確率的な事象であって、確定的な臨界速度・閾値ではない。
+
+さらに極値が非退化なら、Laplace法により小雑音極限で
+\begin{equation}
+ \mathcal T(g_L)\sim
+ \frac{2\pi}{\sqrt{|f'(g_L)|f'(g_U)}}
+ \exp\left(\frac{2\Delta V_L}{\sigma^2}\right).
+\end{equation}
+目標を極大点そのものではなく、その先に置いたことに注意する。
+式\eqref{eq:baseline}では$\Delta V_L\simeq0.00776428$、
+高草本側から戻る障壁は約$0.00883990$である。
+$b_N=(g_U+g_H)/2$とした式\eqref{eq:mfpt}の数値評価は
+\[
+ \mathcal T(g_L)\simeq
+ \begin{cases}
+ 5.162\times10^3,&\sigma=0.05,\\
+ 1.648\times10^5,&\sigma=0.04,\\
+ 3.058\times10^8,&\sigma=0.03.
+ \end{cases}
+\]
+いずれもモデル時間であり、自然界の発生頻度ではない。
+独立な有限差分の後退方程式でも積分値を検算した。
+雑音をかけ続ければ逆方向の遷移も起こるため、永久的な状態変更とは主張しない。
+吸引域を越えた後に雑音を除けば、その側の安定平衡へ収束する。
+
+\section{R-tipping：起こらない経路を先に明確にする}
+\begin{proposition}[加入率だけの変化では、この条件下で低草本からはR-tippingしない]
+死亡率関数$\phi(g)$を固定する。
+$[\alpha_{\min},\alpha_{\max}]$の全域で式\eqref{eq:bistable}が成り立つとする。
+任意の時間変化$\alpha(t)$がこの区間内にとどまり、
+初期値を開始環境の低草本安定平衡とする。
+終点で環境を固定するなら、変化がいくら速くても高草本吸引域へは移らない。
+\end{proposition}
+\begin{proof}
+内部平衡の暗黙微分は
+\[
+ \frac{\dd g_*}{\dd\alpha}=\frac{g_*}{h_g(g_*)}.
+\]
+したがって$g_L$は$\alpha$に対して減少し、$g_U$は増加する。
+$b_*=g_U(\alpha_{\min})$と置けば、すべての低草本平衡は$b_*$より小さく、
+\[
+ f(b_*;\alpha)=(1-b_*)b_*(\alpha_{\min}-\alpha)\le0.
+\]
+よって$b_*$を上向きに越えることはできない。
+終点の不安定平衡も$b_*$以上であり、低草本の吸引域を出ない。
+有限時間での境界への接触・通過については解の一意性と比較原理を用いる。
+\end{proof}
+この証明は変化が単調であることも必要としない。
+多安定性と速い変化があるだけではR-tippingは保証されない。
+区間外の分岐、雑音、他の係数の変動を加えた場合は本命題の対象外である。
+
+\section{R-tipping：同じ関数形での存在証明}
+\subsection{一つの環境変数が二つの係数を変える経路}
+一つの環境指標$\lambda\in[0,1]$を考え、
+先の$\phi_0=0.1709,\theta=0.432,w=0.082$を固定する。
+次を定義する。
+\begin{align}
+ a(\lambda)&=0.4-0.1\lambda,& b(\lambda)&=a(\lambda)+d,\qquad d=0.02,\\
+ D(\lambda)&=aL(b)-bL(a),\\
+ \Delta(\lambda)&=\frac{\phi_0 d}{D(\lambda)},&
+ \alpha(\lambda)&=\frac{\phi_0\{L(b)-L(a)\}}{D(\lambda)},&
+ \phi_1(\lambda)&=\phi_0+\Delta(\lambda). \label{eq:path}
+\end{align}
+この$D$は代数的な分母であり、拡散係数ではない。
+式\eqref{eq:path}は$h(a)=h(b)=0$の2本の式を
+$\alpha,\Delta$について解いたものである。
+指定論文の死亡率関数自体は変更しない。
+
+これは低位平衡と吸引域境界を解析的に追えるように設計した、存在証明用の経路である。
+生物学的データから推定された温度応答ではなく、VISITの係数を調整して得たものでもない。
+「一つの外部変数」ではあるが、「一つのモデル係数のみの変化」ではない。
+この区別は、前節の否定結果と矛盾しないためにも重要である。
+
+\begin{theorem}[経路全体における二つの安定平衡の存続]
+式\eqref{eq:path}のすべての$\lambda\in[0,1]$で、
+$a$は安定平衡、$b$は不安定平衡であり、
+さらに$c(\lambda)\in(\theta,1)$にもう一つの安定平衡がある。
+分岐は起こらない。
+\end{theorem}
+\begin{proof}
+$[a,b]\subset[0.30,0.42]\subset(0,\theta)$なので$L''>0$である。
+また
+\[
+ D=d\left(a\,\frac{L(b)-L(a)}d-L(a)\right)
+ \ge d\{0.30 L'(0.30)-L(0.40)\}
+ \simeq0.00208727>0.
+\]
+よって$\Delta,\alpha>0$である。凸関数の割線の傾きは両端の微分の間にあるため、
+\[
+ h'(a)=\Delta\left(L'(a)-\frac{L(b)-L(a)}d\right)<0,\qquad h'(b)>0.
+\]
+一方、$q(g)=(1-L(g))/(1-g)$とすれば、
+$(1-g)L(g)>w$の区間では$q'<0$である。
+$[0.30,0.42]$では
+$0.58L(0.30)>0.082$によりこの条件が満たされる。
+したがって
+\[
+ \alpha-\phi_1
+ =\frac{\phi_0(1-a)(1-b)}D\{q(a)-q(b)\}>0.
+\]
+よって$h(1)=\phi(1)-\alpha<\phi_1-\alpha<0$である。
+$h(\theta)>0$は$b$から$\theta$までの厳密な凸性から従う。
+$h'$の零点は高々2つなので、$\theta$と1の間にちょうど1つ、
+傾きが負の根$c$が存在する。それ以外の内部根はない。
+すべての根は単純で、閉区間の経路上で連続に存続する。
+\end{proof}
+
+\begin{center}
+\begin{tabular}{rrrrrr}
+\toprule
+$\lambda$&$\alpha$&$\phi_1$&$a$（安定）&$b$（不安定）&$c$（安定）\\\midrule
+0&0.644796&0.386474&0.400000&0.420000&0.476253\\
+0.5&0.701561&0.448456&0.350000&0.370000&0.587694\\
+1&0.817240&0.616650&0.300000&0.320000&0.742453\\
+\bottomrule
+\end{tabular}
+\end{center}
+開始時の低草本平衡$a(0)=0.4$が、終了時の不安定平衡$b(1)=0.32$より大きい。
+すなわち、開始時の状態は、終了時の環境で見ると高草本側の吸引域に入っている。
+この吸引域の位置関係が、速い変化による遷移の要点である。
+
+\subsection{環境経路を固定し、時間だけを変える}
+\begin{equation}
+ \lambda(t)=
+ \begin{cases}
+ 0,&t\le0,\\
+ s(t/\tau),&0<t<\tau,\\
+ 1,&t\ge\tau,
+ \end{cases}
+ \qquad s(u)=10u^3-15u^4+6u^5.
+ \label{eq:ramp}
+\end{equation}
+$s$は単調で、始点と終点で1階・2階の時間微分が零となる。
+どの$\tau$でも同じ環境経路・振幅・始終点を使う。
+初期状態は$t\le0$で厳密に平衡化された$g=0.4$とする。
+これは解析的なスピンアップであり、恣意的な初期過渡ではない。
+
+\begin{theorem}[遅い変化では追跡し、速い変化では別の安定平衡へ移る]
+式\eqref{eq:model}, \eqref{eq:path}, \eqref{eq:ramp}で、
+十分小さい$\tau$なら$g(t)\to c(1)$、
+十分大きい$\tau$なら$g(t)\to a(1)$となる。
+全過程で二つの凍結安定平衡は存続する。
+\end{theorem}
+\begin{proof}
+閉領域$[0,1]^2$で$M\ge\sup_{g,\lambda}|f(g;\lambda)|$を取ると
+$|g(\tau)-0.4|\le M\tau$である。
+したがって$\tau<0.08/M$なら$g(\tau)>0.32=b(1)$となり、
+終了後は高草本平衡$c(1)$へ収束する。
+
+遅い場合は$e=g-a(\lambda)$、$\varepsilon=0.005<d$と置く。
+$e=-\varepsilon$では$f>0$かつ$-\dot a\ge0$なので$\dot e>0$である。
+$e=\varepsilon$では、凸関数の線形補間誤差から
+\[
+ h(a+\varepsilon)
+ =-\frac{\Delta}2 L''(\xi)\varepsilon(d-\varepsilon)<0,\qquad \xi\in(a,b).
+\]
+経路全体に共通な$m>0$で$-f(a+\varepsilon;\lambda)\ge m$とできる。
+$\max_{[0,1]}s'=15/8$だから、上端では
+\[
+ \dot e=f+0.1\dot\lambda\le -m+\frac{0.1875}{\tau}.
+\]
+$\tau>0.1875/m$なら帯$|e|\le\varepsilon$が不変である。
+終了時に$g(\tau)\le0.305<0.32$となり、低草本平衡$a(1)$へ収束する。
+\end{proof}
+
+明示的で非常に保守的な定数を付録に示す。この証明だけで、
+速い変化と遅い変化の到達先が異なることが分かる。
+被覆率の非負性・上限は微分方程式の構造から保たれる。
+
+\subsection{臨界継続時間は一意である}
+\begin{theorem}[有限ランプの一意な速度閾値]
+上の例には有限の$\tau_*>0$がただ1つ存在し、
+$\tau<\tau_*$なら高草本へ、$\tau>\tau_*$なら低草本へ収束する。
+$\tau=\tau_*$ではランプの終了時に不安定平衡$b(1)$に到達する。
+\end{theorem}
+\begin{proof}
+規格化時間$u=t/\tau$で
+$g'=\tau f(g;s(u))$と書く。
+$0<u<1$で$a',b'<0$だから、$g=a$では$(g-a)'=-a'>0$、
+$g=b$では$(g-b)'=-b'>0$である。
+初期値は$a(0)$に等しく、内部時刻では$g>a$となる。
+不安定枝$b$を越えるなら、下側から上側への一方向しかない。
+
+$H(\tau)=g(1;\tau)-b(1)$は$\tau$について連続かつ微分可能である。
+前定理より、小さい$\tau$で$H>0$、大きい$\tau$で$H<0$なので零点が存在する。
+零点では$0<u<1$で$a<g<b$となる。
+もし途中で$b$を越えたなら、スカラー方程式の比較原理により、
+有限時刻$u=1$で再び$b$に達することはないからである。
+従って零点の軌道では内部時刻で$f<0$である。
+
+$\eta=\partial_\tau g$の変分方程式は
+\[
+ \eta'=f+\tau f_g\eta,\quad \eta(0)=0,\qquad
+ H'(\tau)=\int_0^1 f(g(v);s(v))
+       \exp\left\{\tau\int_v^1 f_g(g(z);s(z))\,\dd z\right\}\dd v<0.
+\]
+すべての零点で厳密に上から下へ横切るので、零点は2つ以上存在できない。
+その零点が$\tau_*$であり、前後の符号と終点の吸引域から結論を得る。
+\end{proof}
+
+数値的な定数評価は
+\[
+ \tau_*\simeq1741.652274,\qquad
+ r_*:=1/\tau_*\simeq5.74167424\times10^{-4}.
+\]
+$r_*$は平均的な環境指標の変化率であり、最大速度は$(15/8)r_*$である。
+モデル時間単位であって、年単位の臨界温暖化速度ではない。
+なお、原論文の臨界速度とは経路・時間プロファイルが異なるため比較しない。
+
+閾値では不安定枝近傍の誤差が増幅され、前進積分だけでは
+終点を十分正確に$\dot g=0$へ合わせられない。
+検算では$u=0,g=0.4$からの前進解と、
+$u=1,g=0.32$からの後退解を$u=0.5$で接合して$\tau_*$を求めた。
+接合点を0.4に変え、許容誤差・最大ステップを縮めても値が一致することをテストする。
+臨界解の存在・一意性は、この数値手続きに依存していない。
+
+\section{VISITの光環境をどこまで根拠にできるか}
+\subsection{出典と現在の監査範囲}
+対象は\path{Sachitama2001/VISIT-matrix}の
+\path{3285bd8e131a932e338b59892751648fd9edcc7b}、
+\path{visit_local/}である。VISITcとは混同しない。
+今回nativeコードは変更せず、以下をソース監査した。
+「nativeな非線形離散VISITの一部分を読解した式」と、
+本稿の「文献由来・モデル非依存の連続時間の解析」を分離する。
+
+\begin{longtable}{p{38mm}p{31mm}p{76mm}}
+\toprule ファイル・関数&行&確認した内容\\\midrule\endhead
+\path{radiation.c}, \path{f_net_rad}&247, 285--288, 309--313&
+木本吸収、下層C3/C4の入射光。木本層から下層への減衰\\
+\path{photosynthesis.c}, \path{f_gpp}&22--42&
+上端PPFDとLAIから日GPPを計算\\
+\path{location_proc.c}, \path{f_loct_proc}&415--439, 533--535&
+PPFD・消散係数、放射、続いて水文処理と生理係数の更新\\
+\path{daily_scheme.c}, \path{daily_scheme}&55--57&
+木本、C3、C4の順の植物処理呼出し\\
+\path{plant_proc.c}, \path{plant_process}&134&
+日GPP計算の呼出し\\
+\path{n_flux.c}, \path{f_n_uptake}&271--299&
+植物根量による取り込みの配分。光以外の結合を無視できない例\\
+\path{disturbance.c}, \path{disturbance_regime}, \path{logging_event}&31--40, 425以降&
+日時指定の撹乱・燃焼残渣処理。これを草本依存の火災死亡率と同一視しない\\
+\bottomrule
+\end{longtable}
+更新は同じ瞬間に全変数を解くODEではなく逐次処理である。
+現行スナップショットの該当日処理では、
+\path{experiment.c}:286,298での呼出し順のとおり、放射・水文・生理設定の後、
+木本、C3、C4それぞれの植物処理でGPP等を評価する。
+季節、窒素、水分、撹乱の有効な分岐をすべて固定したという実験ではない。
+
+\subsection{遮光関数とGPP}
+木本LAIを$\mathcal L_W$、消散係数を$k_W$とすれば、
+上記\path{f_net_rad}の代数は
+\begin{equation}
+ a_W=1-\exp[-0.9k_W\mathcal L_W],\qquad
+ I_{\mathrm{grass}}=I_{\mathrm{top}}(1-a_W)
+              =I_{\mathrm{top}}\exp[-0.9k_W\mathcal L_W].
+ \label{eq:visitlight}
+\end{equation}
+$0.9=1-\texttt{transmit}$であり、\texttt{transmit}=0.1は247行で与えられる。
+$I$は$\mu$mol photon\,m$^{-2}$\,s$^{-1}$、
+LAIは葉面積/地表面積、$k_W$はこの式では無次元である。
+これは当該入射光計算の代数的な読解であり、
+日GPP全体のnative一致を実行検証した新実装ではない。
+特に草本の吸収率287--288行の括弧は木本と同じ形ではなく、
+式\eqref{eq:visitlight}をそのまま下層の吸収率式へ流用してはいけない。
+
+\path{f_gpp}の$P_{\mathrm{sat}}>0$側は、各植物型について
+\begin{equation}
+ \mathrm{GPP}=\frac{2P_{\mathrm{sat}}\,\ell_{\mathrm{day}}\,c_{\mathrm{unit}}}k
+ \log\frac{1+\sqrt{1+\beta_I}}
+               {1+\sqrt{1+\beta_I e^{-k\mathcal L}}},
+ \qquad
+ \beta_I=\frac{k\,\epsilon_I I}{P_{\mathrm{sat}}}. \label{eq:visitgpp}
+\end{equation}
+$P_{\mathrm{sat}}$は$\mu$mol CO$_2$\,m$^{-2}$\,s$^{-1}$、
+$\epsilon_I$は光利用の量子効率、
+$\ell_{\mathrm{day}}$は時間単位の日長である。
+\path{definition.h}:33の
+$c_{\mathrm{unit}}=3600\times12/10^8$によって、
+GPPはMg C\,ha$^{-1}$\,日$^{-1}$になる。
+単位の定義は\path{structure.h}:156,352,394でも確認した。
+$P_{\mathrm{sat}}\le0$ではGPPを0とする。
+この計算の直前に生理係数が状態・環境に応じて更新されるため、
+入射光以外の変数まで一定とみなすのは追加の近似である。
+
+\begin{proposition}[一方向の遮光だけでは十分ではない]
+水分・窒素等を固定した別の縮約モデルを
+\[
+ \dot W_c=F_c(W_c),\qquad
+ \dot G_c=G_c\{p_c(G_c,I_0e^{-k\mathcal L(W_c)})-m_c\}
+\]
+とする。木本には正の平衡$W_c^*$がただ1つあり、
+$p_c$が$G_c>0$で厳密に減少すると仮定する。
+このとき、木本・草本がともに正の平衡は高々1つである。
+\end{proposition}
+\begin{proof}
+$W_c=W_c^*$を代入すると、草本の平衡条件は
+$p_c(G_c,I_0e^{-k\mathcal L(W_c^*)})=m_c$である。
+左辺が厳密に減少するので正の解は高々1つである。
+\end{proof}
+これはVISIT全体に対する非存在定理ではない。
+$W_c,G_c$は仮想的な縮約炭素状態であり、
+式\eqref{eq:model}の被覆率$F,g$とも異なる。
+木本自身の多安定性、草本による稚樹更新の阻害、
+窒素・水分による逆方向の作用を許せば仮定が崩れる。
+
+また、VISITでは木本の下に草本が存在できるので、
+木本・草本の炭素ボックスをそのまま$F+g=1$の面積排他モデルへ置換できない。
+現行コードの日時指定撹乱や燃焼残渣処理の存在は、
+$\phi(g)$という草本燃料量に依存したフィードバックの実装確認とは別問題である。
+本稿の$\phi(g)$の出典は、あくまで指定された草地--森林論文である。
+
+\section{炭素capacityの研究への接続と次の作業}
+本稿のR経路では、追跡対象の草本QSEは$0.4\to0.3$、
+すなわち森林QSEは$0.6\to0.7$と増加する。
+ところが速い環境変化では、最終的な森林被覆率は
+$1-c(1)\simeq0.257547$へ低下する。
+したがって「一つの安定な森林QSEが増加しているから、実際も森林側へ向かう」
+という推論の反例にはなる。
+
+仮に各植生型の単位面積当たり炭素量$\rho_F>\rho_G$が一定で
+$C=\rho_F(1-g)+\rho_Gg$と置けるなら、
+追跡対象の炭素QSEは増加する一方、速い変化後の炭素量は低下する。
+ただし、この式は面積被覆を炭素へ読み替えるための追加仮定である。
+枯死木・リター・土壌への移行を持たず、
+被覆率変化を即時の大気への炭素放出と同一視できない。
+現時点でLuo型のcapacity・potential診断全体を反証したわけでもない。
+
+次は次の順序が妥当である。
+\begin{enumerate}
+ \item 対象を火災の効く森林--草地遷移帯とするか、
+ 火災を主因としない森林内の下層草本競合とするかを分ける。
+ TKYへの適用を無条件に仮定しない。
+ \item 後者なら、草本が木本稚樹の加入・成長へ及ぼす作用を、
+ 光競合・更新阻害・資源競合の一次文献とVISITの稚樹表現の有無から調べる。
+ 逆向きの作用を根拠なしにシグモイドで追加しない。
+ \item 前者なら、$\alpha$と$\phi_1$が同じ外部環境にどう応答するかを調べ、
+ 本稿のように吸引域が移動する経路が生物学的に許されるかを絞る。
+ 一係数だけの変化との対照を保つ。
+ \item 被覆率モデルへ木本・草本・枯死物・土壌の炭素収支を接続する。
+ その時点で各枝の炭素QSE、capacity、potential、実収支を別々に比較する。
+ 面積の置換に伴う炭素移行・放出を明示してから議論する。
+\end{enumerate}
+本稿では、この先の生物学的な経路較正や新たなVISIT実装には踏み込まない。
+
+\section{再現方法と検証の範囲}
+新規コードは\path{src/control_carbon/forest_grass_tipping.py}、
+検算は\path{tests/test_forest_grass_tipping.py}にある。
+図・JSON・ソーススナップショット・PDFおよびVISITコードのSHA-256を、
+既存実験とは別の
+\path{artifacts/forest_grass_tipping/analytic_20260930/}に保存する。
+\begin{verbatim}
+python -m pytest -q tests/test_forest_grass_tipping.py
+python examples/analyze_forest_grass_tipping.py --output /tmp/forest_grass_check
+cd docs
+lualatex -interaction=nonstopmode -halt-on-error forest_grass_nbr_tipping.tex
+lualatex -interaction=nonstopmode -halt-on-error forest_grass_nbr_tipping.tex
+\end{verbatim}
+出力先が既に存在する場合、解析スクリプトは上書きせず停止する。
+検算内容は、零点残差・安定性・折返し・全経路の根の確認・明示的定数・
+非負範囲・面積保存・接合点と数値精度を変えた閾値・加入率のみの不変境界・
+平均初到達時間の独立な後退方程式との比較である。
+有限個の数値検算を区間全体の証明の代わりにはしない。
+本文の不等式・比較原理・変分方程式が解析的結論を支え、
+コードは転記や計算の誤りを検出するための補助である。
+2026年9月30日の検証では新規の専用テスト7件が成功し、
+リポジトリ全体では257件成功・7件スキップであった。
+
+\begin{figure}[p]
+\centering
+\IfFileExists{../artifacts/forest_grass_tipping/analytic_20260930/forest_grass_nbr.pdf}{
+\includegraphics[width=\textwidth]{../artifacts/forest_grass_tipping/analytic_20260930/forest_grass_nbr.pdf}
+}{\fbox{解析スクリプトを実行すると比較図が生成される。}}
+\caption{同じ死亡率関数族でのN・B・Rの区別。
+左上は基準パラメータでのベクトル場、右上は加入率による折返し、
+左下は確率的脱出の障壁、右下は別途構成した固定環境経路上の速度比較。
+右下の二軌道は規格化時間で比較しており、実時間の継続時間は異なる。
+灰線は存続する安定QSE、黒破線は移動する吸引域境界である。}
+\end{figure}
+
+\appendix
+\section{R-tipping証明で用いた一様な数値境界}
+$l_0=L(0.30),l_1=L(0.42)$と置くと、
+\begin{align}
+ D_{\min}&=d\{0.30\,l_0(1-l_0)/w-L(0.40)\}>0,& D_{\max}&=0.4l_1,\\
+ \Delta_{\min}&=\phi_0d/D_{\max},&
+ \Delta_{\max}&=\phi_0d/D_{\min},\\
+ L''_{\min}&=l_0(1-l_1)(1-2l_1)/w^2>0.
+\end{align}
+$[0.30,0.42]$上では$L''\ge L''_{\min}$となる。
+また$\alpha=\Delta\{L(b)-L(a)\}/d\le\Delta_{\max}/(4w)$より、
+\[
+ M=\phi_0+\Delta_{\max}+\frac{\Delta_{\max}}{4w}
+ \simeq6.80095
+\]
+を$|f|$の上界としてよい。
+帯の上端は$a+\varepsilon\le0.405$なので、
+\[
+ m=(1-0.405)\frac{\Delta_{\min}L''_{\min}}2
+      \varepsilon(d-\varepsilon)
+ \simeq3.99471\times10^{-7}.
+\]
+したがって$\tau<0.0117631$は速い側、
+$\tau>469371.3$は遅い側の十分条件となる。
+非常に粗い上界・下界なので、これらを臨界値や生物学的な時間尺度と読まない。
+臨界値$\tau_*\simeq1741.65$はこの間にあり、
+その存在・一意性を先に証明してから定数を数値評価した。
+
+\section{速度と振幅を混同しないための注意}
+原論文\cite{kumar}式(3.5)のような
+\[
+ \Gamma(t)=\delta_0+\delta_1[
+ \tanh(r(t-t_1))-\tanh(r(t-t_2))]
+\]
+では、$t_1<t_2,\delta_1>0$とするとピークは
+\[
+ \Gamma((t_1+t_2)/2)=
+ \delta_0+2\delta_1\tanh\{r(t_2-t_1)/2\}.
+\]
+$t_1,t_2$を固定して$r$だけ変えると、速度だけでなく最大変位も変わる。
+これは原論文のR-tipping全体を否定する指摘ではない。
+本稿では因子を分離するため、式\eqref{eq:ramp}のように
+環境空間での経路と始終点を固定し、時間の引き伸ばしだけを行った。
+
+\begin{thebibliography}{9}
+\bibitem{kumar}
+Kumar K, R. and Dutta, P. S. (2026).
+Rate-induced tipping in savanna--forest ecosystems:
+effects of fast-varying fitness parameters in the framework of compactification.
+\emph{Proceedings of the Royal Society A}, 482, 20250803.
+\href{https://doi.org/10.1098/rspa.2025.0803}{doi:10.1098/rspa.2025.0803}.
+指定されたローカルPDFを読解。
+\bibitem{kefi}
+Kéfi, S., Eppinga, M. B., de Ruiter, P. C. and Rietkerk, M. (2010).
+Bistability and regular spatial patterns in arid ecosystems.
+\emph{Theoretical Ecology}, 3, 257--269.
+\href{https://doi.org/10.1007/s12080-009-0067-z}{doi:10.1007/s12080-009-0067-z}.
+指定されたローカルPDFを読解。
+\bibitem{ashwin}
+Ashwin, P., Wieczorek, S., Vitolo, R. and Cox, P. (2012).
+Tipping points in open systems: bifurcation, noise-induced and rate-dependent
+examples in the climate system.
+\emph{Philosophical Transactions of the Royal Society A}, 370, 1166--1184.
+\href{https://doi.org/10.1098/rsta.2011.0306}{doi:10.1098/rsta.2011.0306};
+\href{https://arxiv.org/abs/1103.0169}{著者版}.
+分類の背景として参照。本稿の閾値証明は独立に導出。
+\end{thebibliography}
+\end{document}
