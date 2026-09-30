@@ -1,5 +1,12 @@
 # Current implementation status
 
+## Tree–grass carbon–climate plan (2026-09-30)
+
+New [research plan](tree_grass_carbon_climate_research_plan.md): ten carbon pools,
+source-constrained climate responses, analytical bistability/R-tipping, and
+capacity diagnostics. Documentation only. The carbon model, empirical forcing
+maps, and associated climate-rate theorems remain to be developed.
+
 ## Forest–grass analytic checkpoint (2026-09-30)
 
 Visualization: [Japanese five-page phase atlas](forest_grass_phase_atlas.md)

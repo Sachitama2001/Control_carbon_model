@@ -2,6 +2,15 @@
 
 ## Mission
 
+For the current tree–grass carbon research track, follow
+`docs/tree_grass_carbon_climate_research_plan.md` before the older exploratory
+plans below. This user-directed track prioritizes ten-pool carbon accounting,
+analytical bistability, physically defined climate forcing, and conditional
+R-tipping proofs. Keep the published cover model and native VISIT audits distinct.
+Do not replace a stalled proof with an unbounded numerical parameter search.
+The first deliverable is a process/source ledger and one justified reciprocal
+interaction; the plan itself adds no implemented model or experimental result.
+
 Continue this repository as a rigorous research-code project for adding
 explicit water storage and SPAC transport to matrix land-carbon models, then
 using QSE, disequilibrium, IRF, modal, and forcing-rate analysis on the coupled

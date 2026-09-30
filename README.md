@@ -1,5 +1,12 @@
 # Control Carbon Model
 
+2026-09-30: The current tree–grass research direction is specified in the
+[Japanese carbon–climate research plan](docs/tree_grass_carbon_climate_research_plan.md).
+It starts from ten carbon pools (tree/grass × leaf/stem/root/litter/humus),
+prioritizes analytical bistability and climate-driven rate-induced tipping,
+and distinguishes frozen-coefficient carbon capacity from nonlinear equilibria.
+This is a plan, not a new simulation result; existing cover-model results remain separate.
+
 2026-09-22: Added a separate
 [temperature–NSC R-tipping research plan](docs/temperature_nsc_r_tipping_research_plan.md).
 It specifies a homogeneous, area-based four-structural-carbon/four-mobile-carbon

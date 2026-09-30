@@ -1,5 +1,13 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-30 next research plan: for the tree–grass carbon track, read
+> docs/tree_grass_carbon_climate_research_plan.md first. Start with ten carbon
+> pools and a source-backed reciprocal interaction. Derive carbon budgets,
+> equilibrium reductions and no-tipping/tipping conditions before numerical
+> campaigns. Constrain temperature/moisture response laws before selecting a
+> forcing path. Prove or delimit the connection from reduced dynamics to the
+> full carbon system. No new experiment or climate threshold is claimed by this plan.
+
 > 2026-09-30 forest–grass theory: read docs/forest_grass_nbr_tipping.md
 > and the Japanese TeX/PDF first for the new track. Two supplied papers were
 > read; only Kumar K & Dutta (2026) is a forest–grass model, with fire feedback.
