@@ -5,7 +5,14 @@
 It starts from ten carbon pools (tree/grass × leaf/stem/root/litter/humus),
 prioritizes analytical bistability and climate-driven rate-induced tipping,
 and distinguishes frozen-coefficient carbon capacity from nonlinear equilibria.
-This is a plan, not a new simulation result; existing cover-model results remain separate.
+First exploration: [process/source ledger](docs/tree_grass_process_ledger.md),
+[provisional ten-pool equations](docs/tree_grass_carbon_equations.md), and
+[conditional analytic results](docs/tree_grass_bistability_analysis.md).
+The shade-only control has at most one positive equilibrium and a conditional
+no-R result in the full ten-pool system. Fire equilibria reduce to a scalar
+self-consistency equation, but fire bistability and climate-rate tipping remain
+unproved. Climate responses and post-topkill recovery are not calibrated.
+Existing cover-model results remain separate.
 
 2026-09-22: Added a separate
 [temperature–NSC R-tipping research plan](docs/temperature_nsc_r_tipping_research_plan.md).

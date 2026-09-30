@@ -1,5 +1,20 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-09-30 first tree–grass carbon exploration: read
+> docs/tree_grass_process_ledger.md, tree_grass_carbon_equations.md and
+> tree_grass_bistability_analysis.md. Cerrado shade–grass fuel–fire damage is
+> selected as a source-supported interaction, with uncalibrated closures.
+> Ten-pool budgets, positivity and boundedness are derived; shade-only positive
+> equilibrium uniqueness, full-system stability and conditional no-R are proved.
+> Endogenous-fire equilibria satisfy f=lambda*h(chi*D_G(f)); their full Jacobian
+> is a rank-one update of the fixed-fire Jacobian. Do not infer stability from
+> the scalar root slope alone, or eliminate fuel litter from transient dynamics.
+> Climate-to-fuel-moisture closure, surface/dead-root litter separation and
+> resprouting after complete topkill remain unresolved. No fire bistability or
+> climate R-tipping claim. Reproduce checks with
+> python examples/check_tree_grass_carbon.py; saved JSON is in docs/.
+> Next: constrain fuel response and topkill/regrowth before rate experiments.
+
 > 2026-09-30 next research plan: for the tree–grass carbon track, read
 > docs/tree_grass_carbon_climate_research_plan.md first. Start with ten carbon
 > pools and a source-backed reciprocal interaction. Derive carbon budgets,

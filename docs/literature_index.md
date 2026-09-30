@@ -1,5 +1,16 @@
 # Literature index: matrix land-carbon models and explicit water dynamics
 
+## Tree–grass carbon process evidence (2026-09-30)
+
+See [the process ledger](tree_grass_process_ledger.md) for Hoffmann et al.
+(2005, field LAI; 2009, topkill; 2012, threshold synthesis), Thonicke et al.
+(2010, SPITFIRE) and the 2025 SPITFIRE1.9 uncertainty study. Read-scope limits,
+DOIs, units, assumed closures and matrix routing are recorded there.
+The CC BY 3.0 Thonicke paper and corrigendum are saved under docs/literature/;
+[download provenance and SHA-256](literature/tree_grass_sources.json).
+The corrigendum corrects author affiliations, not process equations.
+No empirical temperature–soil-moisture–fire rate map is adopted yet.
+
 ## Forest–grass additions (verified 2026-09-30)
 
 The user supplied the following local PDFs. Main text and appendices were read;

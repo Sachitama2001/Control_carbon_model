@@ -2,10 +2,18 @@
 
 ## Tree–grass carbon–climate plan (2026-09-30)
 
-New [research plan](tree_grass_carbon_climate_research_plan.md): ten carbon pools,
-source-constrained climate responses, analytical bistability/R-tipping, and
-capacity diagnostics. Documentation only. The carbon model, empirical forcing
-maps, and associated climate-rate theorems remain to be developed.
+The [research plan](tree_grass_carbon_climate_research_plan.md) now has a first
+[process ledger](tree_grass_process_ledger.md), [provisional ten-pool equations](tree_grass_carbon_equations.md),
+and [conditional proofs](tree_grass_bistability_analysis.md). These are independent,
+uncalibrated theoretical equations, not a native VISIT or SPITFIRE implementation.
+Shade-only positive-equilibrium uniqueness, full-system stability and a conditional
+no-R result are derived. With endogenous fire, equilibrium elimination yields a
+scalar self-consistency equation, with full-system stability still to be checked.
+A reproducible checker validates carbon budgets, boundary signs, frozen capacity,
+equilibrium elimination and the rank-one Jacobian identity, including step refinement.
+See [first exploration record](tree_grass_first_exploration.md) and
+[check results](tree_grass_carbon_checks.json). Climate forcing maps, fuel moisture,
+resprouting and fire bistability/R-tipping remain unresolved.
 
 ## Forest–grass analytic checkpoint (2026-09-30)
 
