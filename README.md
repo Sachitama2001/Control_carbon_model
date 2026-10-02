@@ -1,5 +1,12 @@
 # Control Carbon Model
 
+2026-10-02: Start the current tree–grass track with the
+[forest/grass cover and climate research plan](docs/forest_grass_cover_climate_research_plan.md).
+It specifies one cover fraction plus ten carbon pools, analytical transfer of
+bistability to carbon storage, temperature/relative-humidity forcing, no-R and
+R-tipping conditions, and carbon capacity diagnostics. Documentation only;
+climate-driven tipping remains a research question.
+
 2026-09-30: The current tree–grass research direction is specified in the
 [Japanese carbon–climate research plan](docs/tree_grass_carbon_climate_research_plan.md).
 It starts from ten carbon pools (tree/grass × leaf/stem/root/litter/humus),

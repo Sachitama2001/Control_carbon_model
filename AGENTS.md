@@ -3,13 +3,15 @@
 ## Mission
 
 For the current tree–grass carbon research track, follow
-`docs/tree_grass_carbon_climate_research_plan.md` before the older exploratory
-plans below. This user-directed track prioritizes ten-pool carbon accounting,
-analytical bistability, physically defined climate forcing, and conditional
-R-tipping proofs. Keep the published cover model and native VISIT audits distinct.
-Do not replace a stalled proof with an unbounded numerical parameter search.
-The first deliverable is a process/source ledger and one justified reciprocal
-interaction; the plan itself adds no implemented model or experimental result.
+`docs/forest_grass_cover_climate_research_plan.md` (2026-10-02) before older plans.
+Start with one grass-cover fraction and ten carbon pools. Prove how stable cover
+states extend to carbon equilibria, then constrain temperature/relative-humidity
+response functions from sources. Test invariant-barrier no-R conditions before
+claiming climate-driven R-tipping. Add one memory state or carbon feedback only
+when its role and provenance are justified. Keep relative humidity, VPD, soil
+moisture and fuel moisture distinct. The plan adds no new experimental result.
+Keep native VISIT, the previous ten-pool model, and the cover-driven baseline
+separate. Do not replace a stalled proof with an unbounded parameter search.
 
 Continue this repository as a rigorous research-code project for adding
 explicit water storage and SPAC transport to matrix land-carbon models, then

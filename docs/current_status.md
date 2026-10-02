@@ -1,5 +1,13 @@
 # Current implementation status
 
+## Cover, temperature and humidity plan (2026-10-02)
+
+The [current plan](forest_grass_cover_climate_research_plan.md) adds a grass-cover
+fraction to ten carbon stores as a new analytical baseline. Its next tasks are
+the carbon-equilibrium extension proof, sourced climate response laws, and
+no-R/R conditions under warming and decreasing relative humidity. This is a
+documentation update; the 11-state model and climate experiments are not implemented.
+
 ## Tree–grass carbon–climate plan (2026-09-30)
 
 The [research plan](tree_grass_carbon_climate_research_plan.md) now has a first

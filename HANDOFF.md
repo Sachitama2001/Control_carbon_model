@@ -1,5 +1,13 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-02 current direction: read docs/forest_grass_cover_climate_research_plan.md
+> first. Derive an 11-state baseline (grass cover + ten carbon stores), including
+> area conversion budgets and the block-triangular stability proof. Then source
+> temperature/relative-humidity response laws and test the scalar no-R barrier.
+> Use fuel-moisture memory or carbon feedback only if justified. Cover bistability
+> does not establish climate-driven R-tipping or different total carbon stocks.
+> This update is a plan, not an implementation or simulation result.
+
 > 2026-09-30 first tree–grass carbon exploration: read
 > docs/tree_grass_process_ledger.md, tree_grass_carbon_equations.md and
 > tree_grass_bistability_analysis.md. Cerrado shade–grass fuel–fire damage is
