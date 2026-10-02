@@ -1,0 +1,95 @@
+{
+  "source_sha256": {
+    "examples/plot_cover_carbon_baseline.py": "e508872b0f7db5c89cb516e3129295d362d99939a50ed2b9514050e7487b0039",
+    "src/control_carbon/cover_carbon_baseline.py": "38a1457aa17abefa396a29e92f900a6f41b9a3d7c6770a06f0f31576c3a1d044",
+    "src/control_carbon/forest_grass_tipping.py": "d99dee75eb50ed1e6119b78a99f7fcfad0242d7da2149d43f0b0e13dfaf703a6",
+    "docs/cover_carbon_baseline.md": "7187755361812edbfd7b1be31244d62d9b91a209cc265c1b666b906686c2658c",
+    "docs/forest_grass_cover_climate_research_plan.md": "93d06e33d6b272d2de383c55a08e4c22b693cd73605c1017d0d957957958f519"
+  },
+  "cover_parameters": {
+    "alpha": 1.2,
+    "phi0": 0.1709,
+    "phi1": 0.9,
+    "theta": 0.432,
+    "width": 0.082
+  },
+  "carbon_parameters_are_calibrated": false,
+  "carbon_test_parameters": {
+    "production": [
+      1.1,
+      0.8
+    ],
+    "allocation": [
+      [
+        0.5,
+        0.3,
+        0.2
+      ],
+      [
+        0.4,
+        0.35,
+        0.25
+      ]
+    ],
+    "turnover": [
+      [
+        0.25,
+        0.12,
+        0.08
+      ],
+      [
+        0.3,
+        0.15,
+        0.1
+      ]
+    ],
+    "transfer_emission": [
+      [
+        0.2,
+        0.1,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "decomposition": [
+      0.4,
+      0.5
+    ],
+    "humification": [
+      0.3,
+      0.25
+    ],
+    "humus_loss": [
+      0.02,
+      0.03
+    ]
+  },
+  "parameter_map": {
+    "alpha": {
+      "minimum": 0.55,
+      "maximum": 1.55,
+      "count": 121
+    },
+    "phi1": {
+      "minimum": 0.3,
+      "maximum": 1.4,
+      "count": 121
+    },
+    "fixed": {
+      "phi0": 0.1709,
+      "theta": 0.432,
+      "width": 0.082
+    },
+    "stable_class": {
+      "0": "interior安定平衡なし（境界平衡のみ）",
+      "1": "内部安定平衡が一つ",
+      "2": "内部安定平衡が二つ",
+      "3": "内部平衡とg=1境界平衡が安定"
+    }
+  },
+  "scope": "analytical cover-carbon baseline; no climate response or tipping result"
+}

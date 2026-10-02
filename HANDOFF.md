@@ -6,7 +6,18 @@
 > temperature/relative-humidity response laws and test the scalar no-R barrier.
 > Use fuel-moisture memory or carbon feedback only if justified. Cover bistability
 > does not establish climate-driven R-tipping or different total carbon stocks.
-> This update is a plan, not an implementation or simulation result.
+> The plan itself is not a climate experiment or a tipping result.
+
+> 2026-10-02 Stage A baseline implemented in
+> `src/control_carbon/cover_carbon_baseline.py`; assumptions and the equilibrium
+> lifting proof are in `docs/cover_carbon_baseline.md`. Carbon coefficients in
+> tests are uncalibrated fixtures. Distinct cover equilibria imply distinct
+> grass living-carbon pools, but do not determine total-carbon ordering. No
+> temperature/RH response or climate-driven R-tipping is implemented. Next:
+> source-constrain one climate-to-process response before rate experiments.
+> The phase/function/capacity visualization is in
+> `docs/figures/cover_carbon_baseline/cover_carbon_baseline_atlas.pdf`; regenerate
+> with `python examples/plot_cover_carbon_baseline.py`.
 
 > 2026-09-30 first tree–grass carbon exploration: read
 > docs/tree_grass_process_ledger.md, tree_grass_carbon_equations.md and

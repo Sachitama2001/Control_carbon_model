@@ -6,7 +6,29 @@ The [current plan](forest_grass_cover_climate_research_plan.md) adds a grass-cov
 fraction to ten carbon stores as a new analytical baseline. Its next tasks are
 the carbon-equilibrium extension proof, sourced climate response laws, and
 no-R/R conditions under warming and decreasing relative humidity. This is a
-documentation update; the 11-state model and climate experiments are not implemented.
+documentation-led direction. The 11-state baseline is implemented below;
+climate experiments remain unimplemented.
+
+### Stage A baseline (2026-10-02)
+
+The 11-state area-exclusive cover/carbon baseline is now implemented in
+`src/control_carbon/cover_carbon_baseline.py`, with its derivation and assumptions
+in `docs/cover_carbon_baseline.md`. It reuses the existing published cover vector
+field, adds ten carbon pools with area-conversion budgets, and provides carbon
+capacity, potential, an analytic Jacobian, and budget diagnostics. The block
+triangular Jacobian proves that each stable interior cover equilibrium lifts to a
+stable full equilibrium; distinct interior cover states have distinct grass
+living-carbon pools, while total-carbon ordering is not generally determined.
+The explicit carbon coefficients used in dedicated tests are uncalibrated fixtures.
+No temperature/relative-humidity mapping or climate-driven tipping result is
+implemented or claimed. Next: source-constrain one climate-to-process response
+before considering forcing-rate experiments.
+
+The baseline is visualized in the
+[cover/carbon phase atlas](figures/cover_carbon_baseline/cover_carbon_baseline_atlas.pdf):
+it includes the parameter phase diagram, scalar cover phase line, adopted
+function shapes, and fixed-cover carbon capacities. Reproduce it with
+`python examples/plot_cover_carbon_baseline.py`.
 
 ## Tree–grass carbon–climate plan (2026-09-30)
 
