@@ -1,5 +1,15 @@
 # Literature index: matrix land-carbon models and explicit water dynamics
 
+## Cover–climate response ledger (2026-10-02)
+
+The current tree–grass cover/carbon proposal is documented in
+[cover_climate_response_ledger.md](cover_climate_response_ledger.md). It separates
+temperature, atmospheric VPD, fuel moisture, soil moisture, cover recruitment,
+and fire-mediated cover conversion. The ledger records source scope and does not
+activate uncalibrated climate functions. Core links include FAO-56, Medlyn et al.
+(2011), Hoffmann et al. (2004, 2005, 2009), Moura et al. (2026), and Thonicke et
+al. (2010); see the ledger for the exact claims and limits.
+
 ## Tree–grass carbon process evidence (2026-09-30)
 
 See [the process ledger](tree_grass_process_ledger.md) for Hoffmann et al.

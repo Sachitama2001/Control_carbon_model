@@ -19,6 +19,12 @@
 > `docs/figures/cover_carbon_baseline/cover_carbon_baseline_atlas.pdf`; regenerate
 > with `python examples/plot_cover_carbon_baseline.py`.
 
+> 2026-10-02 climate-response literature ledger: see
+> `docs/cover_climate_response_ledger.md`. The ledger separates VPD, plant
+> productivity, seedling recruitment, fire/fuel moisture, and soil decomposition.
+> Only the physical T/R-to-air-VPD transform is presently code-ready. Do not
+> use RH as soil moisture or map fire intensity directly to the cover rate.
+
 > 2026-09-30 first tree–grass carbon exploration: read
 > docs/tree_grass_process_ledger.md, tree_grass_carbon_equations.md and
 > tree_grass_bistability_analysis.md. Cerrado shade–grass fuel–fire damage is

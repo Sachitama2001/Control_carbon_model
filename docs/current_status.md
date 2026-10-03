@@ -30,6 +30,15 @@ it includes the parameter phase diagram, scalar cover phase line, adopted
 function shapes, and fixed-cover carbon capacities. Reproduce it with
 `python examples/plot_cover_carbon_baseline.py`.
 
+### Climate-response literature ledger (2026-10-02)
+
+The [response ledger](cover_climate_response_ledger.md) maps \(T,R\) to
+atmospheric VPD and separates candidate effects on NPP, recruitment, fire/fuel
+moisture, and soil decomposition. Only the physical \(T,R\to\mathrm{VPD}\)
+transform is ready for a pure-function implementation. Climate coefficients for
+the 11-state model remain uncalibrated; \(\alpha\), the cover sigmoid, and soil
+decomposition stay fixed until appropriate site measurements are available.
+
 ## Tree–grass carbon–climate plan (2026-09-30)
 
 The [research plan](tree_grass_carbon_climate_research_plan.md) now has a first
