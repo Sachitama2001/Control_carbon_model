@@ -1,5 +1,20 @@
 # Literature index: matrix land-carbon models and explicit water dynamics
 
+## Plant hydraulic failure reproduction (2026-10-07)
+
+Manzoni, S., Katul, G. & Porporato, A. (2014), *A dynamical system perspective
+on plant hydraulic failure*, Water Resources Research 50, 5170–5183;
+[DOI](https://doi.org/10.1002/2013WR015236).
+User-provided local PDF: `Water Resources Research - 2014 - Manzoni - A dynamical system perspective on plant hydraulic failure.pdf`.
+Main text and Appendix A read; no permission to redistribute inferred.
+[Reproduction, units, assumptions and limits](manzoni2014_reproduction.md)
+records equations (1)--(4) and the Fig. 2 mechanism checks.
+[Remaining-figure results](manzoni2014_remaining_results.md) adds Fig. 3 thresholds,
+Appendix A finite-root counts and a user-approved assumed-soil Fig. 4 sensitivity.
+Observational percentile data and original soil coefficients are not reproduced.
+The local PDF SHA-256 is recorded in the run's results manifest.
+The model demonstrates a hydraulic fold, not carbon mortality or climate R-tipping.
+
 ## Cover–climate response ledger (2026-10-02)
 
 The current tree–grass cover/carbon proposal is documented in

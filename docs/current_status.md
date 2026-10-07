@@ -1,5 +1,28 @@
 # Current implementation status
 
+## Manzoni hydraulic reproduction (2026-10-07)
+
+The user-directed [first reproduction milestone](manzoni2014_reproduction.md)
+is complete: local paper and Appendix A read; equations (1)--(4), admissible
+active equilibria, full Jacobian, and Fig. 2 supply/demand, phase and branch plots
+implemented independently. Wet-root zero-limit and -1 MPa root boundaries give
+critical D = 0.02439716312 and 0.01307440031 mol/mol. Capacitances are explicitly
+assumed numerical fixtures. The fully nonconducting equilibrium is a continuum,
+not an isolated full-system sink. No carbon coupling, mortality or R-tipping claim.
+Dedicated and neighboring tests: 38 passed; equilibrium residual < 3e-15 MPa/day;
+sampled trajectory tolerance-refinement error < 1.1e-8 MPa. Artifacts persist under
+`artifacts/manzoni2014/figure2_20261007/` (git-ignored).
+Follow-up: [remaining figure results](manzoni2014_remaining_results.md).
+Fig. 3 thresholds and Appendix A's 0--3 finite-equilibrium counts are implemented,
+with full Jacobians and unbounded log-domain root isolation. Soil-root continuity
+and the fixed damage factor 0.6 are implemented; user-approved assumed soil
+coefficients produce Fig. 4 sensitivity, not original numerical replication.
+Final artifacts: `artifacts/manzoni2014/remaining_final_20261007/`.
+All 3364 common coarse/fine A2 counts agree. Regressions now total 66 passed.
+Original observational percentiles/points, soil coefficients and capacitances
+remain unresolved; no carbon/cover coupling or R-tipping experiment was added.
+Existing cover/carbon and native VISIT results are unchanged.
+
 ## Cover, temperature and humidity plan (2026-10-02)
 
 The [current plan](forest_grass_cover_climate_research_plan.md) adds a grass-cover

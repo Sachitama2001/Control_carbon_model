@@ -1,5 +1,19 @@
 # Control Carbon Model
 
+2026-10-07: User-directed [Manzoni (2014) hydraulic reproduction](docs/manzoni2014_reproduction.md).
+An independent two-storage model reproduces Fig. 2 mechanisms and active-branch
+fold thresholds, with full-Jacobian and integration checks (38 dedicated/neighboring
+tests passed). VPD is mol/mol; numerical capacitances are not paper-calibrated.
+This is not a native VISIT, carbon-coupling, or R-tipping result.
+Run `python examples/reproduce_manzoni2014.py --output NEW_PATH`.
+
+The [remaining-figure follow-up](docs/manzoni2014_remaining_results.md) adds
+Fig. 3 thresholds, sigmoid finite-equilibrium counts (0--3), and root continuity.
+User-approved assumed soil coefficients support a Fig. 4 sensitivity study, not
+original numerical replication. Coarse/fine common counts agree; 66 dedicated/
+neighboring tests pass. Observational points/percentiles and original soil values
+remain unresolved. Run `python examples/reproduce_manzoni2014_remaining.py --shape-step .25 --output NEW_PATH`.
+
 2026-10-02: Start the current tree–grass track with the
 [forest/grass cover and climate research plan](docs/forest_grass_cover_climate_research_plan.md).
 It specifies one cover fraction plus ten carbon pools, analytical transfer of

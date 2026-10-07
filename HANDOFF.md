@@ -1,5 +1,37 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-07 Manzoni remaining-figure follow-up: read
+> `docs/manzoni2014_remaining_results.md`. Fig. 3 median/trait thresholds,
+> Appendix A sigmoids/all finite roots/full Jacobian, and soil-root continuity
+> are implemented in `manzoni_extensions.py`. Root counts use log-domain
+> exponential-sum isolation with dominant-tail bounds, not a finite dry cutoff;
+> tangent/equal-exponent/extreme-root checks included. Use log flux residuals
+> and positive-gx-scaled equilibrium Jacobians when absolute fluxes underflow.
+> Appendix maps exhibit 0/1/2/3 roots; 3364 common coarse/fine counts agree.
+> User approved assumed-soil Fig. 4 sensitivity (NOT original numeric replication):
+> psi_sat=-0.1 MPa, gsr_sat=0.03/0.1/0.3 m/day/MPa, fixed damage fraction=0.6.
+> Fig. 3 observational percentiles/points and original soil/capacitance values
+> remain unavailable. A2 low/high D and unsafe traits are explicitly chosen.
+> Reproduce: `python examples/reproduce_manzoni2014_remaining.py --shape-step .25 --output NEW_PATH`.
+> Final artifacts: `artifacts/manzoni2014/remaining_final_20261007/`.
+> Dedicated + neighboring regressions: 66 passed; no full suite run.
+> No carbon/cover coupling, mortality, recovery dynamics or R-tipping claim.
+
+> 2026-10-07 user-directed Manzoni (2014) reproduction: read
+> `docs/manzoni2014_reproduction.md`. Local paper main text and Appendix A
+> were read. Independent `manzoni_hydraulics.py` implements equations (1)--(4),
+> admissible active equilibria, the full Jacobian and the Fig. 2 fold.
+> Wet-root zero-limit / -1 MPa critical D: 0.02439716312 / 0.01307440031 mol/mol.
+> D is NOT kPa; capacitances are numerical fixtures, not paper-calibrated.
+> The nonconducting dry state is an equilibrium continuum in the full 2D model,
+> not an isolated hyperbolic sink. No carbon coupling or R-tipping claim.
+> Reproduce with `python examples/reproduce_manzoni2014.py --output NEW_PATH`.
+> First plots/results/hashes: `artifacts/manzoni2014/figure2_20261007/`.
+> Dedicated + neighboring regressions: 38 passed; no full-suite run.
+> Fig. 3/Appendix/soil continuity follow-up is recorded above.
+> Original soil coefficients and observational trait data remain unresolved.
+> Existing VISIT and cover/carbon tracks unchanged.
+
 > 2026-10-02 current direction: read docs/forest_grass_cover_climate_research_plan.md
 > first. Derive an 11-state baseline (grass cover + ten carbon stores), including
 > area conversion budgets and the block-triangular stability proof. Then source
