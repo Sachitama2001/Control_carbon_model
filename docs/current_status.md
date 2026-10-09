@@ -1,5 +1,20 @@
 # Current implementation status
 
+## SPAC–carbon Stage A (2026-10-09)
+
+The [user-plan Stage A analysis](spac_carbon_stage_a.md) adds an independent
+six-state one-way Manzoni/four-carbon model. It proves the concave-canopy R0
+threshold and conditional unique positive equilibrium, input-off zero capacity
+and stock decay, block-triangular equilibrium lifting, and no irreversible
+finite-temperature-pulse extinction when final R0>1 and water remains safe.
+VPD fold crossing is not R-tipping; persistent-temperature extinction crosses
+the carbon threshold. Synthetic GPP/loss/temperature coefficients and zero-leaf
+hydraulic limitations are explicit. No VISIT or existing model changed.
+Dedicated + neighboring regressions: 88 passed.
+Outputs: `artifacts/spac_carbon/stage_a_final_20261009/`.
+Next: consistent Leuning/assimilation closure and zero-biomass hydraulic regime
+before two-way feedback and R-tipping tests.
+
 ## Manzoni hydraulic reproduction (2026-10-07)
 
 The user-directed [first reproduction milestone](manzoni2014_reproduction.md)

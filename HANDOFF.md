@@ -1,5 +1,25 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-09 user-directed SPAC–carbon plan: read
+> `docs/SPAC_carbon_research_proposal_2026.docx`,
+> `docs/AGENT_HANDOFF_CWexperiment.md`, and `docs/spac_carbon_stage_a.md`.
+> User waived separate PoC Python files. Independent six-state one-way
+> `spac_carbon.py` reuses checked Manzoni, adds four carbon pools and concave
+> leaf-dependent gross assimilation. GPP + explicit respiration/litter partition
+> replaces proposal's effective-NPP convention; all carbon/T coefficients synthetic.
+> Proven: R0 zero/positive threshold, unique positive root/global conditional
+> convergence, input-off zero capacity/decay, block-triangular stability lifting,
+> and no finite-temperature-pulse R-extinction if final R0>1 and water stays safe.
+> Sigmoid three-water-root example lifts to positive stable / saddle / zero stable
+> selected carbon roots, but zero-leaf water states are only mathematical extension.
+> Linear dry continuum is NOT regularized. No two-way/Leuning/real mortality claim.
+> VPD-only fold crossing and same-endpoint temperature recovery controls saved;
+> final outputs: `artifacts/spac_carbon/stage_a_final_20261009/`.
+> Run `python examples/analyze_spac_carbon.py --output NEW_PATH`.
+> Dedicated + neighboring tests: 88 passed. Next: plan Stage B, consistent
+> Leuning/assimilation closure and physically meaningful zero-biomass regime,
+> before structural feedback or genuine R-tipping. No native VISIT changes.
+
 > 2026-10-07 Manzoni remaining-figure follow-up: read
 > `docs/manzoni2014_remaining_results.md`. Fig. 3 median/trait thresholds,
 > Appendix A sigmoids/all finite roots/full Jacobian, and soil-root continuity

@@ -1,5 +1,13 @@
 # Control Carbon Model
 
+2026-10-09: User-directed [SPAC–carbon Stage A](docs/spac_carbon_stage_a.md)
+independently couples checked Manzoni hydraulics to four carbon pools.
+Analytic R0 thresholds, input-off decay, equilibrium lifting and a conditional
+no-temperature-pulse-extinction theorem are checked alongside VPD fold and
+temperature controls (88 dedicated/neighboring tests). This is synthetic theory,
+not VISIT, Leuning, calibrated mortality, or a genuine R-tipping demonstration.
+Run `python examples/analyze_spac_carbon.py --output NEW_PATH`.
+
 2026-10-07: User-directed [Manzoni (2014) hydraulic reproduction](docs/manzoni2014_reproduction.md).
 An independent two-storage model reproduces Fig. 2 mechanisms and active-branch
 fold thresholds, with full-Jacobian and integration checks (38 dedicated/neighboring
