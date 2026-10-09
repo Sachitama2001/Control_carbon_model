@@ -1,5 +1,29 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-09 Stage B1: newest user specification is
+> `docs/SPAC_carbon_stage_B_plan.md`; results in `docs/spac_carbon_stage_b_results.md`.
+> It supersedes the older "Leuning first" next-step suggestion below.
+> Independent `spac_carbon_two_way.py` implements E0–E4 structural flux feedback
+> with fixed capacities/references and unchanged Stage A GPP/carbon budgets.
+> Correct series conductance is Gr*Gl/(Gr+Gl), NOT gx*FL.
+> Positive equilibrium reduction + reduced pseudo-arclength + full 6x6 Jacobian
+> + Schur/nondegeneracy checks + full multistart roots are verified.
+> E0 fold D=.02439716312; E1 leaf-supply-only fold D=.01526557528.
+> E2/E3/E4 have no detected fold in the stated viable-domain scan but have
+> oscillatory stability candidates (.1513719/.0479960/.0262991); no Hopf proof.
+> Same D=.01 -> .03 path: 10-day E2/E3 exits L_min, 10-year recovers positive
+> equilibrium after 500-year hold. This is rate-dependent DOMAIN EXIT, NOT
+> verified R-tipping/mortality: no physical alternate attractor beyond L_min.
+> E2 invariant-box non-exit bound D<=.01859886673 is analytic and rate-independent,
+> but not a global convergence/no-R theorem. Keep the dry continuum unresolved.
+> Targeted + neighboring tests: 115 passed; original Stage A 88 revalidated.
+> Final results/source hashes: `artifacts/spac_carbon/stage_b1_final_20261009/`.
+> Reproduce: `python examples/analyze_spac_carbon_two_way.py --output NEW_PATH`.
+> Next: rigorous continuous-path stability, nonlinear oscillatory bifurcation
+> analysis, physically justified domain extension BEFORE alternate-attractor
+> R-tipping claims. E4 transient, Leuning, soil/precipitation, variable capacities,
+> NSC/damage/recovery remain deferred. No native VISIT or Stage A code changed.
+
 > 2026-10-09 user-directed SPAC–carbon plan: read
 > `docs/SPAC_carbon_research_proposal_2026.docx`,
 > `docs/AGENT_HANDOFF_CWexperiment.md`, and `docs/spac_carbon_stage_a.md`.

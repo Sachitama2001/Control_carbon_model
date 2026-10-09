@@ -1,5 +1,17 @@
 # Control Carbon Model
 
+2026-10-09: User-directed [Stage B1 results](docs/spac_carbon_stage_b_results.md)
+add independent E0–E4 structural water-flux feedback, fixed reference biomass
+and capacities, exact series conductance, full 6x6 Jacobians, pseudo-arclength,
+multistart roots, basin slices and bounded sensitivities. Leaf supply alone
+lowers the synthetic fold; demand feedback can instead produce oscillatory
+stability candidates. Same-path slow/fast experiments demonstrate
+vegetation-domain exit versus positive-equilibrium recovery, **not verified
+R-tipping or mortality**. Stage A and native VISIT are unchanged; 115 targeted/
+neighboring tests pass. Leuning is deferred under the
+[new user plan](docs/SPAC_carbon_stage_B_plan.md).
+Run `python examples/analyze_spac_carbon_two_way.py --output NEW_PATH`.
+
 2026-10-09: User-directed [SPAC–carbon Stage A](docs/spac_carbon_stage_a.md)
 independently couples checked Manzoni hydraulics to four carbon pools.
 Analytic R0 thresholds, input-off decay, equilibrium lifting and a conditional

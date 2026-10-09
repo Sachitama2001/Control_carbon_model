@@ -1,5 +1,25 @@
 # Current implementation status
 
+## SPAC–carbon Stage B1 (2026-10-09)
+
+The [new user plan](SPAC_carbon_stage_B_plan.md) prioritizes structural
+flux feedback and defers Leuning. The independent
+[B1 results](spac_carbon_stage_b_results.md) implement E0–E4 with fixed capacities
+and fixed Stage A references, correct series conductance, unchanged GPP/budgets,
+full Jacobians and positive-equilibrium pseudo-arclength continuation.
+E1 shifts the synthetic fold from .02439716 to .01526558 mol/mol; E2/E3/E4 have
+oscillatory stability boundary candidates rather than detected folds in the
+stated scan. Full-six-state multistart roots, basin slices, sensitivities and
+same-path 10-day/10-year comparisons are saved. E2/E3 show rate-dependent
+vegetation-domain exit versus verified recovery, NOT proven R-tipping:
+no physical alternate attractor is defined beyond L_min. An analytic E2
+invariant-box non-exit bound is rate-independent but is not a convergence theorem.
+Targeted + neighboring tests: 115 passed. Stage A is unchanged and revalidated.
+Outputs: `artifacts/spac_carbon/stage_b1_final_20261009/`.
+Next: continuous-path stability proof, nonlinear oscillatory boundary analysis,
+and physical zero-leaf/domain definition; E4 transients and physiological closure
+remain deferred.
+
 ## SPAC–carbon Stage A (2026-10-09)
 
 The [user-plan Stage A analysis](spac_carbon_stage_a.md) adds an independent
@@ -12,8 +32,8 @@ the carbon threshold. Synthetic GPP/loss/temperature coefficients and zero-leaf
 hydraulic limitations are explicit. No VISIT or existing model changed.
 Dedicated + neighboring regressions: 88 passed.
 Outputs: `artifacts/spac_carbon/stage_a_final_20261009/`.
-Next: consistent Leuning/assimilation closure and zero-biomass hydraulic regime
-before two-way feedback and R-tipping tests.
+Next-step priority is superseded by the user Stage B plan above: first structural
+flux feedback in a restricted positive-leaf domain; Leuning is postponed.
 
 ## Manzoni hydraulic reproduction (2026-10-07)
 

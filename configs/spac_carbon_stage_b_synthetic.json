@@ -1,0 +1,45 @@
+{
+  "provenance": "Stage B1 synthetic hypotheses, not calibrated allometry or VISIT",
+  "coefficient_sources": {
+    "conductance_and_vulnerability": "Manzoni 2014 Figure 2 unsafe-trait scenario; checked in docs/manzoni2014_reproduction.md",
+    "cx_cl": "Stage A synthetic numerical capacitances, not paper-calibrated",
+    "all_carbon": "Stage A synthetic fixture; no calibrated VISIT coefficients",
+    "all_feedback_floor_minimum_exponent": "User Stage B hypotheses plus explicit synthetic settings; minimum_leaf is a domain limit, not a death threshold"
+  },
+  "units": {
+    "time": "day",
+    "water_potential": "MPa",
+    "carbon": "kg C m-2 ground",
+    "vpd": "mol/mol",
+    "gx_max": "m water day-1 MPa-1",
+    "gs_max": "m water day-1",
+    "cx_cl": "m water MPa-1",
+    "annual_loss_input": "year-1; converted using 365.25 days/year",
+    "specific_leaf_area": "m2 leaf kg dry-1"
+  },
+  "hydraulic": {
+    "gx_max": 0.0086, "gs_max": 0.47,
+    "psi50_x": -1.5, "psi50_s": -2.0, "cx": 0.001, "cl": 0.001
+  },
+  "carbon": {
+    "assimilation_max_per_year": 1.2,
+    "allocation": [0.3, 0.4, 0.3],
+    "losses_per_year": [0.8, 0.05, 0.2, 0.04],
+    "litter_fractions": [0.7, 0.9, 0.8],
+    "specific_leaf_area": 10.0, "carbon_dry_fraction": 0.5, "extinction": 0.25
+  },
+  "root_potential": 0.0,
+  "reference_vpd": 0.01,
+  "reference_rule": "Compute L_ref,W_ref once from Stage A hydrated positive equilibrium at fixed root/reference D",
+  "leaf_floor": 0.01,
+  "minimum_leaf": 0.000001,
+  "wood_exponent": 1.0,
+  "curve_bounds": [-2.222, -0.001],
+  "variants": {
+    "E0": [0.0, 0.0, 0.0],
+    "E1": [1.0, 0.0, 0.0],
+    "E2": [0.0, 1.0, 0.0],
+    "E3": [1.0, 1.0, 0.0],
+    "E4": [1.0, 1.0, 1.0]
+  }
+}
