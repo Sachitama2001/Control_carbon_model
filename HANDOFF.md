@@ -1,5 +1,30 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-12 Stage B2: short plan `docs/SPAC_carbon_stage_B2_plan.md`,
+> results `docs/spac_carbon_stage_b2_results.md`; baseline commit 05a7609.
+> Stage A/B1 equations, synthetic coefficients and prior outputs are unchanged.
+> E2/E3 have an exact three-state dynamic core (water x2 + leaf), not a
+> quasi-steady approximation; W/R/S contribute stable passive eigenvalues.
+> Outward-rounded 40-digit Decimal intervals certify Hurwitz inequalities,
+> monotone D(L), and endpoint coverage over the whole D=.01-.03 branch
+> (E2:11 cells, E3:26). Claim is stable frozen branch, NOT tracking/no-R.
+> Analytic second/third tensors + Lyapunov formula + transversality resolve
+> E2/E3 candidates as NUMERICALLY verified subcritical Hopf:
+> D_H=.15137188728/.04799596087, l1=+11.53120/+22.67162.
+> Nonzero-amplitude shooting and full periodic W/R/S lift verify repelling
+> cycles at r=.0005/.001/.002; Floquet radial multiplier >1, neutral ~1.
+> Unstable cycles are NOT alternate attractors or proof of R-tipping.
+> Formal L=0/E2/E3 demand vanishes: gx=0 suffices for a zero-carbon water
+> continuum even if gs>0. No isolated dead equilibrium or physical mortality
+> regime was added. Conserved H_i(psi,organ C), tissue water/carbon transfers
+> and regeneration inputs must be specified before a post-exit variant.
+> Tests: 129 targeted/neighboring passed. Final artifacts + 9 source hashes:
+> `artifacts/spac_carbon/stage_b2_verified_20261012/`.
+> Run `python examples/analyze_spac_carbon_bifurcation.py --output NEW_PATH`.
+> Next: bounded global cycle/stable-manifold vs recovery/exit boundary analysis;
+> consult user before choosing post-exit physiology. E4 nonlinear analysis,
+> empirical forest mortality, NSC, dynamic soil and Leuning remain unimplemented.
+
 > 2026-10-09 Stage B1: newest user specification is
 > `docs/SPAC_carbon_stage_B_plan.md`; results in `docs/spac_carbon_stage_b_results.md`.
 > It supersedes the older "Leuning first" next-step suggestion below.

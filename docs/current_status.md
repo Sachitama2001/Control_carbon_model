@@ -1,5 +1,23 @@
 # Current implementation status
 
+## SPAC–carbon Stage B2 (2026-10-12)
+
+The [short B2 plan](SPAC_carbon_stage_B2_plan.md) is implemented through the
+[first B2 milestone](spac_carbon_stage_b2_results.md). E2/E3's exact three-state
+dynamic core gives a cubic Hurwitz test; outward-rounded interval certificates
+cover the entire positive frozen branch for D=.01-.03. This does not imply
+nonautonomous tracking/no-R. Analytic higher derivatives, eigenvalue
+transversality and positive first Lyapunov coefficients numerically identify
+subcritical Hopf. Amplitude-fixed shooting, positive full-six-state periodic
+lifts and Floquet multipliers verify small repelling cycles on the stable
+equilibrium side, not additional attracting states. Formal zero-leaf limits
+and conservation-aware post-exit requirements are documented; no mortality
+regime or new physiological feedback was invented.
+Targeted/neighboring tests: 129 passed. Stage A/B1 sources are unchanged.
+Final artifacts: `artifacts/spac_carbon/stage_b2_verified_20261012/`.
+Next: global recovery/exit boundary geometry, then user-guided physical regime
+selection; E4 nonlinear analysis and genuine R-tipping remain open.
+
 ## SPAC–carbon Stage B1 (2026-10-09)
 
 The [new user plan](SPAC_carbon_stage_B_plan.md) prioritizes structural

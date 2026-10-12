@@ -1,5 +1,14 @@
 # Control Carbon Model
 
+2026-10-12: [Stage B2 plan](docs/SPAC_carbon_stage_B2_plan.md) and
+[results](docs/spac_carbon_stage_b2_results.md) add continuous-path
+Routh–Hurwitz interval certificates for E2/E3, analytic higher derivatives
+and numerical subcritical-Hopf verification. Nonzero-amplitude shooting
+and full-six-state Floquet analysis confirm small **repelling** periodic
+orbits, not alternate attractors. Zero-leaf/domain-exit physical requirements
+are documented; Stage A/B1 are unchanged. 129 targeted/neighboring tests pass.
+Run `python examples/analyze_spac_carbon_bifurcation.py --output NEW_PATH`.
+
 2026-10-09: User-directed [Stage B1 results](docs/spac_carbon_stage_b_results.md)
 add independent E0–E4 structural water-flux feedback, fixed reference biomass
 and capacities, exact series conductance, full 6x6 Jacobians, pseudo-arclength,
