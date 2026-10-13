@@ -1,5 +1,39 @@
 # Current implementation status
 
+## E4 local nonlinear milestone (2026-10-13)
+
+The [B3 E4 results](spac_carbon_stage_b3_e4_results.md) follow the latest MPa
+unit/scale review rather than treating high-VPD E3 cycles as routine climate.
+Exact four-state tensors, transversality and positive l1 numerically resolve
+E4's candidate as subcritical Hopf at .002664752905 MPa. Independent periodic
+collocation, full R/S periodic lift, IVP comparison, Floquet multipliers and
+tolerance refinement verify local repelling cycles, NOT attractors.
+Seven bounded synthetic sensitivities show that wood exponent/loss assumptions
+can alter climate admissibility or produce a fold and an already-unstable
+complex-pair crossing. Original physiology remains unchanged.
+Targeted/neighboring tests:163 passed. Artifacts:
+`artifacts/spac_carbon/stage_b3_e4_final_v2_20261013/`.
+Next: E4 global boundary geometry and coefficient provenance; post-exit
+physiology requires a separate justified choice before mortality/R-tipping.
+
+## SPAC units and exploration scales (2026-10-13)
+
+The [unit/scale review](spac_carbon_units_and_scales.md) introduces an explicit
+MPa-facing boundary without changing original coefficients or equations.
+VPD remains vapor-pressure deficit, NOT atmospheric water potential.
+User-approved synthetic assumptions: p_atm=.101325 MPa, diagnostic 25 C,
+routine VPD 0--.003 MPa. Existing canonical APIs/configs/runners remain
+historical mol/mol reproduction interfaces. New tests: 27 passed;
+related baseline six-file regression: 127 passed.
+Pressure curves, derivative/shift conversion, shooting and outward certificate
+inclusion are verified; E2/E3 11/26-cell certificates regenerated.
+E2/E3 high-VPD Hopf exceeds saturation at 25 C; mark formal exploration.
+E4 .002664753 MPa remains in range. Initial next-stage work checks exact
+four-state/passive-RS factorization and local quartic Hurwitz crossing;
+E4 l1/nondegenerate Hopf and cycles remain open.
+Artifacts: `artifacts/spac_carbon/pressure_review_final_v2_20261013/`,
+`artifacts/spac_carbon/phase3d_mpa_verified_20261013/`.
+
 ## SPAC–carbon Stage B2 (2026-10-12)
 
 The [short B2 plan](SPAC_carbon_stage_B2_plan.md) is implemented through the

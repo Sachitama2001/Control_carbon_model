@@ -1,0 +1,17 @@
+{
+  "units": {"vpd": "MPa", "water_potential": "MPa", "time": "day", "carbon": "kg C m-2 ground"},
+  "model_config": "spac_carbon_stage_b_synthetic.json",
+  "atmospheric_pressure_mpa": 0.101325,
+  "diagnostic_air_temperature_c": 25.0,
+  "reference_vpd_mpa": 0.00101325,
+  "routine_vpd_mpa_bounds": [0.0, 0.003],
+  "formal_vpd_mpa_bounds": [0.0, 0.02],
+  "legacy_path_vpd_mpa_bounds": [0.00101325, 0.00303975],
+  "continuation_vpd_scale_mpa": 0.0020265,
+  "notes": [
+    "Pressure/temperature/routine-range assumptions approved by user 2026-10-13.",
+    "25 C is used only to diagnose RH admissibility; no carbon-temperature feedback added.",
+    "Original model coefficients and fixed reference stocks are unchanged.",
+    "Formal values above saturated vapor pressure at 25 C are not valid forcing at that temperature."
+  ]
+}

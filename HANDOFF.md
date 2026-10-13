@@ -1,5 +1,58 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-13 B3 E4 nonlinear milestone: read
+> `docs/spac_carbon_stage_b3_e4_results.md`. Latest MPa/scale review takes
+> precedence over the older E3 high-VPD global-continuation priority.
+> Exact four-state E4 tensors + generalized existing l1 helper verify
+> NUMERICAL subcritical Hopf at VPD=.002664752905 MPa, l1=+39.69534297,
+> slope ~419.869/day/MPa, with two stable noncritical active modes.
+> Independent periodic collocation at r=.0005/.001/.002, full R/S lift,
+> independent IVP, Floquet and tolerance refinement verify repelling cycles.
+> Seven predefined sensitivities: capacities x.5/x2 retain type; wood
+> exponent .75 or loss x.5 moves crossing outside 25 C RH range.
+> Exponent1.25 has a fold .002128793 MPa and a complex-pair crossing on an
+> ALREADY UNSTABLE branch; no attracting-side Hopf/l1/cycle claim there.
+> Results + ten input hashes: `artifacts/spac_carbon/stage_b3_e4_final_v2_20261013/`.
+> Run `python examples/analyze_spac_carbon_e4.py --output NEW_PATH`.
+> Targeted/neighboring tests:163 passed. Original physiology/config unchanged.
+> Next: bounded E4 cycle/stable-manifold vs recovery/exit boundary analysis
+> in routine VPD, coefficient provenance; consult before post-exit physiology.
+> No global basin, interval-certified Hopf, mortality, or R-tipping claim.
+
+> 2026-10-13 unit/scale review: start with `docs/spac_carbon_units_and_scales.md`.
+> User confirmed VPD remains positive vapor-pressure deficit, NOT psi_air.
+> Current input/output boundary `spac_carbon_mpa.PressureSPAC` uses MPa and
+> requires explicit atmospheric pressure. Original equations/coefficients,
+> Stage A/B1/B2 APIs/config/outputs remain canonical mol/mol for provenance.
+> New `configs/spac_carbon_pressure_review.json`: p_atm=.101325 MPa;
+> 25 C is RH diagnosis ONLY; routine VPD 0--.003 MPa, formal 0--.02 MPa.
+> Preserve gs scaling gs/p_atm, slope/parameter-shift chain rules, and
+> outward interval inclusion. 27 new unit-equivalence tests + 127 related
+> baseline tests passed. Current runner `examples/review_spac_carbon_units.py`.
+> Final `artifacts/spac_carbon/pressure_review_final_v2_20261013/` includes
+> MPa curves/thresholds, E2/E3 11/26-cell certificates and E4 local check.
+> E2/E3 Hopf at .015337756/.004863191 MPa exceed saturation at 25 C
+> (.003167489 MPa). Do not treat them as main climate-range phenomena.
+> E4 candidate .002664753 MPa remains within routine range: exact
+> (psi_x,psi_leaf,L,W) four-state core, passive R/S. Quartic Delta3 and
+> critical pair cross zero locally; slope ~419.869 day^-1/MPa refines.
+> NOT nondegenerate-Hopf/l1/cycle verification; coefficients uncalibrated.
+> Updated 3D MPa figures in `artifacts/spac_carbon/phase3d_mpa_verified_20261013/`.
+> Next: synthetic-coefficient sensitivity and E4 local nonlinear analysis,
+> not high-VPD cycles as ordinary climate exploration. Consult user before
+> post-exit physiology. No commitments/empirical mortality claims added.
+> Historical sections below retain canonical D; do not pass MPa directly.
+
+> 2026-10-13 explanatory synthesis:
+> `docs/spac_carbon_research_logic_report.md` explains question -> reduction ->
+> method -> evidence -> scope, with analytic/interval/numerical/hypothesis labels.
+> Read it before presenting results to the user. Standard local bifurcation
+> methods are not in themselves a mathematical frontier; global basin geometry
+> and post-exit physiology remain unresolved. The D=.03 rate comparison and
+> D~.048 Hopf portrait are different parameter slices; do not assert that the
+> plotted repelling cycle has been proved to bound the rate-exit basin.
+> No new experiment, code change or stronger mortality/R-tipping claim.
+
 > 2026-10-12 Stage B2: short plan `docs/SPAC_carbon_stage_B2_plan.md`,
 > results `docs/spac_carbon_stage_b2_results.md`; baseline commit 05a7609.
 > Stage A/B1 equations, synthetic coefficients and prior outputs are unchanged.

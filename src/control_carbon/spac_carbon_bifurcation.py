@@ -96,8 +96,9 @@ def first_lyapunov(matrix, second, third):
     """
     matrix = np.asarray(matrix, dtype=float)
     second, third = np.asarray(second), np.asarray(third)
-    if matrix.shape != (3, 3) or second.shape != (3, 3, 3) or third.shape != (3, 3, 3, 3):
-        raise ValueError("core matrix and derivative tensor shapes do not match")
+    n = matrix.shape[0] if matrix.ndim == 2 else 0
+    if n < 2 or matrix.shape != (n, n) or second.shape != (n,)*3 or third.shape != (n,)*4:
+        raise ValueError("square matrix and derivative tensor shapes do not match")
     if not all(np.all(np.isfinite(a)) for a in [matrix, second, third]):
         raise ValueError("normal-form inputs must be finite")
     eigen, vectors = np.linalg.eig(matrix)
@@ -107,7 +108,7 @@ def first_lyapunov(matrix, second, third):
     index = candidates[0]
     omega = float(eigen[index].imag)
     real_eigen = eigen[abs(eigen.imag) < 1e-8]
-    if len(real_eigen) != 1 or real_eigen[0].real >= -1e-8*omega or abs(eigen[index].real) > 1e-7*omega:
+    if len(real_eigen) != n-2 or max(real_eigen.real, default=-np.inf) >= -1e-8*omega or abs(eigen[index].real) > 1e-7*omega:
         raise ValueError("normal form requires a critical pair with a stable remaining eigenvalue")
     q = vectors[:, index]
     q *= np.exp(-1j*np.angle(q[np.argmax(abs(q))]))
@@ -121,7 +122,7 @@ def first_lyapunov(matrix, second, third):
         return np.einsum("ijk,j,k->i", second, u, v)
     c = np.einsum("ijkl,j,k,l->i", third, q, q, q.conj())
     h11 = np.linalg.solve(matrix, b(q, q.conj()))
-    h20 = np.linalg.solve(2j*omega*np.eye(3)-matrix, b(q, q))
+    h20 = np.linalg.solve(2j*omega*np.eye(n)-matrix, b(q, q))
     g21 = np.vdot(p, c-2*b(q, h11)+b(q.conj(), h20))
     return {
         "omega": omega, "l1": float(g21.real/(2*omega)), "G21": g21,

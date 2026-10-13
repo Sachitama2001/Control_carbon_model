@@ -1,5 +1,35 @@
 # Control Carbon Model
 
+2026-10-13: [B3 E4 nonlinear results](docs/spac_carbon_stage_b3_e4_results.md)
+use the latest MPa-facing scale review to prioritize E4 within routine VPD.
+Exact four-state derivatives and independent periodic collocation numerically
+verify local subcritical Hopf and repelling full-six-state cycles.
+Seven predefined sensitivities expose dependence on wood allometry/loss
+assumptions; no empirical mortality/global basin/R-tipping claim.
+163 targeted/neighboring tests pass.
+Run `python examples/analyze_spac_carbon_e4.py --output NEW_PATH`.
+
+2026-10-13: Current SPAC analyses use **VPD in MPa**, still a positive gas
+pressure deficit, not atmospheric water potential. Start with the Japanese
+[units and scales review](docs/spac_carbon_units_and_scales.md),
+[MPa configuration](configs/spac_carbon_pressure_review.json) and
+[PressureSPAC interface](src/control_carbon/spac_carbon_mpa.py).
+Explicit assumptions: atmospheric pressure 0.101325 MPa, diagnostic 25 C,
+routine VPD 0--0.003 MPa. High-VPD E2/E3 Hopf results are formal exploration,
+not valid forcing at 25 C. Archived paper/Stage A/B1/B2 APIs, configs and
+runners below retain mol/mol for historical reproduction.
+New unit tests: 27 passed; six related baseline files: 127 passed.
+The review additionally checks E4's exact four-state local Hurwitz crossing;
+E4 nonlinear Hopf classification remains open.
+Run `python examples/review_spac_carbon_units.py --output NEW_PATH`.
+
+2026-10-13: Start with the Japanese
+[research logic and methods report](docs/spac_carbon_research_logic_report.md)
+for an accessible account of why each Stage A/B1/B2 method was chosen.
+It separates analytic deductions, continuous interval certificates,
+numerical verification and unresolved global/physiological hypotheses.
+This is a documentation-only synthesis, not a new experiment or tipping claim.
+
 2026-10-12: [Stage B2 plan](docs/SPAC_carbon_stage_B2_plan.md) and
 [results](docs/spac_carbon_stage_b2_results.md) add continuous-path
 Routh–Hurwitz interval certificates for E2/E3, analytic higher derivatives
