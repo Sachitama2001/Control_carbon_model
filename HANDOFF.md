@@ -1,5 +1,29 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-13 Stage C capacity-first milestone: newest user direction is
+> `docs/SPAC_nonlinear_carbon_storage_capacity_research_plan.md`.
+> Read `docs/spac_carbon_capacity_definition_ledger.md` and
+> `docs/spac_carbon_stage_c_results.md` before further tipping exploration.
+> Baseline 2ef9438c080d8183edc1efeff6e3a3b9fad62eb1; original A/B unchanged.
+> WP-C0/C1 completed with independent `spac_carbon_capacity.py`, 27 new cases.
+> K=-M^-1u, P=K-C=-M^-1 Cdot: maps/conditional roots/full roots/attracting
+> sets/nonautonomous trajectories must stay distinct. P=0 need not mean H=0;
+> sum(P)=0 need not mean P=0. Formal zero carbon is NOT a defined full root.
+> 232 bounded E0-E4 root records, 15 counterexamples, E4 frozen transient and
+> repelling-cycle diagnostics; potential norm is nonmonotone on the cycle.
+> Numerical Floquet modes imply local stable-manifold dimension5/codimension1,
+> NOT a computed global recovery/exit boundary. Radial e-folding ~1657 years
+> at r=.001 makes short-time outcome labels particularly unreliable.
+> Conditional tracking bound derived under UNVERIFIED uniform transition-matrix,
+> nonlinear-remainder and positive-local-domain assumptions; no E4 guarantee.
+> Results: `artifacts/spac_carbon/stage_c_capacity_final_v2_20261013/`.
+> `python examples/analyze_spac_carbon_capacity.py --output NEW_PATH`.
+> Directly related regression:199 passed. 18 current source hashes saved.
+> Old A/B1/B3 artifact hashes match; B2/pressure archive differs only in
+> bifurcation helper generalized during B3, not changed during Stage C.
+> Next WP-C2/C3: tracking and bounded Floquet-directed recovery/exit sections
+> within 0--.003 MPa, not a new mortality/allometry/tipping mechanism.
+
 > 2026-10-13 B3 E4 nonlinear milestone: read
 > `docs/spac_carbon_stage_b3_e4_results.md`. Latest MPa/scale review takes
 > precedence over the older E3 high-VPD global-continuation priority.

@@ -1,5 +1,24 @@
 # Current implementation status
 
+## Stage C capacity-first: WP-C0/C1 (2026-10-13)
+
+The [new plan](SPAC_nonlinear_carbon_storage_capacity_research_plan.md) takes
+precedence over standalone global tipping exploration. The
+[definition ledger](spac_carbon_capacity_definition_ledger.md) and
+[Stage C results](spac_carbon_stage_c_results.md) fix K/P signs and distinguish
+the map, conditional roots, full roots, attracting sets and actual trajectories.
+New pure diagnostics preserve Stage A/B; 27 new tests and 199 directly related
+regression cases pass. 232 bounded frozen-root records, 15 counterexamples,
+E4 transient and periodic diagnostics show P=0 does not imply H=0, pool
+cancellation does not imply P=0, and ||P|| can increase on the repelling cycle.
+Numerical Floquet modes imply a local codimension-one stable-manifold candidate;
+the ~1657-year radial e-folding time precludes casual short-horizon classification.
+The global manifold/recovery-exit boundary, speed experiment, stable non-equilibrium
+attractor and true R-tipping remain unverified. A conditional analytical tracking
+bound is derived, but its uniform assumptions are not certified for E4.
+Artifacts: `artifacts/spac_carbon/stage_c_capacity_final_v2_20261013/`.
+Next WP-C2/C3: capacity-target tracking and bounded Floquet-directed sections.
+
 ## E4 local nonlinear milestone (2026-10-13)
 
 The [B3 E4 results](spac_carbon_stage_b3_e4_results.md) follow the latest MPa

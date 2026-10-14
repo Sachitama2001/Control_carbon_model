@@ -1,5 +1,17 @@
 # Control Carbon Model
 
+2026-10-13: New [Stage C capacity-first plan](docs/SPAC_nonlinear_carbon_storage_capacity_research_plan.md)
+now governs the SPAC work. [Definition ledger](docs/spac_carbon_capacity_definition_ledger.md)
+and [C0/C1 results](docs/spac_carbon_stage_c_results.md) distinguish instantaneous
+capacity K, potential P, conditional carbon roots, full frozen roots and
+attracting/tracking targets. Independent diagnostics leave A/B equations
+unchanged; E0-E4 counterexamples and E4 periodic diagnostics show why neither
+P=0 nor sum(P)=0 establishes full equilibrium, and why ||P|| need not decrease.
+27 new cases; 199 directly related regression cases pass. E4's saddle-cycle
+stable manifold remains a local boundary candidate, not a verified global
+recovery/exit boundary. Run
+`python examples/analyze_spac_carbon_capacity.py --output NEW_PATH`.
+
 2026-10-13: [B3 E4 nonlinear results](docs/spac_carbon_stage_b3_e4_results.md)
 use the latest MPa-facing scale review to prioritize E4 within routine VPD.
 Exact four-state derivatives and independent periodic collocation numerically
