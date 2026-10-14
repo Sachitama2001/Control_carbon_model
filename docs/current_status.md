@@ -1,5 +1,26 @@
 # Current implementation status
 
+## WP-C2 and bounded WP-C3 (2026-10-14)
+
+The [tracking / local-section report](spac_carbon_stage_c23_results.md) follows
+the capacity-first plan. New independent modules provide analytical F_v and
+full-root tangents, exact/linearized tracking, frozen non-normal gain and moving
+Lyapunov metrics, plus phase-fixed E4 Poincare geometry.
+Six predefined routine-MPa ramps: .00266/10day exits L_min at~15.78year;
+the five remaining cases stay positive through300year hold but are not classified
+as recovered. Large-path linearization is inaccurate; small paths verify quadratic
+accuracy. All sampled big-path metric drift tests fail the sufficient guarantee,
+not the necessary stability condition. No continuous/uniform certificate.
+E4 r=.002 cycle has~474year radial e-folding and a codim1 local stable tangent
+candidate; this is a DIFFERENT VPD slice from the rate endpoint, not a proved
+nonlinear/global recovery-exit boundary. Scalar20/120year benchmark reproduces
+low/high transition; linear periodic benchmark is nonautonomous.
+13 new tests;212 related regression passed. A/B/C1 models unchanged.
+Artifacts: `artifacts/spac_carbon/stage_c23_tracking_final_v2_20261014/`.
+Next: same-slice cycle continuation and nonlinear local manifold/outcome sections.
+C4 new feedback laws, C5 manuscript, autonomous stable-cycle attractors and true
+E4 R-tipping remain unverified/deferred.
+
 ## Stage C capacity-first: WP-C0/C1 (2026-10-13)
 
 The [new plan](SPAC_nonlinear_carbon_storage_capacity_research_plan.md) takes

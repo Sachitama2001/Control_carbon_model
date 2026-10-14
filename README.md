@@ -1,5 +1,16 @@
 # Control Carbon Model
 
+2026-10-14: [WP-C2 / bounded C3 results](docs/spac_carbon_stage_c23_results.md)
+derive moving-full-equilibrium tracking errors, distinguish frozen spectra from
+time-varying contraction, and compare six E4 smoothstep ramps within routine MPa.
+The near-Hopf 10-day path exits the leaf domain; five others remain positive
+but are unresolved under strict recovery criteria after a 300-year hold.
+Phase-fixed Poincare returns verify local E4 saddle directions, not a global
+recovery/exit boundary. Small ramps verify quadratic linearization accuracy;
+positive-carbon and linear periodic benchmarks remain separate.
+13 new tests; 212 related regression cases pass. Prior models are unchanged.
+Run `python examples/analyze_spac_carbon_tracking.py --output NEW_PATH`.
+
 2026-10-13: New [Stage C capacity-first plan](docs/SPAC_nonlinear_carbon_storage_capacity_research_plan.md)
 now governs the SPAC work. [Definition ledger](docs/spac_carbon_capacity_definition_ledger.md)
 and [C0/C1 results](docs/spac_carbon_stage_c_results.md) distinguish instantaneous

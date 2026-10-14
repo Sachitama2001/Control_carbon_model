@@ -1,5 +1,29 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-14 WP-C2 / bounded C3 milestone: read
+> `docs/spac_carbon_stage_c23_results.md`. Baseline757f359; A/B/C1 unchanged.
+> New `spac_carbon_tracking.py`: F_v, y*'=-J^-1F_v, exact/linearized error,
+> fixed-scale nonnormality and frozen Lyapunov Q/Q_v. Q_v*v' matters;
+> sampled metric drift fails the sufficient contraction test in all six
+> big ramps, NOT proof of necessary instability. No uniform certificate.
+> E4 smoothstep .00101325 -> .0024 or .00266 MPa, 10day/10year/100year,
+> 300year hold. .00266/10day exits L_min around15.78year; other five remain
+> positive but fail strict recovery-neighborhood criteria: finite-time unresolved.
+> Large-ramp linearization inaccurate; tiny ramps verify quadratic error.
+> New `spac_carbon_section.py`: phase-fixed E4 Poincare DP, left unstable
+> covector and stable tangent plane, independent nonlinear one-return check.
+> At r=.002, VPD~.00266474448, radial e-folding~474year; DIFFERENT slice
+> from rate endpoint .00266. Codim1 tangent candidate, NOT computed nonlinear
+> stable manifold or global recovery/exit boundary. No true E4 R-tipping.
+> Positive scalar benchmark20/120year reproduces low/high branch transition;
+> exact linear periodic-response benchmark is nonautonomous, not autonomous cycle.
+> New13 tests;212 related regression passed. Final artifacts/16source hashes:
+> `artifacts/spac_carbon/stage_c23_tracking_final_v2_20261014/`.
+> Run `python examples/analyze_spac_carbon_tracking.py --output NEW_PATH`.
+> Next: same-VPD cycle continuation, nonlinear local stable-manifold geometry,
+> bounded outcomes with exit/local-leaving/unresolved kept separate. C4 new
+> laws and C5 manuscript deferred; no mortality/new allometry mechanism.
+
 > 2026-10-13 Stage C capacity-first milestone: newest user direction is
 > `docs/SPAC_nonlinear_carbon_storage_capacity_research_plan.md`.
 > Read `docs/spac_carbon_capacity_definition_ledger.md` and
