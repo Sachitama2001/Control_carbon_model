@@ -1,5 +1,28 @@
 # Current implementation status
 
+## Scalar equilibria and hydraulic-failure capacity (2026-10-14)
+
+The latest [user plan](research_plan_hydraulic_failure_capacity_20261014.md)
+supersedes earlier next-stage ramp/cycle/basin priorities.
+[Derivation, proofs and results](spac_carbon_scalar_equilibrium_results.md)
+reduce all positive E0/E1/E4 frozen roots to D_curve(L), with full state recovery.
+Analytic E0/E1 single maxima and outward-checked E4 beta1 monotonicity
+classify root counts globally on the positive conducting domain.
+E0/E1 high-L roots are stable; E1 uses a transformed irreducible Metzler core.
+E4 stability remains sampled/numerical: known .002664752905 MPa crossing
+and new formal .004791823126 MPa restabilization, outside routine/25 C forcing.
+No new l1/cycle campaign or continuous E4 stability certificate.
+Positive equilibria satisfy K=C*, regardless of attraction.
+gs=0 implies immediate K=0; both closed imply frozen water and C=exp(Mt)C0 ->0.
+gx-only closure is invariant and gives C/K ->0 under baseline unsafe R0 bound;
+E4 may retain positive gs. Formal zero-carbon continua and kinks kept separate.
+262 full-root records;8 fixed-.00244 MPa examples;24 new tests;
+236 related regression cases passed. Old A/B/C sources/configs unchanged.
+Adjacent-float zero-leaf endpoint tests preserve strictly positive roots.
+Artifacts: [scalar_equilibria_final_v5_20261014](../artifacts/spac_carbon/scalar_equilibria_final_v5_20261014/).
+Current stop condition completed: scalar reduction, root classification,
+capacity-loss propositions. Further ramps/global basins/new mortality deferred.
+
 ## WP-C2 and bounded WP-C3 (2026-10-14)
 
 The [tracking / local-section report](spac_carbon_stage_c23_results.md) follows

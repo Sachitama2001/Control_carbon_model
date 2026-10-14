@@ -1,5 +1,35 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-14 scalar-equilibrium milestone: latest user direction is
+> [equilibrium/capacity plan](docs/research_plan_hydraulic_failure_capacity_20261014.md);
+> it supersedes earlier "Next" ramp/cycle/global-basin priorities below.
+> Read [scalar derivation and proofs](docs/spac_carbon_scalar_equilibrium_results.md).
+> Baseline629314706aaac5f2f78ff37f6e19f01a01d58b42; A/B/C ODEs/configs unchanged.
+> Independent spac_carbon_equilibria.py eliminates W/R/S/h/psi/x into D_curve(L).
+> E0/E1 each have one analytic fold; E4 beta1 is globally decreasing,
+> with an outward Decimal constant gap >.22718 (shape, NOT stability proof).
+> L=0 excluded; v=0 wet endpoint included; L_min separate from root domain.
+> E0/E1 high-L roots stable, low-L unstable; E1 uses transformed Metzler core.
+> E4 spectral scan finds .002664752904905 and .004791823126468 MPa crossings.
+> Second has L=.00003059249>L_min but is outside routine/25 C forcing.
+> Do not hide far-branch restabilization or claim a global stability certificate.
+> Second crossing has no new l1/cycle analysis. Near-zero tolerance is not
+> proof of a genuinely zero eigenvalue. All positive roots satisfy K=C*,
+> including unstable ones; formal zero-carbon continua counted separately.
+> gs=0 gives immediate K=0; both closed give frozen water and exp(Mt)C ->0.
+> gx-only closed set invariant, baseline R0<=.5625 gives C/K ->0.
+> E4 in that set retains positive limiting h if initially h>0.
+> Eight fixed-.00244 MPa examples distinguish recovery-neighborhood approach
+> from L_min exit, NOT mortality/global-basin classification.
+> Exact conductance kink: report flux/K/C, explicitly mark Jacobian undefined.
+> 24 new tests;236 related regression passed. 262 roots;15 source hashes.
+> Adjacent-float zero-leaf endpoint cases preserve positive roots without
+> artificial branch/endpoint discontinuities or absolute-tolerance clipping.
+> [Final artifacts](artifacts/spac_carbon/scalar_equilibria_final_v5_20261014/).
+> Run `python examples/analyze_spac_carbon_equilibria.py --output NEW_PATH`.
+> STOP here per current plan; no ramps/global basins/new mortality without
+> further direction. Remaining: E4 continuous stability and empirical assumptions.
+
 > 2026-10-14 WP-C2 / bounded C3 milestone: read
 > `docs/spac_carbon_stage_c23_results.md`. Baseline757f359; A/B/C1 unchanged.
 > New `spac_carbon_tracking.py`: F_v, y*'=-J^-1F_v, exact/linearized error,

@@ -1,5 +1,20 @@
 # Control Carbon Model
 
+2026-10-14: The latest [equilibrium/capacity plan](docs/research_plan_hydraulic_failure_capacity_20261014.md)
+supersedes the next ramp/global-basin priority below.
+[Scalar equilibrium and dry-capacity results](docs/spac_carbon_scalar_equilibrium_results.md)
+eliminate all positive E0/E1/E4 roots to VPD as a function of leaf carbon.
+Analytic single folds for E0/E1 and outward-checked global E4 monotonicity
+classify positive-root counts; E4 spectra remain numerical, including a second
+formal high-VPD stability crossing outside the routine/25 C forcing range.
+Stomatal closure implies instantaneous K=0, not instantaneous zero stocks.
+Xylem-only closure gives asymptotic carbon/capacity loss under baseline unsafe
+coefficients; E4 can retain positive stomatal conductance.
+Eight fixed-VPD examples, 262 reconstructed roots, 24 new tests;
+236 related regression cases pass. Prior ODEs/configs unchanged.
+Run `python examples/analyze_spac_carbon_equilibria.py --output NEW_PATH`.
+Stop at this equilibrium/proposition milestone; no further ramps/basins/mortality.
+
 2026-10-14: [WP-C2 / bounded C3 results](docs/spac_carbon_stage_c23_results.md)
 derive moving-full-equilibrium tracking errors, distinguish frozen spectra from
 time-varying contraction, and compare six E4 smoothstep ramps within routine MPa.
