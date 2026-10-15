@@ -1,5 +1,55 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-16 rational E4 diagnostic figures: [Japanese figure guide](docs/e4_rational_diagnostics_20261016.md),
+> [all plots and trajectories](artifacts/spac_carbon/rational_e4_diagnostics_20261016/figures_v3/).
+> Includes frozen-slice leaf/water nullclines; E4 equilibrium/stability branch;
+> 10-day versus 10-year bounded 2.44->3.00->2.44 kPa VPD pulses; psi_x/psi_l
+> tracks, projected phase paths, and original K=-M^-1u against all four C pools.
+> K is state-evaluated frozen-input capacity, not a direct VPD function or
+> moving full equilibrium. Fast pulse reaches C_L=1e-6 after ~13.94 years with
+> gs=0 and K=0 while residual stocks remain; numerical exit is not mortality.
+> Slow pulse completes 400-year post-pulse hold and returns within ~0.03% of
+> initial stocks for this one path; neither result establishes global basins
+> or rate-induced tipping. Capacity identity residual <1.5e-19; source/output
+> hashes in results.json/provenance.json. Run
+> `python examples/analyze_spac_carbon_rational_e4_diagnostics.py --output NEW_PATH`.
+
+> 2026-10-15 rational-canopy simplification: [Japanese TeX](docs/manzoni_carbon_rational_ja.tex)
+> and [25-page PDF](artifacts/papers/manzoni_carbon_rational_20261015/manzoni_carbon_rational_ja.pdf).
+> Independent `spac_carbon_rational.py` uses p*h*q*C_L/(1+q*C_L);
+> original exponential ODEs, coefficients and structural reference stocks unchanged.
+> Positive E0/E2 equilibria are quadratic; E1/E3/E4 are cubic.
+> Baseline E0/E1 have one fold; E2/E3/E4 are strictly decreasing
+> (outward E4 shape margin >1.21032, NOT a stability certificate).
+> E1 fold moves to 1.100569383 kPa; E4 imaginary-pair crossings are
+> 2.845318750 and 4.791972651 kPa. No new l1/cycle/global-basin claim.
+> Rational RHS/Jacobian accept the formal zero-carbon boundary; simulation
+> still stops at C_L_min and adds no mortality continuation.
+> Linear canopy is an analytic control: fixed-water isolated positive carbon
+> equilibria are lost; this is NOT a blanket claim about full coupled E1-E4.
+> 69 focused/regression tests pass; 15 panels, 14 positive roots, 58 trajectories,
+> 15 tolerance checks in [verified evidence](artifacts/spac_carbon/rational_20261015/verified/).
+> Run `python examples/analyze_spac_carbon_rational.py --output NEW_PATH`.
+
+> 2026-10-15 manuscript revision: [revised PDF and evidence](artifacts/papers/manzoni_carbon_capacity_20261015_revised/)
+> repositions linear time-varying capacity versus nonlinear time-varying systems.
+> Compartment carbon notation C_L/C_W/C_R/C_S; full six-state ODE, forcing,
+> 6x6 Jacobian, and all E0-E4 positive equilibrium vectors are displayed.
+> E2/E3 positive curves are globally decreasing under the baseline assumptions:
+> one positive conducting equilibrium for every finite VPD, not globally stable.
+> New projected full-six-state phase portraits cover 15 fixed-VPD regimes;
+> no mortality, global basin or new rate-tipping claim. Original ODEs unchanged.
+> Explicit numerical equilibrium vectors/Jacobians are in the manuscript appendix.
+
+> 2026-10-15 Japanese manuscript: [TeX source](docs/manzoni_carbon_capacity_paper_ja.tex)
+> consolidates the Manzoni reproduction, carbon coupling, scalar proofs,
+> stability/cycles, capacity diagnostics and bounded trajectories.
+> Analytic deductions, numerical checks and unresolved outcomes are separated.
+> [PDF and validation artifacts](artifacts/papers/manzoni_carbon_capacity_20261015/)
+> are built with LuaLaTeX; existing models, parameters and PowerPoint files unchanged.
+> H1 hydraulic rerun matches archived numerical results exactly; historical
+> source-hash differences for H1/B2 are disclosed, not silently overwritten.
+
 > 2026-10-14 scalar-equilibrium milestone: latest user direction is
 > [equilibrium/capacity plan](docs/research_plan_hydraulic_failure_capacity_20261014.md);
 > it supersedes earlier "Next" ramp/cycle/global-basin priorities below.

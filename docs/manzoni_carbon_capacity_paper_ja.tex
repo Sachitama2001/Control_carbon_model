@@ -1,0 +1,2058 @@
+% LuaLaTeX; build from docs/; generated files should go to a new artifacts/papers/ directory.
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[margin=24mm]{geometry}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,booktabs,longtable,array,graphicx}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage[section]{placeins}
+\usepackage{pdflscape}
+\graphicspath{{../artifacts/}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\tr}{^{\mathsf T}}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\newcommand{\evidence}[1]{\par\smallskip\noindent\textbf{結論の根拠と範囲：}#1\par\smallskip}
+\newtheorem{proposition}{命題}[section]
+\newtheorem{lemma}[proposition]{補題}
+\renewcommand{\proofname}{証明}
+\setlength{\emergencystretch}{3em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\title{植物水理と炭素循環の結合系における\\炭素貯留capacityの存在・安定性・消失\\
+  \large Manzoniモデルの再現から平衡分類と過渡応答まで}
+\author{Control\_carbon\_model研究原稿}
+\date{2026年10月15日}
+\begin{document}
+\maketitle
+\begin{abstract}
+線形時変系で用いられるcarbon storage capacityを、
+非線形時変系へ拡張して理解するための手がかりを調べた。
+Manzoniらの木部・葉の水理モデルを再現し、葉・木部・根・土壌の四炭素プールを接続した。
+まず水理から炭素への片方向結合について、同化と損失の比による条件付き炭素平衡の分類を示した。
+次に炭素量が給水・蒸散へ戻るモデルを調べ、
+正の通水平衡を葉炭素一変数の方程式へ帰着した。
+基準係数では、フィードバックなしの場合と葉供給のみを変える場合に一意なfoldがあり、
+葉供給・蒸散需要・木部供給を変える場合の平衡曲線は厳密に単調減少する。
+蒸散需要を変える二モデルでも単調性を示し、任意の有限VPDでの正根の一意性を得た。
+一方、最後のモデルでは一意な正平衡が数値的に検証されたsubcritical Hopf分岐で不安定化する。
+平衡でcapacityが貯留量に等しいことは、その平衡の吸引性を保証しない。
+気孔閉鎖によるcapacityの即時ゼロと、持続する入力停止下の炭素の漸近減衰を証明し、
+木部だけの閉鎖でも基準係数では炭素とcapacityが消失することを示した。
+固定VPD、温度対照、VPD変化速度、局所周期軌道の各実験は、
+初期値・外力・計算期間・判定条件を分けて記載する。
+係数は合成であり、数値積分の葉量下限への到達を死亡や別の吸引状態の実証とは解釈しない。
+\end{abstract}
+\tableofcontents
+\clearpage
+
+\section{はじめに}
+陸域炭素の貯留は、光合成入力、植物内部および土壌への移動、呼吸・分解による損失の収支で決まる。
+Luoらの行列形式\cite{luo2022,luoweng2011}では、
+現在の入力と移動・損失係数からcarbon storage capacityを計算し、現在の貯留量との差を整理できる。
+この研究の目的は、線形時変系のcarbon storage capacityを、
+状態依存性を持つ非線形時変系でもどのように考えられるかを明らかにすることである。
+まず線形時変の炭素収支は
+\begin{equation}\label{eq:ltv}
+ \frac{\dd C}{\dd t}=M(t)C+u(t),\qquad
+ K(t)=-M(t)^{-1}u(t)
+\end{equation}
+と書ける。ある時刻の入力と係数を固定し、右辺をゼロとすれば
+$C=K(t)$がただ一つ得られる。
+各プールへ直接または移送経路を通じて入力が届き、
+$M(t)$が安定な炭素移送行列であるとき、この候補の各成分は正である。
+入力がゼロ、あるいは届かないプールがあれば、正でない成分を含む場合もある。
+ここで時変系そのものに時間不変の平衡点があるわけではない。
+時刻を固定して求めた収支均衡点の集まりが動く目標$K(t)$を作り、
+実ストックは一般に遅れて応答する。
+しかし植物状態が光合成や水輸送へ影響すると、計算されたcapacity、
+その値に一致する炭素状態、水理も停止する全系平衡、実際の軌道の到達先は同じ対象ではない。
+非線形系では右辺をゼロとした方程式が複数の解やゼロ解を持ち得る。
+また、根が求まっても安定とは限らない。
+本稿は、先行研究に状態依存性がないと主張するのではなく、
+一意な線形の収支均衡点を出発点とするcapacityの読み方を、
+このような根の構造へ拡張するための検討である。
+
+任意の非線形陸モデルでは平衡条件さえ解析的に解けるとは限らない。
+そこで、解析的な消去を追える範囲に複雑さをとどめるため、
+Manzoniら\cite{manzoni2014}の簡潔な植物水理モデルを用いる。
+同モデルは、根からの給水と気孔からの蒸散の競合によって、
+通水する安定平衡が失われる条件を少数の状態で解析できる。
+ただし水理だけでは炭素ストックの残存や減少速度を決められない。
+そこで四炭素プールを接続し、水理による同化制限と炭素量による水輸送の変化を区別して導入した。
+
+研究は、原著水理の再現、片方向結合、双方向結合の順に進めた。
+双方向結合では平衡・固有値に加えて周期解と外力変化への応答を調べたが、
+最終的には平衡条件の明示的な消去と閉鎖時の炭素収支を中心に整理し直した。
+本稿では標準的な固定点解析に沿って、まず六状態の方程式を明示し、
+VPDを固定して全成分の時間微分をゼロとし、
+平衡点を求め、その周りの小摂動が増えるか減るかをJacobianで調べる。
+その後、固定外力の相図を踏まえて、VPDだけが時間変化する場合を考える。
+この順序により、動く平衡候補と実軌道の追従を混同せずに議論できる。
+「式から導けること」と「有限範囲の数値計算で確かめたこと」を各節で明記し、
+以前の段階で未検証だった事項を現在も未検証とするのではなく、その後の検証と区別する。
+
+対象は低次元の合成モデルであり、VISITの再現や森林の死亡予測ではない。
+現在の主解析では根水ポテンシャルを固定し、VPDだけを外力とする。
+温度を変えた初期の対照実験は別の設定として扱い、現在の固定係数実験と混ぜない。
+降水、動的な土壌水量、貯蔵炭水化物、木部損傷の回復、植生の再生は含まない。
+本稿で$C_R$-tipping（rate-induced tipping）と呼ぶのは、
+固定外力ごとの対象安定枝が残っていても、外力変化速度によって別の長期吸引先へ移る現象である。
+数値積分の定義域を出ることだけでは、別の吸引先を確認したとは判定しない。
+
+\section{Manzoniモデルとその再現}\label{sec:manzoni}
+\subsection{水貯留、流束、単位}
+木部と葉の水ポテンシャルを$\psi_x,\psi_l$、根境界を$\psi_r$とする。
+水貯留量は水ポテンシャルの関数であり、その微分を水理容量$c_x,c_l$として一定と近似する。
+水ポテンシャルは非正のMPa、時間はday、水貯留は地表面積当たりのm水で表す。
+したがって$c_x,c_l$の単位はm水\,MPa$^{-1}$である。
+容量一定の近似は保水曲線の線形化に相当し、組織量がゼロへ近づく場合の生理を保証するものではない。
+
+根から木部、木部から葉、葉から大気への流束をそれぞれ
+\begin{equation}\label{eq:waterflux}
+ E_{rx}=2g_x(\psi_l)(\psi_r-\psi_x),\qquad
+ E_{xl}=2g_x(\psi_l)(\psi_x-\psi_l),\qquad
+ E=g_s(\psi_l)D
+\end{equation}
+とすると、水収支は
+\begin{equation}\label{eq:water}
+ c_x\dot\psi_x=E_{rx}-E_{xl},\qquad
+ c_l\dot\psi_l=E_{xl}-E
+\end{equation}
+である。二つの液相区間に$2g_x$を用いるため、平衡時の直列コンダクタンスは$g_x$となる。
+木部コンダクタンス$g_x$はm水\,day$^{-1}$\,MPa$^{-1}$、
+原式の気孔係数$g_s$はm水\,day$^{-1}$である。
+原式の$D$はVPDを大気圧で割ったmol/mol表示であり、MPa値をそのまま代入しない。
+
+圧力表示のVPDを$v$、大気圧を$p_{\mathrm{atm}}$とすると
+\begin{equation}\label{eq:vpd}
+ D=\frac{v}{p_{\mathrm{atm}}},\qquad E=\frac{g_s}{p_{\mathrm{atm}}}v .
+\end{equation}
+本研究では$p_{\mathrm{atm}}=0.101325$ MPaを明示して用いる。
+図表では読みやすさのためkPaも使うが、$v$を微分する式はMPa表示とする。
+VPDと水ポテンシャルは同じ圧力単位で表示できても、異なる物理量である。
+VPDを大気の水ポテンシャルへ置き換えたわけではない。
+
+\subsection{コンダクタンスの低下と閉鎖条件}
+原著の区分線形近似は
+\begin{equation}\label{eq:conductance}
+ g_i(\psi_l)=g_{i,\max}\max\left(0,1-\frac{\psi_l}{2\psi_{50,i}}\right),
+ \qquad i=x,s
+\end{equation}
+である。$\psi_{50,i}<0$は半減ポテンシャルで、
+完全閉鎖は$\psi_l\le2\psi_{50,i}$で起こる。
+木部の低下も最も乾いた葉ポテンシャルで評価する近似を採り、
+木部損傷と気孔応答の機構を個別にはモデル化しない。
+この近似は木部ポテンシャルだけで木部の低下を決める式とは異なる。
+葉のクチクラからの損失は含まれず、完全閉鎖では蒸散が厳密にゼロになる。
+
+気孔閉鎖が木部通水喪失より早い形質配置では、
+固定根境界のもとでのVPD上昇に対し通水する平衡を保ちやすい。
+本稿の基準はその逆のunsafe配置で、半減値が$(-1.5,-2)$ MPaである。
+従って木部閉鎖は$-3$ MPa、気孔閉鎖は$-4$ MPaで、
+木部が閉じても気孔は開いている区間がある。
+比較に用いたsafe配置は$(-2,-1.5)$ MPaである。
+これらの名称は原著の形質順序を指し、植物の生存を直接分類する名称ではない。
+
+\begin{table}[tb]
+\centering
+\caption{水理再現の基準係数。容量と根境界近似は原著の較正値ではない。}
+\begin{tabular}{lll}
+\toprule
+量 & 値 & 出典・扱い\\ \midrule
+$g_{x,\max}$ & $0.0086$ m水/day/MPa & 原著図2の液相係数\\
+$g_{s,\max}$ & $0.47$ m水/day & 原著図2の気孔係数\\
+unsafe $\psi_{50,x},\psi_{50,s}$ & $-1.5,-2$ MPa & 原著の形質設定\\
+$c_x,c_l$ & 各$0.001$ m水/MPa & 数値検証用の合成値\\
+湿潤$\psi_r$ & $0$ MPa & 飽和付近をゼロ極限で近似\\
+乾燥$\psi_r$ & $-1$ MPa & 図2の比較条件\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{通水平衡とfoldの導出}
+両コンダクタンスが正の平衡では、木部水収支から
+\begin{equation}\label{eq:hydraulicsteady}
+ \psi_x^*=\frac{\psi_r+\psi_l^*}{2},\qquad
+ g_x(\psi_l^*)(\psi_r-\psi_l^*)=g_s(\psi_l^*)D
+\end{equation}
+を得る。したがって、通水域の平衡曲線は
+\begin{equation}\label{eq:hydrauliccurve}
+ D(\psi_l)=\frac{g_{x,\max}}{g_{s,\max}}
+ \frac{1-\psi_l/(2\psi_{50,x})}{1-\psi_l/(2\psi_{50,s})}
+ (\psi_r-\psi_l)
+\end{equation}
+である。この式の最大点で二つの通水平衡が合流する。
+このようにパラメータを変えると二根が接して消える分岐をfold（折り畳み分岐）と呼ぶ。
+安定根は近くの状態を引き戻すが、鞍点は近づく方向と離れる方向を同時に持つ。
+
+式\eqref{eq:hydraulicsteady}に区分線形コンダクタンスを代入し、
+分母を払って葉ポテンシャルについてまとめると
+\begin{equation}
+ \psi_l^2+
+ \left[-2\psi_{50,x}-\psi_r+
+       \frac{\psi_{50,x}}{\psi_{50,s}}\frac{g_{s,\max}}{g_{x,\max}}D\right]\psi_l
+ +2\psi_{50,x}\left[\psi_r-\frac{g_{s,\max}}{g_{x,\max}}D\right]=0
+\end{equation}
+になる。根の公式による二根を、$\max(2\psi_{50,x},2\psi_{50,s})<\psi_l\le\psi_r$で選別する。
+unsafe配置で$\psi_r>2\psi_{50,x}$の内部foldは
+\begin{equation}\label{eq:hydraulicfold}
+ \begin{aligned}
+ \psi_{l,\mathrm{fold}}
+ &=2\psi_{50,s}+
+ \sqrt{(2\psi_{50,x}-2\psi_{50,s})(\psi_r-2\psi_{50,s})},\\
+ D_{\mathrm{fold}}
+ &=\frac{g_{x,\max}}{g_{s,\max}}\frac{\psi_{50,s}}{\psi_{50,x}}
+ \left[\sqrt{\psi_r-2\psi_{50,s}}-\sqrt{2\psi_{50,x}-2\psi_{50,s}}\right]^2 .
+ \end{aligned}
+\end{equation}
+となる。導関数をゼロとする条件からこの位置を得られる。
+容量はこの平衡条件には現れず、時間応答と固有値の大きさに影響する。
+
+元の二状態系のJacobianは、閉鎖閾値以外で
+\begin{equation}
+ J_H=
+ \begin{pmatrix}
+ -4g_x/c_x&
+ 2\{\frac{\partial g_x}{\partial\psi_l}(\psi_r-2\psi_x+\psi_l)+g_x\}/c_x\\
+ 2g_x/c_l&
+ \{2\frac{\partial g_x}{\partial\psi_l}(\psi_x-\psi_l)-2g_x-\frac{\partial g_s}{\partial\psi_l}D\}/c_l
+ \end{pmatrix}.
+\end{equation}
+平衡曲線の根をこの行列で検査し、湿潤側の安定根と乾燥側の鞍点を区別した。
+foldでは一つの固有値がゼロ、もう一つが負となる。
+閾値上では区分関数の通常の微分が定義されず、このJacobianを使わない。
+
+\subsection{原著図2に対応する実験と非通水集合}
+unsafe配置、$D=0.01$、$\psi_r=0$では、
+$\psi_l=-0.57920128$ MPaの安定根と$-2.83068245$ MPaの鞍点を得た。
+根境界を乾燥させた比較は表\ref{tab:manzonifold}のとおりである。
+同じ固定外力でも湿潤初期値は通水根へ向かい、
+十分乾いた初期値は気孔閉鎖境界へ近づいた。
+foldを越すVPDでは湿潤初期値からも通水を失った。
+これらは固定外力の平衡・初期値の実験であり、外力変化速度だけの効果ではない。
+
+\begin{table}[tb]
+\centering
+\caption{水理のみのunsafeモデルでのfold。}\label{tab:manzonifold}
+\begin{tabular}{rrrr}
+\toprule
+$\psi_r$ (MPa)&$D_{\mathrm{fold}}$ (mol/mol)&$v_{\mathrm{fold}}$ (kPa)&$\psi_{l,\mathrm{fold}}$ (MPa)\\
+\midrule
+0 &0.02439716 &2.472043 & $-2.000000$\\
+$-1$ &0.01307440 &1.324764 & $-2.267949$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+一方、$\psi_l\le-4$ MPaでは$g_x=g_s=0$なので
+$\dot\psi_x=\dot\psi_l=0$である。任意の許された$\psi_x$を持つ平衡の連続集合となり、
+孤立した二次元の双曲的安定平衡ではない。
+通水域で得た$\psi_x=(\psi_r+\psi_l)/2$をこの集合へ強制してはならない。
+原著の簡約的な乾燥側の描写と、元の二貯留系の退化を区別する。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{manzoni2014/figure2_20261007/figure2_reproduction.pdf}
+\caption{Manzoniの区分線形モデルの独立再計算。
+位相平面、給水と蒸散の交点、VPDに対する通水枝を示す。
+この図の$D$はmol/molであり、圧力表示VPDではない。
+係数は表1、容量は合成値。原著画像の転載ではない。
+閉鎖後の集合は、通水する孤立平衡と別に解釈する。}
+\end{figure}
+\evidence{平衡とfoldの式は解析的に導出した。軌道の到達先は有限時間の数値確認である。
+平衡残差の最大値は$2.82\times10^{-15}$ MPa/day、
+二水準の許容誤差による三軌道の最大差は$1.03\times10^{-8}$ MPaだった。
+完全な原著数値再現ではなく、容量と湿潤根の近似を明示した式・機構の再現である。}
+
+\subsection{sigmoid、土壌抵抗、損傷の比較}
+原著Appendix Aの比較では
+\begin{equation}\label{eq:sigmoid}
+ g_i(\psi_l)=\frac{g_{i,\max}}{1+(\psi_l/\psi_{50,i})^{\alpha_i}},
+ \qquad\alpha_i>0,\quad i=x,s
+\end{equation}
+を用いた。有限の負ポテンシャルではコンダクタンスは正である。
+従って区分線形式の「厳密な閉鎖」をこの式へ移してはならない。
+平衡を求める際には、負ポテンシャルの絶対値に関する高々五項の一般化多項式を作り、
+対数変数での指数和の導関数を再帰的に使って根を分離した。
+固定の乾燥上限や格子の符号変化だけで根数を決めていない。
+ただし浮動小数点の根分離であって、全根の区間認証ではない。
+
+根$-0.5$ MPa、$D=0.01,0.04$、safe/unsafeの二配置、
+$\alpha_x,\alpha_s\in[1,15]$を刻み0.25で調べた12,996条件では、
+有限平衡数は0から3だった。三根例は湿潤安定根、鞍点、乾燥安定根を持つ。
+乾燥極限で給水/蒸散比は$|\psi_l|^{1+\alpha_s-\alpha_x}$に比例するので、
+半減値の順序だけでは大域的な根数を決められない。
+指数の裾まで外挿した計算には極端に大きい負ポテンシャルの根も含まれるが、
+一定VPDと経験式の形式的外挿であり、植物がその水分状態を実現するとは解釈しない。
+刻み0.5と0.25の共通3,364条件の根数は一致したが、未計算の境界まで確定したわけではない。
+
+原著図3に対応する根境界と形質の境界図も式\eqref{eq:hydraulicfold}から計算した。
+原著に記載された$g_{s,\max}/g_{x,\max}$の中央値78 MPaを用い、
+39と156 MPaは中央値の半分・倍の感度値と明記した。
+この比を増やすと同じ根境界の臨界Dは小さくなる。
+原著の観測百分位や種の観測点を復元したわけではない。
+気孔半減値を動かした形質境界では、算出foldと指定Dの差は最大
+$2.11\times10^{-12}$ mol/molだった。
+この追加検査も内部foldと閉鎖境界を分けて行った。
+
+土壌--根の抵抗を調べる別の実験では
+\begin{equation}
+ g_{sr}=g_{sr,\mathrm{sat}}\left(\frac{\psi_{\mathrm{sat}}}{\psi_{\mathrm{soil}}}\right)^2,\qquad
+ \psi_r=\frac{g_{sr}\psi_{\mathrm{soil}}+2g_x\psi_x}{g_{sr}+2g_x}
+\end{equation}
+を根節点の連続条件から得た。
+土壌水ポテンシャルは処方値で、土壌の貯留状態は追加していない。
+定常給水は
+\begin{equation}
+ E_{\mathrm{supply}}=\frac{g_xg_{sr}}{g_x+g_{sr}}(\psi_{\mathrm{soil}}-\psi_l)
+\end{equation}
+である。固定損傷係数0.6を$g_{x,\max}$と$\psi_{50,x}$に掛けた比較では、
+回復や損傷の時間発展を導入していない。
+
+$\psi_{\mathrm{sat}}=-0.1$ MPa、$\psi_{\mathrm{soil}}=-0.5$ MPa、
+元の半減値$(-3,-2)$ MPaから損傷させた設定で、
+$g_{sr,\mathrm{sat}}=0.03,0.10,0.30$ m水/day/MPaに対するfoldは
+$D=0.01115088,0.01506316,0.01719337$だった。
+土壌抵抗が大きいほど通水平衡を失うVPDは低くなる。
+土壌係数は明示した感度値であり、原著図4の較正値の再現とは主張しない。
+この土壌抵抗の実験は、以降の固定根境界の炭素結合実験とは別のモデル条件である。
+
+\section{炭素収支との接続}\label{sec:carbon}
+\subsection{四プールと同化入力}
+炭素状態を$C=(C_L,C_W,C_R,C_S)\tr$とし、葉、木部、根、土壌の炭素量を表す。
+各量は地表面積当たりkg C/m$^2$である。
+気孔開度を$h=g_s/g_{s,\max}$とし、簡略化した総光合成を
+\begin{equation}\label{eq:gpp}
+ A=p\,h(1-e^{-qC_L}),\qquad q=\frac{\kappa_{\mathrm{ext}}\mathrm{SLA}}{f_C}
+\end{equation}
+と置く。$\mathrm{SLA}$は葉乾物当たりの比葉面積、$f_C$は乾物中の炭素割合、
+$\kappa_{\mathrm{ext}}$は光の消散係数である。
+葉面積指数は$\mathrm{LAI}=\mathrm{SLA}C_L/f_C$で、
+$1-e^{-qC_L}$は葉量に対して増加し飽和する。
+本研究では総光合成を$A$、後述のpotentialを$P$と書き分ける。
+既存の段階A報告で光合成を$P$とした記法は、本稿では$A$に統一した。
+
+この同化式はLeuningやFvCBの葉同化モデルではない。
+原著Manzoniの式から導いた光合成でもなく、本研究が接続のために採った合成式である。
+入力をNPPでなくGPPと定義し、呼吸を損失側に置くことで同じ呼吸の二重控除を避ける。
+VPDは同化式へ直接入れず、水理状態を通じて$h$を変える。
+
+配分$b_L,b_W,b_R>0$の和を1とし、損失率$k_i>0$、
+生体損失のうち土壌へ移る割合を$\eta_i\in[0,1]$とすると
+\begin{align}
+ \dot C_L&=b_LA-k_LC_L,&\dot C_W&=b_WA-k_WC_W,\nonumber\\
+ \dot C_R&=b_RA-k_RC_R,&
+ \dot C_S&=\eta_Lk_LC_L+\eta_Wk_WC_W+\eta_Rk_RC_R-k_SC_S.
+ \label{eq:carbonpools}
+\end{align}
+木部は構造炭素を代表する一プールであり、辺材・心材や貯蔵炭水化物に分けていない。
+土壌から生体へ戻る炭素移動もない。
+式\eqref{eq:carbonpools}を
+\begin{equation}\label{eq:matrix}
+ \dot C=MC+bA,\quad b=(b_L,b_W,b_R,0)\tr,\qquad
+ M=\begin{pmatrix}
+ -k_L&0&0&0\\0&-k_W&0&0\\0&0&-k_R&0\\
+ \eta_Lk_L&\eta_Wk_W&\eta_Rk_R&-k_S
+ \end{pmatrix}
+\end{equation}
+と書く。$M$は非対角成分が非負のMetzler行列で、固有値は$-k_i$である。
+従って$M$はHurwitz、すなわち全固有値の実部が負である。
+ただし同化が$C_L$に依存するため、$M$は炭素方程式のJacobianそのものではない。
+
+\subsection{保存則と係数の由来}
+生体呼吸と土壌呼吸はそれぞれ
+\begin{equation}
+ R_a=\sum_{i\in\{L,W,R\}}(1-\eta_i)k_iC_i,\qquad R_h=k_SC_S
+\end{equation}
+であり、$\dot C_L+\dot C_W+\dot C_R+\dot C_S=A-R_a-R_h$となる。
+内部移動は総収支で相殺される。
+NPPは$A-R_a$で、入力停止後には負になり得るが、炭素ストックが負になることを意味しない。
+非負境界で各プールの右辺は非負で、非負領域を保つ。
+$0\le A\le p$なので、固定係数下の炭素は安定な線形移送系との比較で有界となる。
+
+\begin{table}[tb]
+\centering
+\caption{炭素と構造の基準係数。すべて本研究の合成設定。年率は365.25 day/yearで換算する。}
+\begin{tabular}{ll}
+\toprule
+量 & 採用値\\\midrule
+$p$ & $1.2$ kg C/m$^2$/year\\
+$(b_L,b_W,b_R)$ & $(0.3,0.4,0.3)$\\
+$(k_L,k_W,k_R,k_S)$ & $(0.8,0.05,0.2,0.04)$/year\\
+$(\eta_L,\eta_W,\eta_R)$ & $(0.7,0.9,0.8)$\\
+$\mathrm{SLA},f_C,\kappa_{\mathrm{ext}}$ & $10$ m$^2$/kg乾物、$0.5$、$0.25$\\
+$q$ & $5$ (kg C/m$^2$)$^{-1}$\\
+$C_{L,\mathrm{ref}},C_{W,\mathrm{ref}}$ & $0.2981897048,\ 6.3613803690$ kg C/m$^2$\\
+$C_{L,f},\ C_{L,\min}$ & $0.01,\ 10^{-6}$ kg C/m$^2$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+閉鎖によって$A$が恒等的にゼロなら$C=e^{Mt}C(0)\to0$である。
+土壌へ移動があるため、土壌プールが途中で増える場合もあり、
+全プールが常に単調減少するとは言えない。
+一般に$A(t)\to0$の場合も、変分定数公式
+\begin{equation}\label{eq:variation}
+ C(t)=e^{Mt}C(0)+\int_0^t e^{M(t-s)}bA(s)\,\dd s
+\end{equation}
+から$C(t)\to0$を得る。
+積分を古い入力と最近の入力に分け、前者を指数減衰、後者を小さい入力で抑えればよい。
+無分解のプールを加えて$M$がHurwitzでなくなれば、この結論はそのまま適用できない。
+
+\subsection{水理を固定した炭素平衡}\label{sec:r0}
+固定$h$で葉の式を調べる。
+\begin{equation}
+ \dot C_L=b_Lph(1-e^{-qC_L})-k_LC_L,\qquad
+ \mathcal R_0=\frac{b_Lphq}{k_L}.
+\end{equation}
+$\mathcal R_0$は小さい葉量における同化配分と損失の比である。
+\begin{proposition}\label{prop:r0}
+水理と係数を固定すると、$\mathcal R_0\le1$では正炭素平衡はなく、非負初期葉量はゼロへ向かう。
+$\mathcal R_0>1$では正平衡が一つあり、正初期葉量はそこへ収束する。
+ゼロ根は常に存在するが、$\mathcal R_0>1$では不安定である。
+\end{proposition}
+\begin{proof}
+$C_L>0$に対して$(1-e^{-qC_L})/C_L$は$q$から0へ厳密に減少する。
+従って$\dot C_L/C_L$は$k_L(\mathcal R_0-1)$から$-k_L$へ減少する。
+根の数と根の両側の符号が上の分類を与える。
+正根では$b_Lphqe^{-qC_L^*}-k_L<0$である。
+$\mathcal R_0=1$では原点の線形項はゼロだが、
+$\dot C_L=-b_Lphq^2C_L^2/2+O(C_L^3)$なので非負側から漸近安定となる。
+葉と$A$が収束すれば、残る安定な移送系も対応する平衡へ収束する。
+\end{proof}
+この命題は水理を固定した炭素系の結果である。
+全水理--炭素系の安定性や、任意の炭素移動行列に対する閾値とは同一視しない。
+また$C_L=0$からの新規定着は式にない。
+
+\subsection{片方向結合：水理の各根に炭素を接続する}
+初期モデルでは式\eqref{eq:water}の水理係数を炭素から独立にした。
+全状態$y=(\psi_x,\psi_l,C_L,C_W,C_R,C_S)$のJacobianは
+\begin{equation}\label{eq:triangular}
+ J=\begin{pmatrix}J_{HH}&0\\J_{CH}&J_{CC}\end{pmatrix},\qquad
+ \sigma(J)=\sigma(J_{HH})\cup\sigma(J_{CC})
+\end{equation}
+である。条件付き炭素根が安定でも、水理鞍点の上では全系は不安定となる。
+逆に安定水理根と安定炭素根を組み合わせれば全系は局所安定である。
+炭素係数を変更しても、水理のfold位置は動かない。
+
+\begin{table}[tb]
+\centering
+\caption{片方向結合のsigmoid三水理根。
+$\psi_r=-0.5$ MPa、$D=0.01$、unsafe半減値、$\alpha_x=\alpha_s=6$。
+各水理根で炭素方向に吸引的な根を選んでいる。}\label{tab:sigcarbon}
+\begin{tabular}{rrrrl}
+\toprule
+$\psi_l$ (MPa)&$\mathcal R_0$&総炭素 (kg C/m$^2$)& & 全系の局所型\\
+\midrule
+$-1.123356$ &2.181502&29.44051&&安定、正炭素\\
+$-1.647623$ &1.714176&19.20928&&鞍点、正炭素\\
+$-3.483360$ &0.077819&0&&安定、炭素ゼロ\\
+\bottomrule
+\end{tabular}
+\end{table}
+表\ref{tab:sigcarbon}の乾燥根では$g_s>0$であり、
+炭素ゼロの理由は完全気孔閉鎖ではなく$\mathcal R_0<1$である。
+湿潤・鞍点水理根にも葉方向に不安定な炭素ゼロ根があるため、
+水理三根から全系がちょうど三根とは結論しない。
+炭素ゼロでも一定水理容量と葉水ポテンシャルを残す設定は、
+数学的延長としての分類であり、実在する無葉植物の状態や死亡を表すものではない。
+
+\subsection{初期のVPD実験と温度対照}
+片方向結合の最初のVPD実験は$\psi_r=0$で、
+$D=0.01$から0.03まで同じ滑らかな経路を10日または100日で進め、
+終点を200年保持した。双方とも水理foldを越える。
+初期総炭素23.95457 kg C/m$^2$に対して、
+保持後の総炭素は約0.01446と0.01441 kg C/m$^2$だった。
+葉が極小でも土壌に炭素が残る。
+この実験はfold横断後の減衰を検査したもので、速度だけによる異なる長期吸引先の実証ではない。
+
+温度対照だけは、$D=0.01$、固定の湿潤水理平衡を保ち、
+\begin{equation}
+ \frac{p(T)}{p(25)}=\exp\left[-\left(\frac{T-25}{15}\right)^2\right],
+ \qquad
+ \frac{k_i(T)}{k_i(25)}=2^{(T-25)/10}
+\end{equation}
+という未較正の温度関数を使った。
+気温・葉温・土温の差、適応、遅れを無視した対照である。
+25から45$^\circ$Cへ上げて25$^\circ$Cへ戻すパルスを1年と10年で与え、
+500年保持した。最小葉量は約0.08852と$3.889\times10^{-6}$ kg C/m$^2$と異なったが、
+どちらも元の正平衡へ回復した。
+45$^\circ$Cを最終保持する別対照は$\mathcal R_0<1$となり、炭素ゼロへ向かった。
+この温度式の閾値31.6268$^\circ$Cは実森林の温度閾値ではない。
+
+\begin{proposition}
+片方向結合で湿潤水理平衡を保ち、有限温度パルス中の$k_L(t)$が有界で、
+最終固定温度の$\mathcal R_0>1$なら、正葉量からゼロへの不可逆な漸近移行は起こらない。
+\end{proposition}
+\begin{proof}
+$\dot C_L\ge-k_L(t)C_L$から
+$C_L(t)\ge C_L(0)\exp[-\int_0^t k_L(s)\dd s]>0$である。
+有限パルス終了時にも葉量は正で、命題\ref{prop:r0}により最終正平衡へ収束する。
+\end{proof}
+\evidence{温度パルスからの回復は、上記仮定付きの解析命題と数値対照が一致した結果である。
+この否定的な結果は、急変だけによる不可逆な消失を得るには別の吸引域構造等が必要なことを示す。
+現在の双方向・固定係数モデルについて同じ温度命題を証明したわけではない。}
+
+\section{炭素から水理へのフィードバック}\label{sec:feedback}
+\subsection{供給・蒸散・木部の区別}
+炭素から水理への作用を比較するため、式\eqref{eq:waterflux}を
+\begin{equation}\label{eq:structural}
+ E_{rx}=2g_xF_W(\psi_r-\psi_x),\qquad
+ E_{xl}=2g_xF_L(\psi_x-\psi_l),\qquad E=g_sF_ED
+\end{equation}
+に拡張した。完全に有効な場合の倍率を
+\begin{equation}\label{eq:factors}
+ F_L=\frac{C_L+C_{L,f}}{C_{L,\mathrm{ref}}+C_{L,f}},\qquad
+ F_E=\frac{C_L}{C_{L,\mathrm{ref}}},\qquad
+ F_W=\left(\frac{C_W}{C_{W,\mathrm{ref}}}\right)^\beta
+\end{equation}
+とする。部分的な強さの感度では、対応する倍率を$1+a(F-1)$、$0\le a\le1$で補間した。
+基本比較は有効/無効のみで、$\beta=1$である。
+
+\begin{table}[tb]
+\centering
+\caption{モデルの区別。``1''は当該フィードバックを無効とすることを表す。}
+\begin{tabular}{llll}
+\toprule
+モデル&葉側供給$F_L$&蒸散需要$F_E$&根--木部供給$F_W$\\\midrule
+E0&1&1&1\\
+E1&式\eqref{eq:factors}&1&1\\
+E2&1&式\eqref{eq:factors}&1\\
+E3&式\eqref{eq:factors}&式\eqref{eq:factors}&1\\
+E4&式\eqref{eq:factors}&式\eqref{eq:factors}&式\eqref{eq:factors}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+$C_{L,\mathrm{ref}},C_{W,\mathrm{ref}}$は$\psi_r=0,\ D=0.01$の片方向正平衡から一度計算して固定した。
+外力変化中に更新する基準値ではない。
+$C_{L,f}$は供給倍率の正則化であって生存閾値ではなく、
+$C_{L,\min}$は後述の積分終了条件である。
+木部炭素を通水能力へ写す$F_W$は原著Manzoniの導出ではなく、
+木部炭素と辺材能力を同じ比例則で代表させる本研究の仮説である。
+炭素式\eqref{eq:gpp}に$F_E$を重ねて掛けず、葉面積の同化への作用を二重に数えない。
+水理容量は固定したままで、炭素に比例する容量は導入していない。
+
+\subsection{直列抵抗と全系Jacobian}
+正の通水平衡で
+\begin{equation}\label{eq:series}
+ G_r=2g_xF_W,\quad G_l=2g_xF_L,\quad
+ \psi_x=\frac{G_r\psi_r+G_l\psi_l}{G_r+G_l},\quad
+ G_{\mathrm{eff}}=\frac{G_rG_l}{G_r+G_l}
+\end{equation}
+である。特に$F_W=1$なら$G_{\mathrm{eff}}=2g_xF_L/(1+F_L)$であり、
+$g_xF_L$ではない。$F_L=1$なら元の$g_x$へ戻る。
+
+双方向結合では$J_{HC}\ne0$なので式\eqref{eq:triangular}の固有値和集合は使えない。
+全6行6列を第\ref{sec:fulljacobian}節に示す。
+炭素ブロックが可逆ならゼロ固有値の候補はSchur補行列
+\begin{equation}
+ J_{HH}-J_{HC}J_{CC}^{-1}J_{CH}
+\end{equation}
+で調べられるが、全安定性は六状態のJacobianで判定する。
+葉供給を変えるとfold位置も変わり、
+蒸散需要を変えるとfoldが見つからない範囲でも振動的不安定化が起こり得る。
+この段階の枝探索は宣言した葉ポテンシャル区間の数値探索だった。
+次節でE0/E1/E4の根数分類を、正葉量を持ち通水する領域全体の議論へ進める。
+
+\section{六状態の微分方程式とVPD外力}\label{sec:fullode}
+ここまでの水と炭素を同じ状態ベクトルに並べる。
+炭素の添字$L,W,R,S$はそれぞれ葉・木部・根・土壌である。
+全モデルE0--E4の六式は、倍率の選択だけを変えて
+\begin{equation}\label{eq:sixscalar}
+\boxed{\begin{aligned}
+\frac{\dd\psi_x}{\dd t}
+ &=\frac{2g_x(\psi_l)}{c_x}
+     \{F_W(C_W)(\psi_r-\psi_x)-F_L(C_L)(\psi_x-\psi_l)\},\\
+\frac{\dd\psi_l}{\dd t}
+ &=\frac{2g_x(\psi_l)F_L(C_L)}{c_l}(\psi_x-\psi_l)
+   -\frac{g_s(\psi_l)F_E(C_L)}{c_l p_{\mathrm{atm}}}v(t),\\
+\frac{\dd C_L}{\dd t}
+ &=b_Lp\frac{g_s(\psi_l)}{g_{s,\max}}(1-e^{-qC_L})-k_LC_L,\\
+\frac{\dd C_W}{\dd t}
+ &=b_Wp\frac{g_s(\psi_l)}{g_{s,\max}}(1-e^{-qC_L})-k_WC_W,\\
+\frac{\dd C_R}{\dd t}
+ &=b_Rp\frac{g_s(\psi_l)}{g_{s,\max}}(1-e^{-qC_L})-k_RC_R,\\
+\frac{\dd C_S}{\dd t}
+ &=\eta_Lk_LC_L+\eta_Wk_WC_W+\eta_Rk_RC_R-k_SC_S .
+\end{aligned}}
+\end{equation}
+全六成分を一つに書けば、同じ式は次の状態依存行列による表現になる。
+\begin{equation}\label{eq:sixmatrix}
+\begin{aligned}
+\frac{\dd}{\dd t}
+\begin{pmatrix}\psi_x\\\psi_l\\C_L\\C_W\\C_R\\C_S\end{pmatrix}
+={}&
+\begin{pmatrix}
+-\frac{2g_x(F_W+F_L)}{c_x}&\frac{2g_xF_L}{c_x}&0&0&0&0\\
+\frac{2g_xF_L}{c_l}&-\frac{2g_xF_L}{c_l}&0&0&0&0\\
+0&0&-k_L&0&0&0\\
+0&0&0&-k_W&0&0\\
+0&0&0&0&-k_R&0\\
+0&0&\eta_Lk_L&\eta_Wk_W&\eta_Rk_R&-k_S
+\end{pmatrix}
+\begin{pmatrix}\psi_x\\\psi_l\\C_L\\C_W\\C_R\\C_S\end{pmatrix}\\
+&+\begin{pmatrix}
+\frac{2g_xF_W}{c_x}\psi_r\\
+-\frac{g_sF_E}{c_lp_{\mathrm{atm}}}v(t)\\
+b_Lp\frac{g_s}{g_{s,\max}}(1-e^{-qC_L})\\
+b_Wp\frac{g_s}{g_{s,\max}}(1-e^{-qC_L})\\
+b_Rp\frac{g_s}{g_{s,\max}}(1-e^{-qC_L})\\
+0
+\end{pmatrix}.
+\end{aligned}
+\end{equation}
+この行列はJacobianではない。$g_x,g_s$は$\psi_l$に、
+$F_L,F_E$は$C_L$に、$F_W$は$C_W$に依存するため、全体は非線形である。
+偏微分するときはこれらの依存性も微分しなければならない。
+
+その直下に、時間変化を与える唯一の外力を明記する。
+\begin{equation}\label{eq:forcingexplicit}
+\boxed{\quad
+v(t)=
+\begin{cases}
+v_{\mathrm{start}}+(v_{\mathrm{end}}-v_{\mathrm{start}})
+       (t/T)^2(3-2t/T),&0\le t\le T,\\
+v_{\mathrm{end}},&t>T,
+\end{cases}
+\qquad D(t)=\frac{v(t)}{p_{\mathrm{atm}}}.\quad}
+\end{equation}
+固定点と相図を調べる間は$v(t)=v$という定数とする。
+温度、根境界、同化・呼吸・分解係数は固定し、
+$v_{\mathrm{start}},v_{\mathrm{end}},T$の具体値は各実験に付す。
+したがって本稿の主題は、固定外力で存在する平衡の構造をまず理解し、
+それを時間変化するVPDのもとでどこまで貯留先の目安にできるか、という順序になる。
+
+\section{正炭素・通水平衡の一変数帰着と根数分類}\label{sec:scalar}
+\subsection{炭素平衡の消去}
+正葉量平衡では、式\eqref{eq:carbonpools}の葉式から$A=k_LC_L/b_L$を得る。
+残る三式へ代入して
+\begin{equation}\label{eq:ratios}
+ C_W=\frac{b_Wk_L}{b_Lk_W}C_L,\quad
+ C_R=\frac{b_Rk_L}{b_Lk_R}C_L,\quad
+ C_S=\frac{k_L}{k_S}\left(\eta_L+\eta_W\frac{b_W}{b_L}
+                                  +\eta_R\frac{b_R}{b_L}\right)C_L .
+\end{equation}
+基準係数では順に$C_W=(64/3)C_L,\ C_R=4C_L,\ C_S=54C_L$である。
+葉平衡を式\eqref{eq:gpp}と照合し、
+\begin{equation}\label{eq:hL}
+ h(C_L)=\frac{k_LC_L}{b_Lp(1-e^{-qC_L})},\qquad
+ h(0+)=\frac{k_L}{b_Lpq}=\frac49
+\end{equation}
+を得る。最後の等式は十進表記した基準係数に対する値で、
+実装のbinary64定数を厳密に解釈した区間ではその近傍を囲む。
+区分線形気孔式の通水部分を反転すると
+\begin{equation}\label{eq:psiL}
+ \psi_l(C_L)=2\psi_{50,s}[1-h(C_L)]=-4[1-h(C_L)]
+\end{equation}
+となる。
+
+これらを式\eqref{eq:series}へ代入し、葉水収支を整理すると
+\begin{equation}\label{eq:Dcurve}
+ \boxed{D=D_{\mathrm{curve}}(C_L)
+ =\frac{G_{\mathrm{eff}}(C_L)[\psi_r-\psi_l(C_L)]}{g_s(C_L)F_E(C_L)}} .
+\end{equation}
+式\eqref{eq:Dcurve}は元の平衡式の必要条件である。
+逆に定義域内の根から式\eqref{eq:ratios}, \eqref{eq:psiL}, \eqref{eq:series}で六状態を戻すと
+全平衡式を満たすため、十分条件でもある。
+この消去は水理や木部の時間応答を瞬時平衡と近似する操作ではない。
+
+\subsection{E0--E4の六成分の正平衡を明示する}\label{sec:explicitroots}
+以下は基準係数、根境界0、$\beta=1$での式である。
+指数関数を含むため、$C_L^*$をVPDの初等関数で陽に書けるとは主張しない。
+解析的にできたことは、六元連立方程式を、解の個数を判定できる一つの方程式へ厳密に減らすことまでである。
+その正根それぞれに対し、六成分の平衡は次のとおりである。
+\begin{align}
+y^*_{\mathrm{E0}}&=
+\begin{pmatrix}
+-2[1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+-4[1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+C_L^*\\ \frac{64}{3}C_L^*\\4C_L^*\\54C_L^*
+\end{pmatrix},
+&
+y^*_{\mathrm{E1}}&=
+\begin{pmatrix}
+-4\frac{C_L^*+C_{L,f}}{C_L^*+C_{L,\mathrm{ref}}+2C_{L,f}}
+ [1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+-4[1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+C_L^*\\ \frac{64}{3}C_L^*\\4C_L^*\\54C_L^*
+\end{pmatrix},\label{eq:explicit01}\\
+y^*_{\mathrm{E2}}&=
+\begin{pmatrix}
+-2[1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+-4[1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+C_L^*\\ \frac{64}{3}C_L^*\\4C_L^*\\54C_L^*
+\end{pmatrix},
+&
+y^*_{\mathrm{E3}}&=
+\begin{pmatrix}
+-4\frac{C_L^*+C_{L,f}}{C_L^*+C_{L,\mathrm{ref}}+2C_{L,f}}
+ [1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+-4[1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+C_L^*\\ \frac{64}{3}C_L^*\\4C_L^*\\54C_L^*
+\end{pmatrix},\label{eq:explicit23}
+\end{align}
+\begin{equation}\label{eq:explicit4}
+y^*_{\mathrm{E4}}=
+\begin{pmatrix}
+-4\frac{(C_L^*+C_{L,f})/(C_{L,\mathrm{ref}}+C_{L,f})}
+ {\frac{64C_L^*}{3C_{W,\mathrm{ref}}}
+  +(C_L^*+C_{L,f})/(C_{L,\mathrm{ref}}+C_{L,f})}
+ [1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+-4[1-\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}]\\
+C_L^*\\ \frac{64}{3}C_L^*\\4C_L^*\\54C_L^*
+\end{pmatrix}.
+\end{equation}
+E0とE2、E1とE3はベクトルの形が同じだが、
+同じVPDで代入する$C_L^*$が違う。葉量を決める方程式は、順に
+\begin{align}
+\mathrm{E0}:\quad \frac{v}{p_{\mathrm{atm}}}
+ &=D_0\!\left(\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}\right),\\
+\mathrm{E1}:\quad \frac{v}{p_{\mathrm{atm}}}
+ &=2D_0\!\left(\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}\right)
+ \frac{C_L^*+C_{L,f}}{C_L^*+C_{L,\mathrm{ref}}+2C_{L,f}},\\
+\mathrm{E2}:\quad \frac{v}{p_{\mathrm{atm}}}
+ &=D_0\!\left(\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}\right)
+ \frac{C_{L,\mathrm{ref}}}{C_L^*},\label{eq:scalar2}\\
+\mathrm{E3}:\quad \frac{v}{p_{\mathrm{atm}}}
+ &=2D_0\!\left(\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}\right)
+ \frac{C_L^*+C_{L,f}}{C_L^*+C_{L,\mathrm{ref}}+2C_{L,f}}
+ \frac{C_{L,\mathrm{ref}}}{C_L^*},\label{eq:scalar3}\\
+\mathrm{E4}:\quad \frac{v}{p_{\mathrm{atm}}}
+ &=2D_0\!\left(\frac{k_LC_L^*}{b_Lp(1-e^{-qC_L^*})}\right)
+ \frac{\frac{64}{3}C_{L,\mathrm{ref}}(C_L^*+C_{L,f})}
+ {\frac{64}{3}C_L^*(C_{L,\mathrm{ref}}+C_{L,f})
+    +C_{W,\mathrm{ref}}(C_L^*+C_{L,f})}.\label{eq:scalar4expanded}
+\end{align}
+ここで$D_0$は新しい状態ではなく、後述の式\eqref{eq:D0}に全式を示す
+フィードバックなしの水理平衡曲線である。
+左辺のVPDを固定し、右辺曲線との交点を求める。
+交点が二つなら上のベクトルにも二つの異なる葉量をそれぞれ代入する。
+これが六次元で異なる二平衡を与える。
+
+\subsection{定義域と端点}
+$h'(C_L)>0$であり、木部通水には$h>1/4$、
+根$\psi_r=0$より乾いた葉には$h\le1$が必要である。
+$h(0+)=4/9>1/4$だから、基準の正葉量・通水領域は
+\begin{equation}\label{eq:domain}
+ 0<C_L\le C_{L,\mathrm{wet}}=0.384040090045547,\qquad
+ -20/9<\psi_l\le0 .
+\end{equation}
+上端は$h=1,\ v=0$であり、含める。
+$C_L=0$は葉平衡の除算で除かれた端点で、$D_{\mathrm{curve}}(0+)$と等しいVPDでも正根に数えない。
+$C_{L,\min}=10^{-6}$は数学的な正根の下端ではない。
+$0<C_L\le C_{L,\min}$の正根も別に記録し、積分域との関係を明示する。
+基準正枝は$\psi_l=-3,-4$の区分関数の折れ点には接しない。
+
+\subsection{E0とE1の一意なfold}
+\begin{lemma}\label{lem:opening}
+$C_L>0$では$h'(C_L)>0,\ h''(C_L)>0$である。
+\end{lemma}
+\begin{proof}
+直接微分すると
+\begin{align}
+ h'(C_L)&=\frac{k_L}{b_Lp}\frac{1-(1+qC_L)e^{-qC_L}}{(1-e^{-qC_L})^2},\\
+ h''(C_L)&=\frac{k_Lq}{b_Lp}\frac{e^{-qC_L}\{qC_L-2+(qC_L+2)e^{-qC_L}\}}
+                      {(1-e^{-qC_L})^3}.
+\end{align}
+一階の分子は$e^{qC_L}>1+qC_L$により正。
+二階の波括弧は原点でゼロ、その導関数は
+$q[1-(1+qC_L)e^{-qC_L}]>0$なので正である。
+\end{proof}
+
+E0では式\eqref{eq:Dcurve}を開度で書くと
+\begin{equation}\label{eq:D0}
+ D_0(h)=\frac{4g_{x,\max}}{3g_{s,\max}}(5-4h-h^{-1}),\qquad
+ D_0'(h)=\frac{4g_{x,\max}}{3g_{s,\max}}(h^{-2}-4).
+\end{equation}
+$D_0''(h)<0$だから、$h=1/2$が一意な最大点である。
+補題\ref{lem:opening}より$C_L$に関しても一意な最大点となる。
+
+E1は
+\begin{equation}\label{eq:D1}
+ D_1(C_L)=2D_0(h(C_L))\frac{C_L+C_{L,f}}{C_L+C_{L,\mathrm{ref}}+2C_{L,f}}.
+\end{equation}
+$h<1/2$では二因子とも厳密に増える。
+$h\ge1/2$の内部では$\log D_0$の$h$二階導関数が負で、$h''>0$、
+$\dd\log D_0/\dd h\le0$だから
+\begin{equation}
+ \frac{\dd^2}{\dd C_L^2}\log D_0(h(C_L))
+ =\frac{\dd^2\log D_0}{\dd h^2}
+   \left(\frac{\dd h}{\dd C_L}\right)^2+
+   \frac{\dd\log D_0}{\dd h}\frac{\dd^2h}{\dd C_L^2}<0 .
+\end{equation}
+供給因子の対数導関数
+\begin{equation}
+ \frac{1}{C_L+C_{L,f}}-\frac{1}{C_L+C_{L,\mathrm{ref}}+2C_{L,f}}
+\end{equation}
+も正で厳密に減少する。
+従って$\dd\log D_1/\dd C_L$はこの区間で厳密に減り、
+$h=1/2$で正、湿潤端点へ近づくと負の無限大になる。
+ゼロを一度だけ通り、一意な単純最大点を得る。
+
+\subsection{E4の単調性：解析的不等式と区間評価}
+基準$\beta=1$では$C_W=(64/3)C_L$を代入した式\eqref{eq:scalar4expanded}を使う。
+元の係数を保持したまま書けば
+\begin{equation}\label{eq:D4}
+ D_4(C_L)=2D_0(h(C_L))
+ \frac{\frac{64}{3}C_{L,\mathrm{ref}}(C_L+C_{L,f})}
+ {\frac{64}{3}C_L(C_{L,\mathrm{ref}}+C_{L,f})+
+  C_{W,\mathrm{ref}}(C_L+C_{L,f})}
+\end{equation}
+である。$D_0$に掛かる正の有理式の対数導関数は
+\begin{equation}
+ -\frac{\frac{64}{3}(C_{L,\mathrm{ref}}+C_{L,f})C_{L,f}}
+ {(C_L+C_{L,f})
+ [\frac{64}{3}C_L(C_{L,\mathrm{ref}}+C_{L,f})
+       +C_{W,\mathrm{ref}}(C_L+C_{L,f})]}<0 .
+\end{equation}
+$h\ge1/2$では$D_0$は非増加、この有理式は厳密に減少するので$D_4'<0$である。
+残る$4/9<h<1/2$は、$h(0.05)>1/2$より$0<C_L<0.05$に含まれる。
+補題\ref{lem:opening}と$\dd\log D_0/\dd h$の減少性を使い、
+\begin{align}
+ \frac{\dd}{\dd C_L}\log D_0(h(C_L))
+ &\le h'(0.05)\left.\frac{\dd\log D_0}{\dd h}\right|_{h=h(0+)}
+ <1.315265847,\\
+ -\frac{\dd}{\dd C_L}\log\frac{D_4(C_L)}{D_0(h(C_L))}
+ &>1.542450831
+\end{align}
+と評価した。二式目は直前の負の導関数の絶対値に$C_L=0.05$を入れた下界である。
+両辺の単位は$(\mathrm{kg\,C/m^2})^{-1}$である。
+差は外向き丸めで厳密に正の区間に囲まれ、下界は$0.22718498468$を超える。
+実装は40桁Decimal演算で、元のbinary64入力定数を厳密な実数として囲み、
+四則演算と指数関数を外向きに評価する。
+従って全域で$D_4'<0$となる。
+\evidence{単調性は正葉量の通水領域全体についての解析的証明を、定数の区間評価で閉じた結果である。
+有限節点での導関数の符号確認ではない。ただし基準の閾値、$q=5$、$\beta=1$、
+固定参照値等に条件付けた命題であり、全Jacobianの安定性の区間証明でもない。}
+
+\subsection{E2/E3の正根が一つである理由}\label{sec:roots23}
+式\eqref{eq:scalar2}, \eqref{eq:scalar3}の右辺は、
+E0/E1の右辺に$C_{L,\mathrm{ref}}/C_L$を掛けたものである。
+そのため$C_L\to0+$では正の無限大へ、湿潤端点ではゼロへ向かう。
+途中で厳密に減ることを示せば、任意の有限$v\ge0$に正根がちょうど一つとなる。
+
+開度が$1/2$以上では水理曲線$D_0$は非増加であり、
+E2の$1/C_L$、E3の$(C_L+C_{L,f})/
+[C_L(C_L+C_{L,\mathrm{ref}}+2C_{L,f})]$は厳密に減る。
+残る開度$1/2$未満は$0<C_L<0.05$に含まれる。
+前小節の外向き区間評価をそのまま用いると、水理曲線の対数導関数の上界は
+$1.315265847$である。
+一方、E2で加わる対数導関数は$-1/C_L<-20$、
+E3では
+\begin{equation}
+ \frac{1}{C_L+C_{L,f}}-\frac{1}{C_L}
+ -\frac{1}{C_L+C_{L,\mathrm{ref}}+2C_{L,f}}
+ <-\frac{C_{L,f}}{C_L(C_L+C_{L,f})}<-\frac{10}{3}.
+\end{equation}
+従って和はどちらも負となる。以上で全正葉量域の単調性が示された。
+これは今回追加した根数の解析であり、E2/E3の全VPD域での安定性証明ではない。
+非常に大きいVPDで残る根は数学的外挿で、実際の気象条件の実現可能性とは区別する。
+
+\subsection{正根の分類と六状態での検査}
+表\ref{tab:landmarks}に数値位置、表\ref{tab:rootcounts}に根数を示す。
+解析で分けた単調区間だけで根を括り、Brent法で求め、元の六状態ODEへ戻した。
+ゼロ葉量の開端点、VPDゼロの閉端点、fold重根は明示的に分けた。
+極小の正根を固定絶対許容値でゼロへ丸めないよう、正根探索の許容値を設定し、
+端点と正枝に同じ代数式を使った。三モデルで端点に隣接する浮動小数点VPDも検査している。
+
+\begin{table}[tb]
+\centering
+\caption{正枝の端点極限とfold。$v_0=\lim_{C_L\to0+}p_{\mathrm{atm}}D_{\mathrm{curve}}(C_L)$。
+数値位置は根探索による。}\label{tab:landmarks}
+\begin{tabular}{lrrr}
+\toprule
+モデル&$v_0$ (kPa)&$v_{\mathrm{fold}}$ (kPa)&$C_{L,\mathrm{fold}}$ (kg C/m$^2$)\\\midrule
+E0&2.403374704&2.472042553&0.048075785\\
+E1&0.151065523&1.546784415&0.181993473\\
+E2/E3&$+\infty$&なし&なし\\
+E4&4.806749409&なし&なし\\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[tb]
+\centering
+\caption{基準モデルの通水する正炭素平衡の個数。非通水・ゼロ炭素集合は含めない。}\label{tab:rootcounts}
+\begin{tabular}{llrl}
+\toprule
+モデル&条件&正根数&双曲的に安定な正根数\\\midrule
+E0/E1&$v=0$または$0<v\le v_0$&1&1\\
+E0/E1&$v_0<v<v_{\mathrm{fold}}$&2&1\\
+E0/E1&$v=v_{\mathrm{fold}}$&1&0（ゼロ固有値を持つ）\\
+E0/E1&$v>v_{\mathrm{fold}}$&0&0\\
+E2/E3&任意の有限$v\ge0$&1&有限区間保証・局所Hopfを別途参照\\
+E4&$0\le v<v_0$&1&別途、全Jacobianで判定\\
+E4&$v\ge v_0$&0&0\\
+\bottomrule
+\end{tabular}
+\end{table}
+10月14日の最終記録は262個の復元正根を持ち、
+固定尺度での全ODE残差最大は$8.68\times10^{-15}$ day$^{-1}$、
+$\max_i|K_i-C_i^*|$は$7.11\times10^{-15}$ kg C/m$^2$だった。
+後述の10月14日発表素材用の再計算でも同じ根数・主要値を得たが、
+残差は同一の値を転載せず、当該記録で$4.34\times10^{-15}$ day$^{-1}$と確認した。
+
+\section{平衡の安定性と局所周期解}\label{sec:stability}
+\subsection{小摂動と全6行6列のJacobian}\label{sec:fulljacobian}
+平衡の存在は「収支が釣り合う」条件であり、「少しずれても戻る」条件ではない。
+固定VPDで求めた六成分の平衡の近くに小さなずれ$\delta y$を置き、
+右辺を一次まで展開すると$\dd\delta y/\dd t=J_*\delta y+O(\|\delta y\|^2)$となる。
+$J_*$の$(i,j)$成分は、第i状態の時間変化率を第j状態で偏微分し、
+その後に平衡値を代入したものである。
+負の実部の固有値だけなら小摂動は減衰し、正の実部があれば少なくとも一方向に増大する。
+ゼロ実部の固有値がある場合は、この一次近似だけでは安定性を決められない。
+以下に六成分を省略せず示す。$v$はこの微分では固定する。
+
+\begin{landscape}
+\begin{equation}\label{eq:fulljacobian}
+\resizebox{\linewidth}{!}{$\displaystyle
+J=\frac{\partial(\dot\psi_x,\dot\psi_l,\dot C_L,\dot C_W,\dot C_R,\dot C_S)}
+        {\partial(\psi_x,\psi_l,C_L,C_W,C_R,C_S)}
+=\begin{pmatrix}
+-\frac{2g_x(F_W+F_L)}{c_x}
+&\frac{2\frac{\partial g_x}{\partial\psi_l}
+ \{F_W(\psi_r-\psi_x)-F_L(\psi_x-\psi_l)\}+2g_xF_L}{c_x}
+&-\frac{2g_x}{c_x}\frac{\partial F_L}{\partial C_L}(\psi_x-\psi_l)
+&\frac{2g_x}{c_x}\frac{\partial F_W}{\partial C_W}(\psi_r-\psi_x)&0&0\\[6pt]
+\frac{2g_xF_L}{c_l}
+&\frac{2\frac{\partial g_x}{\partial\psi_l}F_L(\psi_x-\psi_l)-2g_xF_L
+ -\frac{\partial g_s}{\partial\psi_l}F_Ev/p_{\mathrm{atm}}}{c_l}
+&\frac{2g_x\frac{\partial F_L}{\partial C_L}(\psi_x-\psi_l)
+ -g_s\frac{\partial F_E}{\partial C_L}v/p_{\mathrm{atm}}}{c_l}&0&0&0\\[6pt]
+0&\frac{b_Lp}{g_{s,\max}}\frac{\partial g_s}{\partial\psi_l}(1-e^{-qC_L})
+&b_Lp\frac{g_s}{g_{s,\max}}qe^{-qC_L}-k_L&0&0&0\\[6pt]
+0&\frac{b_Wp}{g_{s,\max}}\frac{\partial g_s}{\partial\psi_l}(1-e^{-qC_L})
+&b_Wp\frac{g_s}{g_{s,\max}}qe^{-qC_L}&-k_W&0&0\\[6pt]
+0&\frac{b_Rp}{g_{s,\max}}\frac{\partial g_s}{\partial\psi_l}(1-e^{-qC_L})
+&b_Rp\frac{g_s}{g_{s,\max}}qe^{-qC_L}&0&-k_R&0\\[6pt]
+0&0&\eta_Lk_L&\eta_Wk_W&\eta_Rk_R&-k_S
+\end{pmatrix}.$}
+\end{equation}
+\noindent
+通水域では
+$\frac{\partial g_x}{\partial\psi_l}=-g_{x,\max}/(2\psi_{50,x})$、
+$\frac{\partial g_s}{\partial\psi_l}=-g_{s,\max}/(2\psi_{50,s})$である。
+閉鎖域の内部では対応する微分はゼロ、折れ点では通常のJacobianは未定義である。
+
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+&$F_L$&$F_E$&$F_W$&
+$\frac{\partial F_L}{\partial C_L}$&
+$\frac{\partial F_E}{\partial C_L}$&
+$\frac{\partial F_W}{\partial C_W}$\\\midrule
+E0&1&1&1&0&0&0\\
+E1&$\frac{C_L+C_{L,f}}{C_{L,\mathrm{ref}}+C_{L,f}}$&1&1&
+$\frac{1}{C_{L,\mathrm{ref}}+C_{L,f}}$&0&0\\
+E2&1&$\frac{C_L}{C_{L,\mathrm{ref}}}$&1&0&
+$\frac{1}{C_{L,\mathrm{ref}}}$&0\\
+E3&$\frac{C_L+C_{L,f}}{C_{L,\mathrm{ref}}+C_{L,f}}$&
+$\frac{C_L}{C_{L,\mathrm{ref}}}$&1&
+$\frac{1}{C_{L,\mathrm{ref}}+C_{L,f}}$&$\frac{1}{C_{L,\mathrm{ref}}}$&0\\
+E4&$\frac{C_L+C_{L,f}}{C_{L,\mathrm{ref}}+C_{L,f}}$&
+$\frac{C_L}{C_{L,\mathrm{ref}}}$&
+$\left(\frac{C_W}{C_{W,\mathrm{ref}}}\right)^\beta$&
+$\frac{1}{C_{L,\mathrm{ref}}+C_{L,f}}$&$\frac{1}{C_{L,\mathrm{ref}}}$&
+$\frac{\beta C_W^{\beta-1}}{C_{W,\mathrm{ref}}^\beta}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent
+この表を直上の6行6列に代入し、各モデルの平衡を代入することで、
+E0--E4それぞれの平衡でのJacobianが定まる。新しい係数記号で行列要素を隠していない。
+特にE0は上二行の炭素列がすべてゼロで、E1は第三列、
+E2は第二行第三列、E3は上二行第三列、E4は加えて第一行第四列が作用する。
+各モデルを区別する結合の位置を、同じ六状態の並びのまま確認できる。
+\end{landscape}
+
+\subsection{E0とE1の枝の安定性}
+E0の正根は片方向結合なので式\eqref{eq:triangular}が使え、
+炭素方向は命題\ref{prop:r0}で安定である。
+水理の湿潤枝は安定、乾燥枝は一不安定方向の鞍点となる。
+
+E1では水理と葉の三状態に戻る必要がある。
+証明のため水貯留に対応する座標$Q_w=c_x\psi_x+c_l\psi_l$へ変換する。
+これは定数分を省いた貯留座標で、炭素を含めた総量ではない。
+正VPD平衡では
+\begin{equation}
+ \left.\frac{\partial\dot Q_w}{\partial \psi_l}\right|_{Q_w,C_L}
+ =Dg_s\left(\frac{\frac{\partial g_x}{\partial\psi_l}}{g_x}-\frac{\frac{\partial g_s}{\partial\psi_l}}{g_s}\right)+2g_x\frac{c_l}{c_x}>0 ,
+\end{equation}
+なぜなら基準通水域で
+$\frac{\partial g_x}{\partial\psi_l}/g_x-\frac{\partial g_s}{\partial\psi_l}/g_s=1/(3+\psi_l)-1/(4+\psi_l)>0$だからである。
+また$\frac{\partial\dot \psi_l}{\partial Q_w}>0$、
+$\frac{\partial\dot\psi_l}{\partial C_L}>0$、
+$\frac{\partial\dot C_L}{\partial \psi_l}>0$で、
+残る非対角成分はゼロである。
+三状態Jacobianは既約Metzler行列となり、その最大実部固有値は単純な実固有値である。
+
+ゼロ固有値とfoldの対応も消去から確かめられる。
+木部水収支と葉炭素収支をゼロにして$\psi_x,\psi_l$を$C_L$で表すと、
+残る式は$g_s[D_1(C_L)-D]/c_l$となる。
+消去に使う微分は$\frac{\partial\dot \psi_x}{\partial \psi_x}<0$、
+$\frac{\partial\dot C_L}{\partial \psi_l}=b_Lp(\frac{\partial g_s}{\partial\psi_l}/g_{s,\max})(1-e^{-qC_L})>0$である。
+右辺の第二・三行を交換してこの二変数を消去すれば、平衡上で
+\begin{equation}
+ \det J_{\mathrm a}
+ =-\frac{\partial\dot \psi_x}{\partial \psi_x}\,\frac{\partial\dot C_L}{\partial \psi_l}\,
+       \frac{g_s}{c_l}D_1'(C_L)
+\end{equation}
+を得る。従ってゼロ固有値条件は$D_1'(C_L)=0$と同値である。
+湿潤端点は安定であり、
+前節の一意な単純foldで最大実部固有値が符号を変える。
+従って高葉量枝は安定、低葉量枝は不安定である。
+安定枝の最初の不安定化はHopfではない。
+木部・根・土壌の受動方向は対角固有値が負である。
+この議論は低葉量枝の不安定性を示すが、
+その全域での不安定固有値の本数までは証明しない。
+記録した標本では一不安定方向だった。
+
+\subsection{E2/E3の有限区間の安定性保証}
+E0--E3では水理二状態と葉炭素の三状態の式が閉じ、
+$C_W$/$C_R$/$C_S$はそこから駆動される。水理を瞬時平衡にしてはいない。
+三状態Jacobianの特性多項式を
+\begin{equation}
+ \lambda^3+a_1\lambda^2+a_2\lambda+a_3
+\end{equation}
+とすれば、全六状態の特性多項式はこれと
+$(\lambda+k_W)(\lambda+k_R)(\lambda+k_S)$の積である。
+Routh--Hurwitz条件
+\begin{equation}\label{eq:hurwitz}
+ a_1>0,\quad a_2>0,\quad a_3>0,\quad a_1a_2-a_3>0
+\end{equation}
+が全系局所安定性の必要十分条件となる。
+
+E2の$C_L\in[0.19,0.30]$を11セル、E3の$C_L\in[0.145,0.30]$を26セルで囲み、
+40桁外向き丸めで式\eqref{eq:hurwitz}と$D'(C_L)<0$を全セルで確認した。
+端点のD区間は$[0.01,0.03]$を外側から覆う。
+これにより、この連続外力区間の当該枝には各Dで一意の安定正平衡が存在する。
+単に多数の節点で固有値を計算した保証とは異なる。
+しかし他の大域枝の非存在、任意の初期値からの収束、時間変化する外力への追従を証明したわけではない。
+圧力換算では約1.01325--3.03975 kPaで、現在の主範囲上限3 kPaを少し超える。
+
+\subsection{Hopfの局所型を調べる理由と方法}
+平衡曲線が存続しても、複素固有値対が虚軸を横断して安定性を失うことがある。
+複素固有値は小摂動が振動しながら変わることを表し、
+その実部の負から正への変化は、振動の減衰から増大への変化に対応する。
+非退化な条件のもとで近くに周期解が生じるのがHopf分岐である。
+E4では木部$C_W$が戻るため、$\psi_x,\psi_l,C_L,C_W$の四状態を残す。
+全特性多項式は厳密に
+\begin{equation}
+ \det(\lambda I_6-J)=(\lambda+k_R)(\lambda+k_S)\det(\lambda I_4-J_4)
+\end{equation}
+と分かれる。
+四次Hurwitz境界と固有値横断だけでは周期解の安定性は決まらないので、
+二階・三階微分から第一Lyapunov係数$l_1$を計算した。
+
+当該三状態または四状態の線形化を$J_{\mathrm a}$、
+二階・三階微分の多重線形形式を$B_2,B_3$とすると、
+標準的な規約\cite{kuznetsov}で
+\begin{align}\label{eq:l1}
+ l_1=\frac{1}{2\omega}\operatorname{Re}\langle p_{\mathrm H},
+ &B_3(q_{\mathrm H},q_{\mathrm H},\bar q_{\mathrm H})
+ -2B_2(q_{\mathrm H},J_{\mathrm a}^{-1}B_2(q_{\mathrm H},\bar q_{\mathrm H}))\nonumber\\
+ &+B_2(\bar q_{\mathrm H},(2i\omega I-J_{\mathrm a})^{-1}
+                B_2(q_{\mathrm H},q_{\mathrm H}))\rangle
+\end{align}
+である。$J_{\mathrm a}q_{\mathrm H}=i\omega q_{\mathrm H}$、
+$J_{\mathrm a}\tr p_{\mathrm H}=-i\omega p_{\mathrm H}$、
+$\langle p_{\mathrm H},q_{\mathrm H}\rangle=1$、$\|q_{\mathrm H}\|_2=1$とした。
+この小節の固有ベクトルは同化上限$p$や光の係数$q$と区別して添字を付けた。
+状態座標は元のMPa・kg C/m$^2$、時間はdayなので、
+$l_1$の大きさは座標と規格化に依存する。局所型を決めるのは符号である。
+
+\begin{table}[tb]
+\centering
+\caption{数値的に検証した基準モデルの局所Hopf。
+傾きはMPa表示の$v$に対するday$^{-1}$\,MPa$^{-1}$。
+E2/E3は25$^\circ$CのVPD域外にある。}\label{tab:hopf}
+\begin{tabular}{lrrrr}
+\toprule
+モデル&$v_{\mathrm H}$ (kPa)&$\omega$ (day$^{-1}$)&$l_1$&$\dd\operatorname{Re}\lambda/\dd v$\\
+\midrule
+E2&15.337756&0.07087325&11.53120&34.5014\\
+E3&4.863191&0.02427262&22.67162&138.5727\\
+E4&2.664753&0.02221939&39.69534&419.8690\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+単純な共役対、非ゼロ周波数、正の横断傾き、正の$l_1$を得た。
+傾きは差分幅$10^{-5},5\times10^{-6}$ MPaの葉ポテンシャル差分、
+高階微分は$10^{-4},5\times10^{-5}$の中央差分でも照合した。
+正$l_1$と正傾きから、安定平衡側に小振幅の不安定周期解があるsubcritical型である。
+これは数値的な非退化性の検証で、Hopf点と$l_1$を囲む区間証明ではない。
+
+25$^\circ$Cの飽和水蒸気圧は約3.167489 kPaで、
+$0\le\mathrm{RH}\le1$なら$v\le e_s(25)$でなければならない。
+E2/E3の局所結果は方程式の形式的高VPD解析として保持し、
+主VPD範囲0--3 kPaでの探索にはE4を優先した。
+温度を上げれば許容VPDは変わるが、光合成・呼吸も変わり得る。
+温度診断だけを変えてこの固定係数Hopfを実際の生理閾値と呼ぶことはできない。
+
+\subsection{周期解の計算と検証}\label{sec:cycles}
+不安定周期解は通常の前進積分では留まり続けない。
+E2/E3では一周後の状態一致条件を解くシューティング法、
+遅い木部方向を持つE4では一周期全体の境界値問題を解くcollocationを用いた。
+いずれも位相と非ゼロ振幅$r_{\mathrm H}$を固定し、平衡への偽収束を除いた。
+$r_{\mathrm H}$は規格化した臨界モードの座標で、炭素量の直接単位ではない。
+受動炭素プールは、一周期の線形移送系の一意な周期応答として復元した。
+従って結果は全六状態の周期解で、受動プールを定数に固定した近似ではない。
+
+\begin{table}[tb]
+\centering
+\caption{E4の小振幅周期解。全てHopfより低いVPDで、径方向Floquet乗数が1を超える。}\label{tab:cycles}
+\begin{tabular}{rrrr}
+\toprule
+$r_{\mathrm H}$&$v$ (kPa)&周期 (day)&径方向乗数\\\midrule
+0.0005&2.664752380&282.790448&1.00012254\\
+0.001&2.664750803&282.823565&1.00046752\\
+0.002&2.664744480&282.956473&1.00163422\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+周期解に沿う変分方程式を積分し、一周期写像の固有値をFloquet乗数として調べた。
+位相の中立乗数1以外に、一つの絶対値1超の乗数、四つの絶対値1未満の乗数を得た。
+表\ref{tab:cycles}の周期解は吸引子ではない。
+E4のcollocation許容誤差$10^{-9}$から$10^{-10}$の細分化で、
+周期差は$1.9\times10^{-7}$ day未満、径方向乗数差は$1.7\times10^{-8}$未満だった。
+独立に解いた一周期の初期値問題（IVP）との差は$1.6\times10^{-11}$未満、
+周期条件の残差は$4.5\times10^{-16}$未満である。
+乗数の1からの差より検証差が小さいことを確かめた。
+E2/E3でも表\ref{tab:cycles23}の各三振幅をシューティング法と細分化で検査した。
+気象範囲の限定は上記のままである。
+振幅0.001の細分化ではD差$5\times10^{-14}$未満、周期差$10^{-9}$ day未満、
+径方向乗数差$3.2\times10^{-9}$未満で、周期条件の残差は$3.0\times10^{-14}$未満だった。
+初期に試した大きい振幅0.01の近似初期値は一周期を完了せず通水域を離れたので、
+大振幅周期解を検証したとは報告しない。
+
+\begin{table}[tb]
+\centering
+\caption{形式的高VPD域のE2/E3周期解。
+示した径方向乗数はいずれも1を超え、周期解は吸引的ではない。}\label{tab:cycles23}
+\begin{tabular}{lrrrr}
+\toprule
+モデル&$r_{\mathrm H}$&$D$ (mol/mol)&周期 (day)&径方向乗数\\\midrule
+E2&0.0005&0.151371828819&88.666222&1.00003626\\
+E2&0.001&0.151371653119&88.703521&1.00014550\\
+E2&0.002&0.151370945026&88.854615&1.00058998\\
+E3&0.0005&0.047995951068&258.915283&1.00007135\\
+E3&0.001&0.047995921556&259.085013&1.00028693\\
+E3&0.002&0.047995802030&259.778013&1.00117323\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{E4の正平衡枝の数値分類と高VPD交差}
+第\ref{sec:scalar}節の単調性からE4の正根は最大一つだが、
+六状態スペクトルは一様に安定ではない。
+$C_L=10^{-9}$から湿潤端点まで561点で調べ、実部の符号変化を精緻化したところ、
+表\ref{tab:hopf}の既知交差に加えて
+\begin{equation}
+ v=4.791823126\ \mathrm{kPa},\quad C_L=3.059248974\times10^{-5}\ \mathrm{kg\,C/m^2},
+ \quad\lambda=\pm0.0007544065\,i\ \mathrm{day}^{-1}
+\end{equation}
+の交差を得た。傾きは約$-4.61443$ day$^{-1}$\,MPa$^{-1}$で、
+その先の極小葉量域に再び局所安定と判定される標本がある。
+臨界対以外の固有値は負で、元ODEの中心有限差分Jacobianを二水準で照合した。
+
+この葉量は$C_{L,\min}$より大きいが、VPDは25$^\circ$Cの飽和を超える形式的値である。
+第二交差の$l_1$と周期解は未計算なので、非線形型を命名しない。
+正葉量域全体の連続安定性証明でもなく、$0<C_L<10^{-9}$のスペクトルを保証していない。
+実部許容値$10^{-10}$/day内の極小固有値は判定保留とし、真のゼロ固有値の証拠にしない。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{spac_carbon/scalar_equilibria_final_v5_20261014/equilibrium_classification.pdf}
+\caption{E0/E1/E4の通水する正炭素平衡の曲線と根数。
+横軸はMPa表示VPD。E4挿入図だけkPa、縦軸は対数葉量で、水平点線は$C_{L,\min}$。
+正根数の開区間と端点値を区別し、安定根数は全Jacobianの数値標本で表示する。
+曲線形状の証明と安定性の数値分類は同じ根拠ではない。
+極小$C_L$での灰色判定は許容値内であることを意味する。}
+\end{figure}
+
+\subsection{七条件の感度：どこまで同じ結論が保たれるか}
+E4の基準条件と六つの事前変更を比較した。
+水容量は$c_x,c_l$を同倍率、木部損失は$k_W$だけを変え、構造参照量は固定した。
+\begin{table}[tb]
+\centering
+\caption{E4の限定感度。複素対横断が必ず安定性喪失を表すとは限らない。}
+\begin{tabular}{lrp{.46\linewidth}}
+\toprule
+変更&交差VPD (kPa)&解釈\\\midrule
+基準&2.664753&数値的subcritical Hopf\\
+容量$\times0.5$&2.664603&同型、主範囲内\\
+容量$\times2$&2.665054&同型、主範囲内\\
+$\beta=0.75$&3.320495&同型、25$^\circ$CのVPD域外\\
+$\beta=1.25$&2.030994&他の実固有値が既に正。安定平衡の喪失ではない\\
+$k_W\times0.5$&3.647514&subcritical型、25$^\circ$CのVPD域外\\
+$k_W\times2$&1.731758&subcritical型、主範囲内\\
+\bottomrule
+\end{tabular}
+\end{table}
+$\beta=1.25$では別途foldを2.128793 kPaで検出した。
+複素対交差位置で実固有値が約$2.11\times10^{-5}$/dayと正なので、
+基準と同じ「安定平衡がHopfで不安定になる」例には数えず、$l_1$や周期解も未評価とした。
+鞍点上のHopfが一般に不可能という意味ではない。
+容量の限定変更には型が保たれたが、
+木部炭素を供給能力へ結ぶ仮説と木部損失は質的構造と気象解釈を変える。
+\evidence{感度表は七条件の局所数値検証であって、一般的な頑健性定理でも較正結果でもない。
+平衡曲線の単調性証明を、変更後の全条件に転用していない。}
+
+\subsection{平衡点の個数に対応する相図}\label{sec:phaseportraits}
+ここで平衡の位置と安定性を実軌道の向きに結び付ける。
+図\ref{fig:phase01}ではE0/E1それぞれについて、正平衡が一つ、
+二つ、foldで重なる一つ、存在しない、という四条件を並べた。
+白丸は小摂動が減る安定平衡、黒いXは増大方向を持つ不安定平衡、
+菱形はゼロ固有値を持つfoldである。
+曲線上の十字が初期値、赤い逆三角が積分下限への退出を表す。
+二根の場合にも二つの安定な植生状態があるわけではなく、
+一方は安定根、他方は鞍点である。
+foldで二根が合流すると、平衡の個数だけでなく近傍の戻り方も変わる。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{papers/manzoni_carbon_capacity_20261015_revised/phases_verified/phase_E0_E1.pdf}
+\caption{固定VPD下のE0（上段）・E1（下段）の相図。
+各列は正平衡が1個、2個、foldの1個、0個となる条件。
+全六状態を積分した軌道の葉水ポテンシャル--葉炭素面への投影であり、
+この二状態だけで閉じるベクトル場ではない。
+マーカーの意味は本文参照。固定VPD値は各パネル上にkPaで示す。}\label{fig:phase01}
+\end{figure}
+
+図\ref{fig:phase234}ではE2/E3の一意な正根を、安定な条件と
+Hopfを越した不安定な条件で比較した。
+E4には同じ二条件に加え正根のない条件を示す。
+「根が一つなら必ずそこへ戻る」という推論が成立しないことを、
+平衡点の印とその近傍の軌道を対応させて読める。
+E2の15.5 kPa、E3の5 kPa、E4の4.9 kPaは25$^\circ$Cの飽和値を超える形式的比較であり、
+実気象のシナリオとして提示しない。
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{papers/manzoni_carbon_capacity_20261015_revised/phases_verified/phase_E2_E3_E4.pdf}
+\caption{E2（上段）、E3（中段）、E4（下段）の投影相図。
+左は安定正根、中央は不安定正根、右下は正根なし。
+一意根の存在と局所吸引性の違いを示す。
+全て固定VPDで、VPDを時間変化させた軌道とは区別する。}\label{fig:phase234}
+\end{figure}
+
+計算は15固定外力条件、14平衡、58初期値で行った。
+各軌道は400年または$C_L=C_{L,\min}$で停止した。
+初期値は各平衡の葉ポテンシャルを$\pm0.015$ MPa、
+葉炭素を$\pm3\%$だけずらしたものと、
+葉ポテンシャル$-0.8,-2.5$ MPa、炭素を基準葉量の0.9、1.1倍にしたものを用いた。
+後者は$C_W=(64/3)C_L,C_R=4C_L,C_S=54C_L$として木部水収支を一致させた。
+平衡のないパネルの基準は$C_L=0.18$の平衡曲線上の炭素量である。
+前者では水理や他炭素を瞬時平衡へ再設定せず、全六式の応答を残した。
+15条件で代表初期値を二水準の許容誤差で再計算し、終了分類と軌道の整合を検査した。
+全初期値・六成分の時系列・平衡座標・残差・固有値は再現記録に保存した。
+新しい相図の炭素表記は本文と同じ$C_L$である。
+
+これらは二次元に見えても六次元の投影である。
+異なる木部炭素や木部ポテンシャルを持つ軌道が投影上で交わることはあり、
+二次元自律系の軌道の非交差性をこの図に適用してはならない。
+また「正平衡0個」は全平衡0個を意味しない。
+第\ref{sec:shutdown}節のゼロ炭素・非通水の連続集合は別に数える。
+限られた軌道の間を塗り分けて大域的吸引域と呼ぶこともせず、
+数値退出を死亡状態への収束と読み替えない。
+
+\section{capacityと実際の貯留を区別する}\label{sec:capacity}
+\subsection{写像、条件付き平衡、全平衡}
+式\eqref{eq:matrix}について
+\begin{equation}\label{eq:capacity}
+ K(y,v)=-M^{-1}bA(y),\qquad
+ P=K-C=-M^{-1}\dot C,\qquad \dot C=M(C-K)
+\end{equation}
+と定義する。$K$は四成分のcarbon storage capacity、
+$P$はcarbon storage potentialで、両者の単位はkg C/m$^2$である。
+現在のモデルの$M$は固定、$A$にもVPDの直接依存はないが、
+水理との関係を明示するため$K(y,v)$と記す。
+
+固定入力とHurwitz行列なら$K$は一意な吸引平衡である。
+状態依存入力の場合でも式\eqref{eq:capacity}は恒等式だが、
+$K$を計算することと$C=K$を解くことは異なる。
+水理を固定した条件付き炭素根は第\ref{sec:r0}節で分類される。
+全結合平衡にはさらに$\dot\psi_x=\dot\psi_l=0$が必要である。
+全平衡では安定・不安定にかかわらず
+\begin{equation}
+ K(y^*,v)=C^*=(C_L^*,(64/3)C_L^*,4C_L^*,54C_L^*)\tr
+\end{equation}
+となる。E0/E1の二根域では同じVPDに二つの自己整合的候補があるが、
+瞬間写像$K$が多価になるわけでも、二つの安定貯留先があるわけでもない。
+E4では一意候補でも全系の局所安定性が変わる。
+
+一般の状態依存$M$についても、平衡で微分すれば
+\begin{equation}
+ J_{CC,*}=M_*[I-D_CK|_*]
+\end{equation}
+となる。固定$M$なら非平衡でも対応する恒等式がある。
+$M$がHurwitzという事実だけでは$J_{CC}$、まして全$J$がHurwitzとは言えない。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{presentation_1016/verified_b827521_20261014_v4/04_capacity_branches.pdf}
+\caption{各正平衡に対応するcapacity。
+葉・木部・根・土壌、総量、四成分のEuclideanノルムを示す。
+横軸はkPa。実線は全六状態の局所安定、破線は不安定、灰色は固有値許容値内。
+縦点線はE4の主範囲Hopf、陰影は25$^\circ$Cの飽和を超える形式的域。
+不安定枝でも$K=C^*$であることと、そこへの収束は別の主張である。}
+\end{figure}
+
+\subsection{炭素だけの停止、総量一致、全系の停止}
+反例として$v=2$ kPa、
+$(\psi_x,\psi_l)=(-0.8,-1.2)$ MPa、
+炭素を$\psi_l$に条件付けた正根に置いた。
+E4で$P=0$かつ炭素RHSは丸め誤差程度でも、
+固定尺度での水理RHSノルムは約3.0961 day$^{-1}$だった。
+炭素が止まる状態から水理は動き、後続のKも変わり得る。
+
+同じ例で$C_W$を0.05増やし$C_R$を0.05減らすと、$C_L$は同じでKは変わらない。
+$\sum_iP_i$は約$2.2\times10^{-16}$ kg C/m$^2$なのに、
+尺度付き$\|P\|$は0.042650、水理RHSノルムは3.1527 day$^{-1}$となる。
+総capacityと総貯留が一致しても、各プール収支は止まらない。
+これはプール間の相殺であり、総量の一致を平衡の検査に代用できない。
+
+混合単位の距離は固定尺度
+\begin{equation}\label{eq:scale}
+ \Sigma=\diag(1,1,0.2981897048,6.361380369,1.192758819,16.10224406)
+\end{equation}
+で無次元化した。最初の二尺度はMPa、残りはkg C/m$^2$である。
+炭素だけではその下四成分を$\Sigma_C$として用いる。
+図の生炭素ノルムとこの尺度付きノルムを区別し、動く平衡に合わせて尺度を更新しない。
+
+\subsection{potentialノルムは一般のLyapunov関数ではない}
+固定VPDで式\eqref{eq:capacity}を時間微分すると
+\begin{equation}
+ \dot P=D_yK\,\dot y-\dot C
+\end{equation}
+となり、$\dd\|P\|^2/\dd t$の符号は一般には定まらない。
+別の正炭素スカラー例$\dot X=k(K(X)-X)$では
+\begin{equation}
+ \frac{\dd}{\dd t}\frac{P^2}{2}=k(K'(X)-1)P^2
+\end{equation}
+だから$K'>1$なら増える。これは解析的な反例である。
+
+E4の$r_{\mathrm H}=0.001$周期解でも数値的に検査した。
+周期約282.8236 day、VPD約2.664750803 kPaで、
+$\|\Sigma_C^{-1}P\|$は約$1.11\times10^{-5}$から$2.85\times10^{-4}$を往復し、
+その二乗半分の時間微分は約
+$-9.11\times10^{-10}$から$9.09\times10^{-10}$/dayと両符号を取った。
+独立IVPと許容誤差細分化でも一致した。
+従って正領域全体でPノルムが単調に減るという解釈は、この数値軌道でも成り立たない。
+局所吸引域に別のLyapunov関数が存在しないという意味ではなく、
+不安定周期解を非平衡の吸引集合として示したわけでもない。
+
+固定VPD2.4 kPaの安定E4根から葉ポテンシャルを$-0.02$ MPa、
+葉炭素を$-5\%$、木部を$-1\%$ずらした20年の別実験では、
+瞬間K、条件付き炭素根、全平衡、実ストックが異なる動きを示した。
+20年の全状態誤差は約0.00598で、
+Pが減る間にも全状態誤差が緩やかに増える区間があった。
+この結果は回復判定に全状態距離と全系残差が必要なことを示す有限過渡の診断である。
+
+\section{非通水状態とcapacity消失の命題}\label{sec:shutdown}
+\subsection{気孔閉鎖と両コンダクタンスの閉鎖}
+\begin{proposition}\label{prop:gs}
+$g_s=0$なら現在の正炭素量に関係なく$A=0,\ K=0$である。
+\end{proposition}
+\begin{proof}
+$h=g_s/g_{s,\max}=0$より式\eqref{eq:gpp}の$A=0$、
+式\eqref{eq:capacity}の$K=-M^{-1}0=0$となる。
+\end{proof}
+この時点でCがゼロとは限らず、$\dot C=MC$は一般にゼロでない。
+また形質の順序によっては気孔閉鎖時に木部が開いているので、
+気孔閉鎖だけから水理全体の停止を結論しない。
+
+\begin{proposition}\label{prop:closed}
+両コンダクタンス閉鎖域
+$\psi_l\le\min(2\psi_{50,x},2\psi_{50,s})$は、正葉量で式が定義される間、前向き不変である。
+係数固定なら水ポテンシャルは不変、Kは直ちにゼロ、Cは漸近的にゼロへ向かう。
+\end{proposition}
+\begin{proof}
+式\eqref{eq:structural}の三流束がすべてゼロだから水理状態は動かず、
+閉鎖域から出ない。炭素は式\eqref{eq:variation}の入力ゼロの場合で、
+$C(t)=e^{Mt}C(0)\to0$となる。
+Metzler性と各プールの損失率の有限性から、正の初期ストックは有限時刻では正である。
+\end{proof}
+入力が再び生じるなら命題の持続条件を満たさない。
+Kの即時消失と炭素の遅い減衰は別の時間現象である。
+
+\subsection{木部だけの閉鎖}
+\begin{proposition}\label{prop:gx}
+基準unsafe設定、非負固定VPDでは木部閉鎖域$\psi_l\le-3$ MPaは前向き不変である。
+この域の正炭素状態では
+\begin{equation}\label{eq:sigma}
+ C_L(t)\le C_L(t_0)e^{-\sigma(t-t_0)},\qquad
+ \sigma=k_L-\frac{b_Lpq}{4}=0.35/\mathrm{year}>0,
+\end{equation}
+で、$A,K,C\to0$となる。ただし$-4<\psi_l\le-3$では瞬間のAとKは正になり得る。
+\end{proposition}
+\begin{proof}
+$g_x=0$より$\dot\psi_x=0$、
+$c_l\dot\psi_l=-g_sF_ED\le0$だから閉木部域は不変である。
+そこでは$0\le h\le1/4$で、
+$1-e^{-qC_L}\le qC_L$から$\dot C_L\le(b_Lpq/4-k_L)C_L=-\sigma C_L$を得る。
+従って$A\le pqC_L/4\to0$、Kもゼロへ向かう。
+残る三炭素プールは消失入力を受けるHurwitz移送系だから、式\eqref{eq:variation}の評価でゼロへ向かう。
+\end{proof}
+$\mathcal R_0\le(1/4)/(4/9)=0.5625<1$という基準係数の条件が重要である。
+木部閉鎖なら任意の同化・損失設定で必ず炭素が消えるという定理ではない。
+
+\begin{proposition}\label{prop:hpositive}
+基準E4の閉木部域で$h(t_0)>0$、固定有限Dなら、
+正葉量方程式の長期極限では$h(\infty)>0$であっても$C,K\to0$が成立する。
+\end{proposition}
+\begin{proof}
+気孔の線形部分で$h=1+\psi_l/4$、$F_E=C_L/C_{L,\mathrm{ref}}$なので
+\begin{equation}
+ \dot h=-\frac{g_{s,\max}D}{4c_lC_{L,\mathrm{ref}}}Lh,\qquad
+ h(t)=h(t_0)\exp\left[-\frac{g_{s,\max}D}{4c_lC_{L,\mathrm{ref}}}
+                                  \int_{t_0}^t C_L(s)\dd s\right].
+\end{equation}
+命題\ref{prop:gx}から$\int_{t_0}^\infty C_L(s)\dd s\le C_L(t_0)/\sigma<\infty$なので、
+hの極限は正である。同じ命題からCとKはゼロへ向かう。
+\end{proof}
+E0/E1は$F_E=1$なので固定$D>0$ではhが指数的にゼロへ向かう。
+正hから有限時間で厳密な気孔ゼロへ到達するという主張ではない。
+E4では葉量減少が蒸散を弱めるため、完全気孔閉鎖が炭素消失の必要条件にならない。
+これは正葉量方程式を任意有限時刻で考えた形式的ODE極限で、
+数値積分が退出後の全系を継続したことや、死亡・再生レジームを実装したことを意味しない。
+
+\subsection{変数消去で除外したゼロ炭素と非通水平衡}
+正根を求める際は$C_L>0$で割ったので、ゼロ根を別に戻す必要がある。
+基準根境界0、固定$D>0$の形式的な六成分表示は
+\begin{align}
+\mathrm{E0}:\quad&
+\begin{pmatrix}\psi_l^*/2\\\psi_l^*\\0\\0\\0\\0\end{pmatrix},
+&&g_x(\psi_l^*)(-\psi_l^*)=g_s(\psi_l^*)D,\quad g_x,g_s>0,\\
+\mathrm{E1}:\quad&
+\begin{pmatrix}
+\frac{C_{L,f}}{C_{L,\mathrm{ref}}+2C_{L,f}}\psi_l^*\\
+\psi_l^*\\0\\0\\0\\0
+\end{pmatrix},
+&&\frac{2g_x(\psi_l^*)C_{L,f}}{C_{L,\mathrm{ref}}+2C_{L,f}}(-\psi_l^*)
+=g_s(\psi_l^*)D,\quad g_x,g_s>0,\\
+\mathrm{E2/E3}:\quad&
+\begin{pmatrix}0\\0\\0\\0\\0\\0\end{pmatrix}
+\ \text{または}\
+\begin{pmatrix}\psi_x\\\psi_l\\0\\0\\0\\0\end{pmatrix},
+&&\psi_l\le-3,\quad\psi_x\le0,\\
+\mathrm{E4}:\quad&
+\begin{pmatrix}\psi_l\\\psi_l\\0\\0\\0\\0\end{pmatrix},\quad\psi_l\le0,
+\quad\text{または}\
+\begin{pmatrix}\psi_x\\\psi_l\\0\\0\\0\\0\end{pmatrix},
+&&\psi_l\le-3,\quad\psi_x\le0 .
+\end{align}
+E0/E1にはさらに$\psi_l\le-4,\psi_x\le0$の両閉鎖集合
+$(\psi_x,\psi_l,0,0,0,0)\tr$がある。
+従って全平衡の総数は、孤立した正根数の表だけでは数えられず、
+連続集合を含む場合には有限個という表現そのものが適切でない。
+E0/E1の上二式は元の区分線形水理と同じ二次方程式なので、
+通水域の条件で選別した二次根をそれぞれ代入する。
+ゼロ炭素・一定水理容量という延長は無葉状態の生理モデルではない。
+
+$C=0$を代数的に延長して考えると、E0/E1ではDが正でも通水する水理平衡が残り得る。
+このとき葉平衡は恒等的にゼロなので、式\eqref{eq:hL}を課さない。
+E1の$F_L=C_{L,f}/(C_{L,\mathrm{ref}}+C_{L,f})$を式\eqref{eq:series}へ入れ、
+水理だけの平衡条件を解く。これとは別に$\psi_l\le-4$、任意の$\psi_x\le0$の両閉鎖集合がある。
+$D=0$では湿潤点と$\psi_l\le-3$の木部閉鎖集合となる。
+
+基準E4のゼロ炭素では$F_W=F_E=0,\ F_L>0$で、
+残る水理平衡条件は$g_xF_L(\psi_x-\psi_l)=0$である。
+$g_x>0$なら$\psi_x=\psi_l\le0$、$g_x=0$なら任意の$\psi_x\le0,\psi_l\le-3$となる。
+コンダクタンスが正でも構造・面積倍率ゼロのため流束が消える場合がある。
+これらは非孤立集合で、単一VPDだけに存在する孤立した死亡後の安定平衡ではない。
+現行の正葉量APIにゼロを代入して求めた全系根でもない。
+
+$\psi_l=-3,-4$は滑らかなJacobianが未定義の折れ点である。
+基準$\mathcal R_0$条件ではそこに正炭素平衡はなく、
+軌道が厳密に折れ点と一致する標本では流束・K・Cのみを計算し、
+Jacobian未定義と記録する。微小にポテンシャルをずらして通常固有値を捏造しない。
+
+\section{固定VPDでの代表初期値実験}\label{sec:fixed}
+\subsection{条件と検査量}
+E0が通水する正炭素平衡を二つ持つ$v=2.44$ kPaを選び、E4と比較した。
+このVPDではE4に安定な正根が一つあり、E1には正根がない。
+各モデル自身の安定正根の炭素を基にし、初期$\psi_l=-1.5,-2.5,-4.2$ MPaを比較した。
+別途$\psi_l=-3.5$ MPa、$C_L=2C_{L,\min}$、
+$(C_W,C_R,C_S)=((64/3)C_L,4C_L,54C_L)$の小葉量例を置いた。
+木部ポテンシャルは
+$\psi_x=(F_W\psi_r+F_L\psi_l)/(F_W+F_L)$とし、
+初期木部水収支をゼロにした。初期葉水収支までゼロという意味ではない。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{固定2.44 kPaの初期状態。水理はMPa、炭素はkg C/m$^2$。
+丸め前のベクトルは再現JSONの\code{outcomes.initial}に保存。}\label{tab:initial}
+\begin{tabular}{llrrrrrr}
+\toprule
+モデル&条件&$\psi_x$&$\psi_l$&$C_L$&$C_W$&$C_R$&$C_S$\\\midrule
+E0&湿潤&$-0.75000$&$-1.5$&0.082112&1.75172&0.32845&4.43403\\
+E0&乾燥&$-1.25000$&$-2.5$&0.082112&1.75172&0.32845&4.43403\\
+E0&両閉鎖&$-2.10000$&$-4.2$&0.082112&1.75172&0.32845&4.43403\\
+E4&湿潤&$-0.77078$&$-1.5$&0.108194&2.30814&0.43278&5.84247\\
+E4&乾燥&$-1.28463$&$-2.5$&0.108194&2.30814&0.43278&5.84247\\
+E4&両閉鎖&$-2.15817$&$-4.2$&0.108194&2.30814&0.43278&5.84247\\
+\bottomrule
+\end{tabular}
+\par\smallskip
+小葉量例は両モデルで$(C_L,C_W,C_R,C_S)=(2,42.6667,8,108)\times10^{-6}$。
+$\psi_x$はE0で$-1.75$、E4で$-3.499276819$ MPa、$\psi_l=-3.5$ MPa。
+\end{table}
+
+log炭素座標でRadauを使い、最大100年または$C_L=C_{L,\min}$のイベントで停止した。
+$rtol=10^{-9},10^{-10}$、$atol=0.01\,rtol$の二水準で比較した。
+退出条件は状態の置換・床ではなく積分停止で、炭素量を人工的な下限へ切り上げない。
+比較したのは$g_x,g_s,A,K,C,C_L$で、図\ref{fig:shutdown}のK/Cノルムは
+生の四炭素成分のEuclideanノルムである。
+水・炭素を混ぜた無次元の全状態距離とは異なる。
+
+\subsection{結果と命題への対応}
+\begin{table}[htbp]
+\centering
+\caption{固定VPD実験の有限時間結果。退出は死亡ではない。
+距離は固定尺度による全状態距離、$g_s$はm水/day。}\label{tab:fixedresults}
+\begin{tabular}{lp{.32\linewidth}p{.32\linewidth}}
+\toprule
+初期条件&E0&E4\\\midrule
+湿潤&100年完了。\newline 距離\mbox{$1.09\times10^{-6}$}&100年完了。\newline 距離\mbox{$4.10\times10^{-6}$}\\
+乾燥&14.1459年で$C_{L,\min}$退出&14.4926年で退出\\
+両閉鎖&14.1448年で退出、水理不変&14.4896年で退出、水理不変\\
+木部閉鎖・小葉量&0.866706年で退出&1.203894年で退出。\newline 終了時\mbox{$g_s=0.05839736$}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+両閉鎖では命題\ref{prop:closed}どおりKは初期からゼロで、
+Cの数値解は$e^{Mt}C(0)$に一致した。
+退出後の破線は両閉鎖例だけにこの炭素線形部分を解析的に延長したもので、
+全水理--炭素の退出後積分ではない。
+乾燥初期値や木部だけ閉鎖の例には、なお同化入力があるので同じ線形延長を適用しない。
+
+E4の小葉量例の正$g_s$は命題\ref{prop:hpositive}の機構と整合する。
+終了時GPPも約$2.04\times10^{-9}$ kg C/m$^2$/dayと正である。
+乾燥E4例の終了時$g_s\simeq3.86\times10^{-12}$は、厳密ゼロではない。
+E0の数値標本で得られる$g_s=0$も、極小開度の丸め等を含むため、
+正開度から有限時刻で完全閉鎖する証拠にしない。
+同化不足による葉量減少と完全閉鎖による入力停止を区別する。
+
+許容誤差細分化で終端の分類は変わらず、
+共通時刻での最大尺度付き状態差は約$1.61\times10^{-9}$だった。
+湿潤例の100年の接近は、局所安定な根への回復と整合する数値例である。
+この八初期値だけから大域吸引域を確定せず、
+退出側の長期吸引先も、現在の積分域外なので決めない。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{presentation_1016/verified_b827521_20261014_v4/05_shutdown_vs_stock.pdf}
+\caption{固定VPD2.44 kPaの八初期値。上段E0、下段E4。
+コンダクタンス、GPP、K/Cノルム、葉量を同時に比較する。
+時間、GPP、ノルムはゼロを保持するsymlog軸、葉量は対数軸。
+数値線は$C_{L,\min}$で停止し、点で退出を示す。
+破線は両閉鎖例だけの炭素解析解で、全系の退出後シミュレーションではない。
+小葉量のE4で正の気孔開度・GPPが残ることと、葉量減少を読み分ける。}\label{fig:shutdown}
+\end{figure}
+\evidence{KゼロとC減衰の関係は命題に基づく。
+表\ref{tab:fixedresults}の接近・退出時刻・終了時値は定義域内の数値結果である。
+$C_{L,\min}$は合成の計算下限であり、退出を生理的死亡、ゼロ炭素、別吸引子への到達と解釈しない。}
+
+\section{外力変化への追従と局所境界の検査}\label{sec:tracking}
+\subsection{初期値断面と構造係数の比較}
+初期の双方向計算ではE1、$D=0.01$に正の安定根と鞍点が共存した。
+初期$\psi_l\in[-2.4,-0.6]$ MPaと$C_L\in[0.2,1.2]C_{L,\mathrm{ref}}$の
+$6\times6$断面で、$C_W$/$C_R$/$C_S$を基準量に固定し、木部水収支を一致させて積分した。
+500年保持で30点は湿潤根へ接近、六点は$C_{L,\min}$を退出した。
+これは六状態空間の二方向を変えた数値断面であり、全吸引域やその境界の証明ではない。
+
+さらに54条件に限定した構造感度を調べた。
+フィードバック強さ、根境界、$C_{L,f}$、固定参照量、木部指数を変更した。
+根境界を$0,-0.2,-0.5$ MPaへ乾燥させるとE1のfoldは
+$D=0.015266,0.012972,0.009805$へ動いた。
+E3の$C_{L,f}=0.001,0.01,0.05$では振動的境界候補が
+$D=0.04265,0.04800,0.06653$へ動き、
+E4の$\beta=2$では$D=0.015192$のfoldを検出した。
+これは指定範囲の数値結果である。
+その後の第\ref{sec:stability}節の基本局所解析と七感度が、
+一部の候補の非線形型と気象範囲をより詳しく確認した。
+単一シナリオのfold方向や閾値を一般の生理法則にはしない。
+
+\subsection{過去のE2/E3速度比較と、その限定}
+初期の双方向実験は$D=0.01$から0.03までを
+10日または10年のsmoothstepで進め、最終外力を500年保持した。
+E0/E1は途中でfoldを越すため両速度で退出した。
+E2/E3は10日では約15.776年で退出、
+10年では最終正平衡へ接近し、全状態相対距離は約$2.7\times10^{-9},5.1\times10^{-9}$だった。
+E2/E3の当該枝の連続安定性は、その後の第\ref{sec:stability}節の区間計算で確認された。
+それでも、退出後に別の吸引先を定義・検証していないため、SPAC系の真の$C_R$-tippingとは呼ばない。
+
+この経路の圧力換算は1.01325から3.03975 kPaである。
+終点は現在の主解析上限3 kPaを少し超えるが、25$^\circ$Cの飽和値より低い。
+後のE4の終点・保持期間・回復判定とは異なるので、同じ実験として結合しない。
+また速いE3で$C_{L,\min}=10^{-5},10^{-6},10^{-7}$に替えると、
+退出時刻は約12.898、15.776、18.654年となった。
+退出時総炭素は約14.44 kg C/m$^2$で、葉量下限と全ストックゼロは明確に異なる。
+
+別にE2では、根0、$\psi_x\in[-0.9,0]$、
+$\psi_l\in[-1.8,0]$、$C_L\in[0.08849505,0.38404009]$の箱で
+全境界の内向き条件を評価した。
+$D(t)\le0.01859886673$なら外力変化速度に関係なくこの箱を出ない十分条件を得た。
+これは閉鎖・葉量退出を防ぐ不変領域の結果であり、
+箱内の全軌道が一平衡へ収束する定理ではない。
+0.03へ上げた比較はこの十分条件の範囲外で、矛盾しない。
+
+\subsection{平衡が動くことによる誤差項}
+外力固定の全平衡を$y_*(v)$、六状態の右辺を$F(y,v)$と書く。
+滑らかな枝でJが可逆なら
+\begin{equation}
+ F(y_*(v),v)=0,\qquad
+ J_*y_*'(v)+F_v=0,\qquad y_*'=-J_*^{-1}F_v .
+\end{equation}
+VPDに直接依存するのは葉水理式だけなので
+$F_v=(0,-g_sF_E/(c_lp_{\mathrm{atm}}),0,0,0,0)\tr$である。
+実軌道との差$e=y-y_*(v(t))$は
+\begin{equation}\label{eq:tracking}
+ \dot e=J_*e-y_*'\dot v+N(e,v),\qquad N(e,v)=O(\|e\|^2)
+\end{equation}
+を満たす。外力を固定したJacobianが安定でも、動く目標の項$-y_*'\dot v$が誤差を作る。
+foldで特異Jを無理に反転しない。
+
+固定尺度で$A_*=\Sigma^{-1}J_*\Sigma$とする。
+全固有値実部が負でも、非正規行列なら$\|e^{A_*t}\|_2$は一時増大し得る。
+E4の41固定外力標本と35時刻におけるこのノルムの最大値は、
+乾燥側で約1.17から163.63へ増えた。
+これは線形化・固定尺度・標本時刻の診断であり、
+実際の有限摂動が163倍になるという結果でも時変系の一様上界でもない。
+
+時変のLyapunov計量も調べた。
+$A_*\tr Q+QA_*=-I$、$Q>0$を満たすQで
+$\epsilon=\Sigma^{-1}e$、$g=\Sigma^{-1}y_*'\dot v$と書くと、
+線形誤差について
+\begin{equation}
+ \frac{\dd}{\dd t}(\epsilon\tr Q\epsilon)
+ =\epsilon\tr[-I+Q_v\dot v]\epsilon-2\epsilon\tr Qg .
+\end{equation}
+$Q_v\dot v$を省いて固定外力での安定性から時変系の収縮を結論しない。
+仮に経路全体で
+$I-Q_v\dot v\succeq\mu I$、$\mu>0$、
+$q_{\min}I\preceq Q\preceq q_{\max}I$、
+$\|Q^{1/2}g\|\le G_Q$が一様なら、
+$z=(\epsilon\tr Q\epsilon)^{1/2}$に対して
+\begin{equation}
+ \dot z\le-\frac{\mu}{2q_{\max}}z+G_Q,\qquad
+ \|\epsilon\|\le z/\sqrt{q_{\min}}
+\end{equation}
+を得る。非線形系にはさらにNの評価と正領域保持が必要である。
+後述の六経路では41時刻の標本でこの十分条件が全て失敗した。
+保証できないという結果であって、必要条件が失敗したとか必ず退出するとは言わない。
+
+\subsection{E4の六経路と小振幅対照}
+初期値を$v=1.01325$ kPaの全系正平衡に置き、
+終点2.4または2.66 kPaへ10日・10年・100年で変化させ、
+各終点を300年保持した。
+経路は$v=v_0+(v_1-v_0)s^2(3-2s)$、$s=t/T$で、開始と終了の傾きはゼロである。
+形と端点を揃え、速度だけを変えた。
+全経路は現在の主範囲内で、終点はE4のHopfより低い。
+宣言枝の41点で局所安定を確認したが、このE4枝の連続区間保証はしていない。
+
+\begin{table}[tb]
+\centering
+\caption{E4の六経路。最終誤差は固定尺度の全状態距離。
+退出行は退出時値で、300年保持後ではない。}\label{tab:ramps}
+\begin{tabular}{rrlr}
+\toprule
+終点 (kPa)&変化期間&結果&最終誤差\\\midrule
+2.4&10日&正領域保持、回復判定未解決&0.007384\\
+2.4&10年&同上&0.006873\\
+2.4&100年&同上&0.003943\\
+2.66&10日&開始約15.78年で$C_{L,\min}$退出&2.1196\\
+2.66&10年&正領域保持、回復判定未解決&0.082289\\
+2.66&100年&同上&0.062937\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+回復近傍の判定は、最後の保持30年を30標本以上で調べ、
+全状態誤差$10^{-4}$未満、全系残差$10^{-7}$/day未満が全標本で成立することとした。
+積分完了五例はこの基準を満たさなかった。
+「速いと退出、遅いと有限期間は正領域」という差は確認できるが、
+遅い経路を無条件に回復完了とはしない。
+初期値も条件も異なる第\ref{sec:fixed}節の100年結果と、この判定を混ぜない。
+
+大経路に式\eqref{eq:tracking}の線形予測を用いると差が大きく、
+2.66 kPaへの10日例では尺度付き約13.56に達した。
+線形誤差式自体は正炭素領域を保持する生理モデルではなく、退出判定の代用にはならない。
+一方、2.4 kPaから$10^{-6}$または$5\times10^{-7}$ MPaだけ動かす10日対照では、
+100年軌道の線形近似との差が約$8.97\times10^{-7}$から$2.24\times10^{-7}$へ減り、
+比は4.006だった。これはTaylor余剰の二次性と実装を検査する小振幅実験で、
+大経路への外挿を許す結果ではない。
+
+\subsection{周期軌道近傍のPoincaré断面}
+表\ref{tab:cycles}の$r_{\mathrm H}=0.002$を用い、
+位相のずれを除くため周期軌道の基点を通る断面への帰還を計算した。
+対象VPDは2.664744480 kPaで、表\ref{tab:ramps}の終点2.66 kPaとは違う。
+この周期軌道がその退出を分けると結論しない。
+
+固定尺度の四状態で基点の流れをf、単位法線をn、
+断面の直交基底をU、一周期の変分行列を$\Phi$とすると帰還微分は
+\begin{equation}
+ DP_{\mathrm{sec}}=
+ U\tr\left(I-\frac{fn\tr}{n\tr f}\right)\Phi U
+\end{equation}
+である。位相方向の乗数1を除き、三次元帰還写像として調べる。
+独立に解いた状態・変分の初期値問題と、正向きに断面を再通過する時刻から評価した。
+横断乗数は約$1.00163418,\ 0.99355364$と強安定のゼロ近傍値だった。
+最後を厳密なゼロ固有値とはしない。
+
+左不安定固有ベクトル$w_u$と断面座標$\xi$について、
+$w_u\tr\xi=0$が局所安定多様体の接平面である。
+右不安定方向の$-2\times10^{-7},0,2\times10^{-7}$と、
+遅い安定方向の$-2\times10^{-8},0,2\times10^{-8}$を組み合わせた九点で非線形一帰還を調べた。
+不安定座標は両側で小さく増大し、安定方向は予測と整合して収縮した。
+中央差分幅$5\times10^{-7}$から$2\times10^{-7}$で帰還微分差は
+$2.74\times10^{-5}$から$4.58\times10^{-6}$へ減った。
+精緻化による乗数差は約$2.2\times10^{-11}$、
+非線形帰還差は$5\times10^{-13}$以下だった。
+
+全六状態では位相を含む安定多様体は五次元、余次元1である。
+しかし接平面は非線形多様体そのものではなく、
+接平面上の点が真の多様体上とは限らない。
+局所近傍を離れることも、葉量退出や別吸引先への移行とは異なる。
+径方向の線形e-folding時間$T/\log|\rho_u|$は、
+$r_{\mathrm H}=0.001$で約1657年、0.002で約474年だった。
+数十年・数百年の見かけ上の滞在を吸引性と誤認する危険がある。
+これらは局所増大時間で、退出までの所要時間ではない。
+
+\subsection{比較用の数学モデル}
+SPAC系の結果の解釈を検査する別例として、
+\begin{equation}
+ \dot X=-0.005(X-1)(X-3-4\lambda)(X-5-5\lambda)
+\end{equation}
+を使った。時間はyear、炭素単位は任意で、$\lambda\in[0,1]$の線形変化である。
+固定外力では低位根1と高位根$5+5\lambda$が安定、間の$3+4\lambda$が不安定で、
+全経路に二つの正の安定先が存在する。
+初期高位根5から$\lambda$を20年で動かすと低位へ、
+120年で動かすと高位へ移った。各終点を300年保持して分類した。
+これは別の既知数学ベンチマークの枝間速度遷移で、植物水理の実証ではない。
+
+線形周期外力$\dot X=k(K(t)-X)$にも、瞬間Kから位相遅れする一意の周期応答がある。
+例えば$K(t)=K_0+B\sin(\omega t)$なら定常応答は
+\begin{equation}
+ X_{\mathrm{per}}(t)=K_0+
+ \frac{kB}{\sqrt{k^2+\omega^2}}\sin\left(\omega t-\arctan\frac{\omega}{k}\right).
+\end{equation}
+これは一般の線形式からの導出である。
+比較計算では$k=1$/year、$K_0=5$、$B=2$、$\omega=2\pi$/yearとし、
+0--3年の401時刻に瞬間capacityとこの厳密応答を表にした。
+振幅は2から約0.3144へ減り、位相は約1.413 rad遅れる。
+これは数値積分の新たな周期解検出ではなく、既知の厳密応答を用いた比較である。
+外力が周期的な非自律吸引軌道を、自律E4の安定周期解発見と呼ばない。
+\evidence{追従誤差式と位相除去式は解析的導出である。
+六経路、九局所点、線形化精度は限定した数値検証。
+周期軌道の大域安定多様体と回復・退出境界の一致、E4の別吸引子、
+真の$C_R$-tippingは未検証である。}
+
+\section{考察}
+\subsection{capacityが表す量と、長期予測に必要な条件}
+本研究の区別は四段階である。
+第一に、Mが可逆なら現在の入力からKを計算できる。
+第二に、全平衡候補には$C=K$と水理平衡が同時に必要である。
+第三に、その候補が吸引的かは全結合Jacobianで調べる。
+第四に、与えた初期値と外力経路から実際に到達・追従するかを調べる。
+E0/E1の複数根、E4の一意根の不安定化、Pゼロで水理が動く例、
+KゼロでCが残る例はそれぞれ異なる段階への反例である。
+
+固定線形系の式$\dot C=M(C-K)$が成立することだけを根拠に、
+動く非線形Kへ全炭素が常に近づくと推論できない。
+一方、capacityの定義が無意味になったわけでもない。
+閉鎖時にKの値がゼロになること、
+正の自己整合的候補がfoldでなくなること、
+候補は残っても不安定になることは区別して述べる必要がある。
+
+\subsection{解析と数値を使い分けた理由}
+平衡条件は代数的に消去できるため、まず式の構造を調べた。
+凹型の葉生産は条件付き炭素根の一意性を与え、
+区分線形コンダクタンスは平衡曲線の明示式を与える。
+その結果、現在の主要三モデルでは根数は全域の形状から分類でき、
+多初期値の根探索や節点走査だけに依存しなくなった。
+
+しかし平衡条件の消去は、過渡の自由度を消すものではない。
+木部の遅い応答が戻るE4では全Jacobianと高階微分が必要だった。
+周期解の局所型、Floquet乗数、実軌道の有限時間帰結は、
+式の形状分類だけでは結論できず、数値手法を選んだ。
+そこで残差、独立差分、異なる周期計算法、許容誤差細分化を照合した。
+数値手法を使ったこと自体を非線形解析の新規性や「フロンティア」とはしない。
+困難で未解決なのは、局所構造と大域帰結の接続、非自律追従の一様保証、
+および退出後の生理的意味である。
+
+\subsection{水理閉鎖、炭素消失、死亡の違い}
+原著水理は、給水と蒸散が両方消える退化集合を持つ。
+炭素を接続すると入力停止後の残存ストックの減衰を記述できるが、
+退化集合を孤立した死亡吸引点へ変換したわけではない。
+木部だけ閉じる場合にはさらに、気孔開度が正でも同化維持に不足する。
+E4では葉量低下が蒸散を弱め、開度を正に残す機構がある。
+完全気孔閉鎖だけを炭素消失の指標にすると、この機構を見落とす。
+
+生理的な死亡・再生には、少なくとも組織量と水貯留の整合、
+無葉状態でのポテンシャルの意味、残留輸送、再生入力を定める必要がある。
+それを恣意的な床や閾値で加えて、$C_R$-tippingを成立させることはしていない。
+今後の大域境界解析も、まず同一VPDで局所周期軌道と帰結を比較し、
+計算期間内の未解決を明示すべきである。
+係数の実測根拠と文献比較は、一般的な生態学的・数学的新規性の主張に先立って必要である。
+
+\subsection{複数の平衡点をどう解釈するか}
+非線形系のcapacityを一つの「最終的に満たされる貯留量」と読むことは、
+平衡点が複数になった時点で条件付きの主張になる。
+まず固定した環境で全収支を満たす候補を列挙し、
+それぞれの安定性と、どの初期状態がどの候補へ向かうかを分けて調べなければならない。
+E0/E1の二正根は、二つの潜在的な貯留量を与えるが、
+低葉量根は鞍点なので通常の長期貯留先として並列には扱えない。
+鞍点は、その近傍で軌道の向きを変える構造として意味を持ち得る。
+逆に、複数の安定根が確認されたモデルなら、
+同じ環境でも過去の状態や外力経路により異なる貯留状態へ向かう可能性が生じる。
+その場合には履歴依存性を検査する必要があるが、本研究の二正根だけからそれを実証したとはしない。
+
+ゼロ根も一律に死亡状態とは解釈できない。
+片方向系では湿潤ゼロ炭素根が葉量方向に不安定になり得る一方、
+閉鎖域のゼロ集合は水理方向に退化している。
+「ゼロも解である」と「正の植生がそこへ収束する」は異なる主張である。
+E4の一意正根の不安定化は、複数根がない場合でさえ、
+capacityと貯留先を分ける必要があることを示す。
+
+\subsection{より複雑な陸モデルへの示唆}
+一般の陸モデルでは光合成、配分、呼吸、土壌分解、水分、
+植生構造が相互依存し、本研究のような一変数消去はできない可能性が高い。
+それでも解析の問いは引き継げる。
+第一に、炭素移送行列を時刻固定で評価したcapacityと、
+状態依存性も含めた全収支の根を区別する。
+第二に、数値的に得た根を保存則・非負条件・物理的範囲で検査し、
+全結合Jacobianの固有値で局所安定性を調べる。
+第三に、外力を連続的に変えて根の枝を追い、
+存在の喪失と、根が残ったままの安定性の喪失を区別する。
+最後に、外力の時間変化と各状態の緩和時間を比較し、
+有限期間の追従・遅れ・退出を検査する。
+
+この手順は大規模モデルで全根の発見を保証する方法ではない。
+複数初期値の数値求根で根が一つ見つかっても、一意性の証明にはならない。
+また移送行列だけが安定であっても、入力・係数の状態微分を含む
+全系Jacobianが安定とは限らない。
+解析的消去が困難なときには、保存則、単調性、比較評価、不変領域による部分的な証明と、
+数値継続・固有値・軌道計算を組み合わせ、保証できる範囲を記載する必要がある。
+
+生態学的には、環境から計算した貯留可能量だけでなく、
+現在の植生構造と水分状態、回復速度、外力の履歴を併せて考える視点を与える。
+気孔閉鎖で入力が消えても既存の木部・土壌炭素はすぐには消えず、
+平衡候補が正でもそこへ戻れない方向があり得る。
+これらの区別は、複雑な陸域生態系モデルの出力を、
+単なる炭素量の増減ではなく、収支均衡・安定性・過渡応答の異なる問題として理解する助けになる。
+ただし実際の生態系への定量的適用には、フィードバック則と係数の観測的裏付けが必要である。
+
+\section{結論}
+Manzoniの二貯留水理と四炭素プールを結び、
+線形時変系のcapacityを非線形時変系でも理解する手がかりとして、
+capacityの定義、全収支を満たす平衡、局所安定性、実軌道の帰結を分けて調べた。
+基準E0/E1/E4の通水する正炭素平衡は葉量一変数へ厳密に帰着し、
+E0/E1の一意foldとE4の単調性から根数を分類した。
+E2/E3も基準係数下で厳密に単調な平衡曲線を持ち、任意の有限VPDに正根が一つある。
+E0--E4の六成分平衡と6行6列のJacobianを明示し、根数と安定性の違いを投影相図で示した。
+E4の一意正根でも局所数値Hopfで不安定化し、
+平衡のcapacity一致は長期吸引性を意味しない。
+気孔閉鎖時のK即時ゼロ、両閉鎖下のC減衰、木部のみ閉鎖下の同化不足を証明し、
+代表初期値の有限軌道と対応付けた。
+温度対照、外力速度、周期軌道近傍の実験は、
+異なる問いを調べる別実験として位置付けた。
+未解決の大域境界と退出後生理を、局所結果や葉量下限への到達で代替しない。
+より複雑な陸モデルでも、複数の収支均衡候補を一括して貯留先とせず、
+根の存在、全系の安定性、初期状態と外力履歴への依存を順に調べることが重要である。
+
+\appendix
+\section{実験と根拠資料の対応}\label{app:evidence}
+本稿執筆時のHEADは
+\code{b8275212c11ef1e05ddbf57d052735aa9f20f171}である。
+原稿執筆のためにモデル式や既存実験のパラメータを変更していない。
+表の各IDは再現記録を参照するためだけの記号で、モデルの新しい変数ではない。
+保存先はプロジェクトのルートからの相対パスとする。
+\begin{longtable}{p{.09\linewidth}p{.22\linewidth}p{.60\linewidth}}
+\caption{実験・解析と既存記録の対応。JSONの欄名またはCSV行キーを明記する。}\\
+\toprule ID&本文の対象&根拠・記録キー\\\midrule\endfirsthead
+\toprule ID&本文の対象&根拠・記録キー\\\midrule\endhead
+H1&水理図2とfold&
+\code{artifacts/manzoni2014/figure2_20261007/results.json}。
+\code{examples/reproduce_manzoni2014.py}と原著式(1)--(4)。\\
+H2&sigmoid・土壌抵抗&
+\code{artifacts/manzoni2014/remaining_final_20261007/results.json}の
+\code{figure3, appendix, figure4}。図4比較は仮定した土壌係数。\\
+A1&片方向・温度対照&
+\code{artifacts/spac_carbon/stage_a_final_20261009/results.json}の
+\code{equilibria, trajectories, temperature_branches}。
+炭素ゼロ根の数学的延長と正葉量APIを区別。\\
+B1&五モデル、初期速度比較&
+\code{artifacts/spac_carbon/stage_b1_final_20261009/results.json}の
+\code{branches, trajectories, minimum_leaf_sensitivity}。\\
+B2&連続安定性、E2/E3周期&
+\code{artifacts/spac_carbon/stage_b2_verified_20261012/results.json}の
+\code{models/E2, models/E3}。
+\code{continuous_certificate_file}が指す区間JSONも根拠。\\
+B3&E4局所周期と七感度&
+\code{artifacts/spac_carbon/stage_b3_e4_final_v2_20261013/results.json}の
+\code{hopf, cycles, refinement, sensitivities}。\\
+C1&capacity反例・20年過渡&
+\code{artifacts/spac_carbon/stage_c_capacity_final_v2_20261013/}の
+\code{counterexamples.csv}の\code{case}、
+\code{periodic_capacity.csv}の\code{day}、
+JSONの\code{transient, cycle}。\\
+C2&六経路、九帰還、小振幅&
+\code{artifacts/spac_carbon/stage_c23_tracking_final_v2_20261014/results.json}の
+\code{rates, section_returns, small_ramp_quadratic_ratio}。
+\code{rates.csv}は終点と期間、\code{section_returns.csv}は初期横断座標で識別。\\
+$C_S$1&全域正根と八固定初期値&
+\code{artifacts/spac_carbon/scalar_equilibria_final_v5_20261014/results.json}の
+\code{landmarks_and_shape_proofs, outcomes, E4_detected_stability_crossings}。
+\code{equilibria.csv}は\code{case,vpd_mpa,L}。\\
+$C_S$2&10月14日の再計算&
+\code{artifacts/presentation_1016/verified_b827521_20261014_v4/raw_scalar/}は
+$C_S$1と同じ既存実行スクリプトの新規出力。
+同ディレクトリ親の\code{07_provenance.json}に再計算Hopfと85試験の記録。
+図の再配置は新しい生理実験ではない。\\
+\bottomrule
+\end{longtable}
+
+$C_S$1、B1、B3、C1、C2の記録された入力SHA256は現在ソースと一致する。
+A1とH2はJSON内の\code{manifest.sha256}が一致する。
+H1の水理ソースは現在のhashと異なるため、原著図2の既存実行スクリプトを本稿用の新規保存先
+\code{artifacts/papers/manzoni_carbon_capacity_20261015/hydraulic_recheck/}へ再実行した。
+manifestを除くJSONの全数値結果はH1と完全に一致した。
+B2では高階解析helperの三状態から四状態への一般化後に一入力hashが異なる。
+この歴史的差を無かったことにせず、既存B2の結果は当時の記録と対応する報告を根拠とする。
+三状態への回帰検証はその後の関連試験で実施されているが、
+本稿執筆時にB2の周期解計算一式を再実行したという意味ではない。
+
+図は独立計算の既存PDFを参照する。
+ただし今回追加した二つの相図は、元の六式を新たに積分して作成した。
+既存結果図の旧表記$L,W,R,S$は本文の$C_L,C_W,C_R,C_S$に対応し、
+元の数値ファイルの列名は再現性のため変更していない。
+原著の図画像、スライド本体、原著PDFを転載・改変していない。
+成果物の一部はGitignore対象で、ローカルに存在することとGitHubで公開閲覧できることは別である。
+原稿とともに数値・図の入力hashを記録し、PDFは組版の生成物として別の保存先へ出す。
+
+\section{相図の全平衡座標と各6行6列Jacobian}\label{app:numericjacobians}
+式\eqref{eq:explicit01}--\eqref{eq:explicit4}と式\eqref{eq:fulljacobian}を、
+相図の各固定VPDにおいて評価した値を省略せず示す。
+状態の並びは$(\psi_x,\psi_l,C_L,C_W,C_R,C_S)\tr$で、
+水理はMPa、炭素はkg C/m$^2$、時間はdayである。
+各行列の単位は「行の状態の単位/列の状態の単位/day」で、
+全要素が同じ物理単位を持つわけではない。
+同じモデル・同じVPDの二組は、二つの異なる正平衡に対応する。
+foldの丸め前固有値はゼロ近傍であり、以下の丸め表示だけで安定性を再判定しない。
+数値の丸めは表示のためだけで、判定には保存した全精度の行列を使った。
+\begin{landscape}
+\input{../artifacts/papers/manzoni_carbon_capacity_20261015_revised/phases_verified/equilibrium_jacobians.tex}
+\end{landscape}
+
+\section{数値計算と検証範囲}
+\subsection{solver、退出、判定の意味}
+水理はMPa、炭素はkg C/m$^2$、時間はdayで計算する。
+炭素係数の年率は365.25で除す。
+水理と炭素の時間尺度が離れるため、過渡積分にはRadauを使う。
+正炭素をlog座標に変換して積分し、任意のゼロ床で人工的な消失を作らない。
+ゼロ初期炭素はlog積分せず、RHSや平衡解析だけで扱う。
+
+双方向積分は$C_L=C_{L,\min}$で停止し、死亡時刻や炭素完全消失時刻とは記さない。
+正平衡の存在範囲はこの積分下限と別に扱う。
+コンダクタンスの折れ点での流束は定義できるが、通常Jacobianは未定義とする。
+極小固有値の絶対値が許容値内なら安定・不安定の確定を保留し、
+小さいODE残差だけを使って、underflowした巨大乾燥根を真の根と認定しない。
+
+現在の$C_S$1/$C_S$2の正根探索はBrent法、絶対許容値はbinary64の最小正規化数、
+相対許容値は既定の$4\epsilon_{\mathrm{mach}}$である。
+fold位置とE4の$C_L$に関するスペクトル交差は絶対許容値$10^{-14}$、
+Hopfの葉ポテンシャル根は$10^{-13}$ MPaである。
+元の実行記録JSONにある包括的な\code{leaf_xtol=1e-14}は正根探索を正確に記述しないため、
+本稿では実際の実装と分けて記載する。元コードや旧JSONを黙って書き換えていない。
+
+\subsection{歴史的な試験数と今回の作業}
+各段階の報告には水理38、拡張66、片方向88、双方向115、
+B2で129、E4局所で163、capacity診断で199、
+追従・断面で212、最新正根を含む関連回帰で236件の成功がある。
+これらは異なる時点・選択範囲の試験数で、合計して独立試験数にしたり、
+本稿執筆時に全てを再実行した数として表示したりしない。
+
+直近の$C_S$2準備では、平衡、capacity、E4、MPa境界の既存四試験ファイルで
+85件の成功を記録し、既存の一変数平衡実行スクリプトも再実行している。
+そのログは$C_S$2の\code{validation.log}にある。
+今回の執筆はそれらと既存数値記録を点検して構成したもので、
+全履歴の数値実験を再計算する作業ではない。
+初稿作成時に追加した検証はH1の同条件再計算、TeX組版、参照・式・図・用語の整合確認である。
+今回の改稿ではさらにE2/E3の全正域の根数分類を追加し、
+新しい相図用の固定VPD15条件・58軌道を計算した。
+これは以前の速度変化実験の再計算や新しい死亡則の導入ではない。
+記録は\code{artifacts/papers/manzoni_carbon_capacity_20261015_revised/phases_verified/results.json}、
+平衡の全六座標は同ディレクトリの\code{equilibria.csv}、
+時系列は各軌道の\code{npz}に保存した。
+再現入口は\code{python examples/prepare_manuscript_phase_portraits.py --output NEW_PATH}である。
+式\eqref{eq:fulljacobian}のJacobianは初稿では三モデルの平衡・摂動状態30点で実装と照合し、
+最大成分差は$7.11\times10^{-15}$だった。
+E1の消去から得た行列式の式も五葉量で照合し、最大相対差は$2.52\times10^{-15}$未満だった。
+これらの浮動小数点照合は式の転記検査であり、解析証明や既存の単体試験数と混同しない。
+改稿時にはE0--E4各五葉量の計25条件で、明示した平衡ベクトル、
+一変数方程式、六状態の行列表現、全Jacobianを独立に照合した。
+Jacobianの式の最大成分差は$3.56\times10^{-15}$未満、
+中央差分との成分誤差を$1+|J_{ij}|$で割った最大値は$3.65\times10^{-10}$未満だった。
+相図の14平衡の最大尺度付き残差は$4.94\times10^{-15}$/day未満、
+15軌道の許容誤差細分化による最大尺度付き状態差は$1.86\times10^{-8}$未満である。
+
+\subsection{ソースと再現コマンド}
+主な方程式の実装は
+\code{src/control_carbon/manzoni_hydraulics.py}、
+\code{manzoni_extensions.py}、
+\code{spac_carbon.py}、
+\code{spac_carbon_two_way.py}である。
+MPa境界は\code{spac_carbon_mpa.py}、
+根の全域形状は\code{spac_carbon_equilibria.py}、
+区間安定性は\code{spac_carbon_stability.py}、
+局所分岐は\code{spac_carbon_bifurcation.py,spac_carbon_e4.py}、
+診断と追従は\code{spac_carbon_capacity.py,spac_carbon_tracking.py,spac_carbon_section.py}にある。
+
+新しい出力先を指定する主な再現入口は次のとおりである。
+既存の保存先は上書きしない。
+\begin{quote}\small
+\code{python examples/reproduce_manzoni2014.py --output NEW_PATH}\\
+\code{python examples/reproduce_manzoni2014_remaining.py --shape-step .25 --output NEW_PATH}\\
+\code{python examples/analyze_spac_carbon.py --output NEW_PATH}\\
+\code{python examples/analyze_spac_carbon_two_way.py --output NEW_PATH}\\
+\code{python examples/analyze_spac_carbon_bifurcation.py --output NEW_PATH}\\
+\code{python examples/analyze_spac_carbon_e4.py --output NEW_PATH}\\
+\code{python examples/analyze_spac_carbon_capacity.py --output NEW_PATH}\\
+\code{python examples/analyze_spac_carbon_tracking.py --output NEW_PATH}\\
+\code{python examples/analyze_spac_carbon_equilibria.py --output NEW_PATH}
+\end{quote}
+原稿は\code{docs/}を作業ディレクトリにしてLuaLaTeXで二回以上組版する。
+図の相対参照を保ち、生成先を新しい
+\code{artifacts/papers/}以下に指定すれば、既存文書を上書きしない。
+
+\begin{thebibliography}{9}
+\bibitem{manzoni2014}
+Manzoni, S., Katul, G., and Porporato, A. (2014).
+A dynamical system perspective on plant hydraulic failure.
+\emph{Water Resources Research}, 50, 5170--5183.
+\url{https://doi.org/10.1002/2013WR015236}.
+
+\bibitem{luo2022}
+Luo, Y., et al. (2022).
+Matrix approach to land carbon cycle modeling.
+\emph{Journal of Advances in Modeling Earth Systems}, 14, e2022MS003008.
+\url{https://doi.org/10.1029/2022MS003008}.
+
+\bibitem{luoweng2011}
+Luo, Y., and Weng, E. (2011).
+Dynamic disequilibrium of the terrestrial carbon cycle under global change.
+\emph{Trends in Ecology \& Evolution}, 26, 96--104.
+\url{https://doi.org/10.1016/j.tree.2010.11.003}.
+
+\bibitem{kuznetsov}
+Kuznetsov, Y. A. (2004).
+\emph{Elements of Applied Bifurcation Theory}, 3rd ed.
+Springer. Hopfの標準形、第一Lyapunov係数および周期軌道の局所理論。
+\end{thebibliography}
+\end{document}
