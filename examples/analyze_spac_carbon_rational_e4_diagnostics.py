@@ -29,9 +29,14 @@ VPD_PEAK = 0.003
 VPD_HOLD_DAYS = YEAR_DAYS
 TAIL_DAYS = 400*YEAR_DAYS
 LEAF_EXIT = 1e-6
+EARLY_YEARS = 26.
+STABLE_COLOR = "#0072B2"
+UNSTABLE_COLOR = "#D62728"
 
 
 def pulse_vpd(day, ramp_days):
+    if not np.isfinite(day) or not np.isfinite(ramp_days) or ramp_days <= 0:
+        raise ValueError("Pulse time must be finite and ramp duration finite positive")
     up_end = ramp_days
     hold_end = up_end+VPD_HOLD_DAYS
     down_end = hold_end+ramp_days
@@ -57,6 +62,7 @@ def integrate_pulse(model, initial, ramp_years, scales):
         np.linspace(ramp_days, ramp_days+VPD_HOLD_DAYS, 400),
         np.linspace(ramp_days+VPD_HOLD_DAYS, pulse_end, 500),
         np.linspace(pulse_end, end, 3000),
+        np.linspace(pulse_end, min(end, EARLY_YEARS*YEAR_DAYS), 4000),
     ])
     samples = samples[(samples >= 0) & (samples <= end)]
     def rhs(day, z):
@@ -80,12 +86,20 @@ def integrate_pulse(model, initial, ramp_years, scales):
         return z[2]-np.log(LEAF_EXIT)
     leaf_exit.terminal = True
     leaf_exit.direction = -1
+    def xylem_closure(day, z):
+        return z[1]-2*model.base.hydraulic.psi50_x
+    xylem_closure.direction = -1
     run = solve_ivp(rhs, (0., end), np.r_[initial[:2], np.log(initial[2:])],
                     method="Radau", rtol=1e-9, atol=1e-11, t_eval=samples,
-                    dense_output=True, jac=jacobian, events=leaf_exit)
+                    dense_output=True, jac=jacobian, events=[leaf_exit, xylem_closure])
     if not run.success:
         raise RuntimeError(f"E4 VPD-path integration failed: {run.message}")
     exit_day = float(run.t_events[0][0]) if run.status else None
+    closure_day = float(run.t_events[1][0]) if len(run.t_events[1]) else None
+    closure_state = None
+    if closure_day is not None:
+        at_closure = run.sol(closure_day)
+        closure_state = np.r_[at_closure[:2], np.exp(at_closure[2:])].tolist()
     if exit_day is not None:
         days = np.unique(np.r_[run.t, exit_day])
         z = run.sol(days)
@@ -104,6 +118,7 @@ def integrate_pulse(model, initial, ramp_years, scales):
         "capacity": capacity, "potential": potential,
         "status": "leaf_domain_exit" if exit_day is not None else "400_year_hold_completed",
         "exit_day": exit_day, "pulse_end_day": pulse_end,
+        "xylem_closure_day": closure_day, "state_at_xylem_closure": closure_state,
         "nfev": int(run.nfev), "max_capacity_identity_residual": float(np.max(np.abs(identity))),
         "max_leaf_rate_abs": float(np.max(np.abs(carbon_rhs[:, 0]))),
     }
@@ -166,6 +181,43 @@ def save_figure(fig, output, stem):
     for ext in ("png", "pdf", "svg"):
         fig.savefig(output/f"{stem}.{ext}", dpi=180)
     plt.close(fig)
+
+
+def plot_equilibrium_segments(ax, vpd, leaf, abscissa):
+    """Keep gaps between disjoint stability intervals instead of joining them."""
+    stable = abscissa < 0
+    for selected, color, label in [
+        (stable, STABLE_COLOR, "Numerically stable equilibrium branch"),
+        (~stable, UNSTABLE_COLOR, "Numerically unstable equilibrium branch"),
+    ]:
+        ax.plot(vpd*1000, np.where(selected, leaf, np.nan), color=color, lw=2.3,
+                label=label)
+
+
+def plot_forcing_schedules(output):
+    fig, axes = plt.subplots(3, 1, figsize=(9, 8.5), constrained_layout=True)
+    ramps = [("10-day ramp", 10., STABLE_COLOR),
+             ("10-year ramp", 10*YEAR_DAYS, "#E69F00")]
+    for label, ramp, color in ramps:
+        knots = [0., ramp, ramp+VPD_HOLD_DAYS, 2*ramp+VPD_HOLD_DAYS,
+                 EARLY_YEARS*YEAR_DAYS]
+        day = np.unique(np.concatenate([
+            np.linspace(a, b, 501) for a, b in zip(knots[:-1], knots[1:])
+        ]))
+        axes[0].plot(day/YEAR_DAYS, [1000*pulse_vpd(t, ramp) for t in day],
+                     label=label, color=color, lw=1.8)
+        for ax, window in zip(axes[1:], [(0., 15.), (370., 390.)]):
+            zoom_day = np.linspace(*window, 601)
+            ax.plot(zoom_day, [1000*pulse_vpd(t, ramp) for t in zoom_day],
+                    label=label, color=color, lw=1.8)
+            ax.set_xlim(*window)
+            ax.set_xlabel("Time since start (days)")
+    axes[0].set(xlim=(0, EARLY_YEARS), xlabel="Time since start (years)")
+    for ax in axes:
+        ax.set(ylabel="VPD (kPa)", ylim=(2.4, 3.05))
+        ax.grid(alpha=.2)
+        ax.legend(fontsize=9)
+    save_figure(fig, output, "e4_vpd_schedule_common_time_and_ramp_details")
 
 
 def main():
@@ -246,12 +298,8 @@ def main():
 
     leaves, abscissa, crossings = spectral_crossings(model)
     vpd_curve = np.array([model.curve(x)[1] for x in leaves])
-    stable = abscissa < 0
     fig, ax = plt.subplots(figsize=(8.2, 5.3), constrained_layout=True)
-    ax.plot(vpd_curve[stable]*1000, leaves[stable], color="#0072B2", lw=2.3,
-            label="Numerically stable equilibrium branch")
-    ax.plot(vpd_curve[~stable]*1000, leaves[~stable], color="#D55E00", lw=2.3,
-            label="Numerically unstable equilibrium branch")
+    plot_equilibrium_segments(ax, vpd_curve, leaves, abscissa)
     for item in crossings:
         ax.scatter(item["vpd_mpa"]*1000, item["leaf"], marker="D", color="black", zorder=4)
         ax.annotate(f"{item['vpd_mpa']*1000:.3f} kPa",
@@ -264,6 +312,7 @@ def main():
     ax.grid(alpha=.18)
     ax.legend(fontsize=8)
     save_figure(fig, args.output, "e4_equilibrium_branch_and_stability")
+    plot_forcing_schedules(args.output)
 
     paths = {}
     for label, ramp_years in [("fast_10day_ramp", 10/YEAR_DAYS),
@@ -303,9 +352,8 @@ def main():
         axes[1, col].plot(time_years, data["state"][:, 1], alpha=.75, lw=1.2,
                           label=r"Actual $\psi_l$")
         axes[1, col].set(xlabel="Time (years)", ylabel="Water potential (MPa)")
-        early_window = data["pulse_end_day"]/YEAR_DAYS+5
         for row in range(2):
-            axes[row, col].set_xlim(0, early_window)
+            axes[row, col].set_xlim(0, EARLY_YEARS)
             axes[row, col].grid(alpha=.18)
         axes[0, col].legend(fontsize=8)
         axes[1, col].legend(fontsize=8)
@@ -334,7 +382,7 @@ def main():
                                  label="Numerical leaf-domain exit")
         axes[0, col].grid(alpha=.18)
         axes[1, col].grid(alpha=.18)
-        axes[0, col].set_xlim(0, data["pulse_end_day"]/YEAR_DAYS+5)
+        axes[0, col].set_xlim(0, EARLY_YEARS)
         axes[1, col].set_xlim(-4.1, -.5)
     fig.colorbar(points, ax=axes[1, :], label="VPD (kPa)", shrink=.86)
     save_figure(fig, args.output, "e4_leaf_carbon_phase_trajectories")
@@ -351,7 +399,7 @@ def main():
                     label=rf"$K_{{{name[0]}}}$")
             ax.set_yscale("symlog", linthresh=1e-10)
             ax.set_ylabel(rf"{name} pool ($\mathrm{{kg\,C\,m^{{-2}}}}$)")
-            ax.set_xlim(0, data["pulse_end_day"]/YEAR_DAYS+5)
+            ax.set_xlim(0, EARLY_YEARS)
             ax.grid(alpha=.18)
             ax.legend(fontsize=8)
             if pool == 0:
@@ -441,7 +489,21 @@ def main():
                   "carbon": "kg C m^-2", "VPD": "MPa; plots show kPa"},
         "forcing": {"initial_mpa": VPD_START, "peak_mpa": VPD_PEAK,
                     "hold_days": VPD_HOLD_DAYS, "smoothstep": "s^2(3-2s)",
+                    "common_early_plot_window_years": [0., EARLY_YEARS],
                     "diagnostic_temperature_c": 25., "saturation_vpd_kpa": 3.167489},
+        "positive_equilibrium_check": {
+            "monotonicity_bounds": model.shape_bounds(),
+            "landmarks": model.landmarks(),
+            "algebraic_roots_at_initial": [
+                [float(z.real), float(z.imag)]
+                for z in model.equilibrium_polynomial(VPD_START).roots()],
+            "algebraic_roots_at_peak": [
+                [float(z.real), float(z.imag)]
+                for z in model.equilibrium_polynomial(VPD_PEAK).roots()],
+            "positive_root_counts_initial_and_peak": [
+                len(model.equilibria(VPD_START)), len(model.equilibria(VPD_PEAK))],
+            "plot_fix": "NaN gaps prevent a spurious chord between disjoint stable intervals",
+        },
         "initial_full_equilibrium": low.tolist(),
         "unstable_peak_full_equilibrium": high.tolist(),
         "initial_equilibrium_eigenvalues_per_day": [
@@ -473,6 +535,8 @@ def main():
         records["paths"][label] = {
             "ramp_years": .02737850787132101 if label.startswith("fast") else 10.,
             "status": data["status"], "exit_day": data["exit_day"],
+            "xylem_closure_day": data["xylem_closure_day"],
+            "state_at_xylem_closure": data["state_at_xylem_closure"],
             "pulse_end_day": data["pulse_end_day"],
             "last_day": float(data["day"][-1]), "last_state": data["state"][-1].tolist(),
             "max_leaf_carbon": float(max(data["state"][:, 2])),

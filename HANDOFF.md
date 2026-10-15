@@ -1,13 +1,24 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
 > 2026-10-16 rational E4 diagnostic figures: [Japanese figure guide](docs/e4_rational_diagnostics_20261016.md),
-> [all plots and trajectories](artifacts/spac_carbon/rational_e4_diagnostics_20261016/figures_v3/).
+> [corrected plots and trajectories](artifacts/spac_carbon/rational_e4_diagnostics_20261016/figures_v4/).
+> Follow-up: [equilibrium correction and conditional decay proof](docs/e4_rational_equilibria_and_decay_20261016.md),
+> [synchronized trajectory movies](artifacts/spac_carbon/rational_e4_diagnostics_20261016/movies_v4/index.html).
+> IMPORTANT: v3's branch plot spuriously joined two disjoint stable intervals.
+> E4 has at most one positive equilibrium at fixed VPD, not the two suggested by
+> that chord. v4 masks the gaps and colors unstable equilibria red.
+> Both forcing plots use 0-26 years; day-scale details resolve the unchanged C1
+> 10-day smoothstep. Movies share physical frame times (nonuniform playback).
 > Includes frozen-slice leaf/water nullclines; E4 equilibrium/stability branch;
 > 10-day versus 10-year bounded 2.44->3.00->2.44 kPa VPD pulses; psi_x/psi_l
 > tracks, projected phase paths, and original K=-M^-1u against all four C pools.
 > K is state-evaluated frozen-input capacity, not a direct VPD function or
-> moving full equilibrium. Fast pulse reaches C_L=1e-6 after ~13.94 years with
-> gs=0 and K=0 while residual stocks remain; numerical exit is not mortality.
+> moving full equilibrium. Fast pulse crosses psi_l=-3 at day 11.094697707.
+> Thereafter the invariant dry region gives C_L' <= -0.35/year*C_L and all
+> carbon pools/capacities tend to zero conditionally on continuing this ODE.
+> Fast integration stops at C_L=1e-6 after ~13.94 years; not mortality.
+> Numerical gs=K=0 near psi_l=-4 is not proof of exact finite-time closure.
+> Zero-C equilibria form a continuum, not an isolated stable point.
 > Slow pulse completes 400-year post-pulse hold and returns within ~0.03% of
 > initial stocks for this one path; neither result establishes global basins
 > or rate-induced tipping. Capacity identity residual <1.5e-19; source/output
