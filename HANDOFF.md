@@ -1,5 +1,27 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-16 ISS-centered direction: [connectISS](docs/connectISS.md) now sets
+> the research framework. [Phase 1-3 mathematical intermediate report](docs/e4_rational_capacity_iss_analysis_ja.md)
+> starts from K=-M^-1u and e=C-K, not frozen roots.
+> New independent `spac_carbon_iss.py` proves/implements external -Kdot ISS,
+> analytic rational capacity rates, and carbon-feedback comparison estimates
+> while v_K,L*dA/dC_L <= rho < 1 (input is psi_l rate).
+> Positive equilibria always meet that carbon condition: ratio=1/(1+q*C_L).
+> This DOES NOT certify whole-system stability: E4 at 3.00 kPa has stable
+> carbon-error block but unstable full Jacobian. Local error coordinates fail
+> at ratio=1; no global coordinate, hydraulic ISS gain, or small-gain claim.
+> [Bounded verification artifacts](artifacts/spac_carbon/rational_e4_iss_20261016/phase123_v2/):
+> 81 frozen roots, six derivative probes, two prescribed-input linear checks.
+> 123 focused/regression tests pass. Independent error-integration and
+> tolerance-refinement differences <2.4e-11; analytic closed-error residual
+> <3.5e-18. Floating-point checks are C evidence, not interval certificates B.
+> Prescribed sinusoidal assimilation is NOT a new nonlinear E4 drought run.
+> Baseline main/cab30ea3; original ODEs, coefficients, TeX and saved outputs
+> unchanged. New full paper/large sweeps deferred until after this checkpoint.
+> Run `python examples/analyze_e4_capacity_iss.py --output NEW_PATH`.
+> Next: Phase 4 reanalysis of existing 10-day/10-year pulses with Cdot, Kdot,
+> full-equilibrium speed, errors/bounds/conductances; then closure modes/paper.
+
 > 2026-10-16 rational E4 diagnostic figures: [Japanese figure guide](docs/e4_rational_diagnostics_20261016.md),
 > [corrected plots and trajectories](artifacts/spac_carbon/rational_e4_diagnostics_20261016/figures_v4/).
 > Follow-up: [equilibrium correction and conditional decay proof](docs/e4_rational_equilibria_and_decay_20261016.md),
