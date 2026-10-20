@@ -107,10 +107,11 @@ def equilibrium_enclosure(model: RationalSPAC, vpd_mpa: float):
     }
 
 
-def conducting_jacobian_enclosure(model: RationalSPAC, state, vpd_mpa: float):
+def conducting_jacobian_enclosure(model: RationalSPAC, state, vpd_mpa: float | _Interval):
     """Full six-state Jacobian on a strictly conducting interval box."""
     h, c, f = model.base.hydraulic, model.base.carbon, model.base.feedback
-    if (model.label != "E4" or not np.isfinite(vpd_mpa) or vpd_mpa < 0
+    vpd = vpd_mpa if isinstance(vpd_mpa, _Interval) else _Interval(vpd_mpa)
+    if (model.label != "E4" or vpd.lo < 0
             or len(state) != 6 or state[1].lo <= 2*h.psi50_x
             or any(x.hi > 0 for x in state[:2]) or any(x.lo < 0 for x in state[2:])):
         raise ValueError("Jacobian enclosure needs a nonnegative-carbon conducting physical box")
@@ -124,7 +125,7 @@ def conducting_jacobian_enclosure(model: RationalSPAC, state, vpd_mpa: float):
     fe, fw = leaf/_Interval(f.leaf_reference), wood/_Interval(f.wood_reference)
     dfl = 1/(_Interval(f.leaf_reference)+_Interval(f.leaf_floor))
     dfe, dfw = 1/_Interval(f.leaf_reference), 1/_Interval(f.wood_reference)
-    d = _Interval(vpd_mpa)/_Interval(model.base.atmospheric_pressure_mpa)
+    d = vpd/_Interval(model.base.atmospheric_pressure_mpa)
     cx, cl = _Interval(h.cx), _Interval(h.cl)
     jac = [[_Interval(0) for _ in range(6)] for _ in range(6)]
     jac[0][0] = -2*gx*(fw+fl)/cx
@@ -147,6 +148,34 @@ def conducting_jacobian_enclosure(model: RationalSPAC, state, vpd_mpa: float):
                         *gs/_Interval(h.gs_max)*_Interval(c.canopy_coefficient)
                         /((1+q_leaf)*(1+q_leaf)))
     return jac
+
+
+def _capacity_error_lipschitz(model, box, scale):
+    h, c = model.base.hydraulic, model.base.carbon
+    zero = _Interval(0)
+    direction = [_Interval(c.allocation[i])/_Interval(c.losses[i]) for i in range(3)]
+    direction.append(sum((_Interval(eta)*_Interval(allocation)
+                          for eta, allocation in zip(c.litter_fractions, c.allocation)),
+                         zero)/_Interval(c.losses[3]))
+    q_leaf = _Interval(c.canopy_coefficient)*box[2]
+    opening = 1-box[1]/_Interval(2*h.psi50_s)
+    a_leaf = (_Interval(c.assimilation_max)*opening*_Interval(c.canopy_coefficient)
+              /((1+q_leaf)*(1+q_leaf)))
+    a_psi = -_Interval(c.assimilation_max)/_Interval(2*h.psi50_s)*q_leaf/(1+q_leaf)
+    gradient = []
+    for i in range(4):
+        row = []
+        for j in range(6):
+            value = _Interval(1 if j == i+2 else 0)
+            if j in [1, 2]:
+                value -= direction[i]*(a_psi if j == 1 else a_leaf)*_Interval(
+                    float(scale[j]))/_Interval(float(scale[i+2]))
+            row.append(value)
+        gradient.append(row)
+    bound = _upper(_sqrt(sum(
+        (_Interval(_magnitude(x))*_Interval(_magnitude(x))
+         for row in gradient for x in row), zero)))
+    return bound, gradient
 
 
 @dataclass(frozen=True)
@@ -233,29 +262,7 @@ def certify_local_vpd_iss(model: RationalSPAC, vpd_mpa: float, scales,
     if min(p_lower, p_upper, q_lower, b_upper, level, delta, decay, input_gain) <= 0:
         raise RuntimeError("Local ISS constants lost their positive margins")
 
-    zero = _Interval(0)
-    # Compute -M^-1 b directly from loss/transfer coefficients, not a rounded inverse.
-    direction = [_Interval(c.allocation[i])/_Interval(c.losses[i]) for i in range(3)]
-    direction.append(sum((_Interval(eta)*_Interval(allocation)
-                          for eta, allocation in zip(c.litter_fractions, c.allocation)),
-                         zero)/_Interval(c.losses[3]))
-    q_leaf = _Interval(c.canopy_coefficient)*box[2]
-    a_leaf = (_Interval(c.assimilation_max)*opening*_Interval(c.canopy_coefficient)
-              /((1+q_leaf)*(1+q_leaf)))
-    a_psi = -_Interval(c.assimilation_max)/_Interval(2*h.psi50_s)*q_leaf/(1+q_leaf)
-    output_gradient = []
-    for i in range(4):
-        row = []
-        for j in range(6):
-            value = _Interval(1 if j == i+2 else 0)
-            if j in [1, 2]:
-                value -= direction[i]*(a_psi if j == 1 else a_leaf)*_Interval(
-                    float(scale[j]))/_Interval(float(scale[i+2]))
-            row.append(value)
-        output_gradient.append(row)
-    lipschitz = _upper(_sqrt(sum(
-        (_Interval(_magnitude(x))*_Interval(_magnitude(x))
-         for row in output_gradient for x in row), zero)))
+    lipschitz, output_gradient = _capacity_error_lipschitz(model, box, scale)
     evidence = {
         "arithmetic": "40-digit outward Decimal; binary64 coefficients are exact real constants",
         "root": root_evidence, "state_box": [x.strings() for x in box],
@@ -272,13 +279,17 @@ def certify_local_vpd_iss(model: RationalSPAC, vpd_mpa: float, scales,
 
 
 def initial_energy_upper(certificate: LocalVPDISS, initial_state):
+    return _quadratic_error_upper(certificate.metric, certificate.scales,
+                                  certificate.evidence["root"]["state_intervals"], initial_state)
+
+
+def _quadratic_error_upper(metric, scales, roots, initial_state):
     initial = np.asarray(initial_state, dtype=float)
     if initial.shape != (6,) or not np.all(np.isfinite(initial)):
         raise ValueError("Initial state must have six finite entries")
-    roots = certificate.evidence["root"]["state_intervals"]
     error = [(_Interval(float(y))-_Interval(*bounds))/_Interval(float(scale))
-             for y, bounds, scale in zip(initial, roots, certificate.scales)]
-    quadratic = sum((error[i]*_Interval(float(certificate.metric[i, j]))*error[j]
+             for y, bounds, scale in zip(initial, roots, scales)]
+    quadratic = sum((error[i]*_Interval(float(metric[i, j]))*error[j]
                      for i in range(6) for j in range(6)), _Interval(0))
     return _upper(_Interval(quadratic.hi))
 

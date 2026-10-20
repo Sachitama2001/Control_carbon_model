@@ -1,5 +1,32 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-20 moving-equilibrium follow-up: [Phase 3 report](docs/e4_moving_equilibrium_tracking_20261020_ja.md).
+> `spac_carbon_moving_iss.py` verifies ONE constant metric over a continuous
+> 2.4399-2.4401 kPa band and a nonlinear moving-equilibrium tube.
+> sqrt(Vm) is bounded by exponentially weighted equilibrium-speed history.
+> Two sufficient invariance conditions: a VPD rate cap OR a small total
+> variation budget (including initial error). Rate-condition failure alone
+> is NOT failure of all tracking guarantees. No missing Pdot term: P is constant.
+> Rate cap ~3.1523e-15 MPa/day; zero-initial-error total variation budget
+> ~1.9784e-9 MPa. Both remain very conservative, not ecological thresholds.
+> [Verified artifacts](artifacts/spac_carbon/rational_e4_moving_20261020/phase3_v3/):
+> same 2.44->2.54 kPa ramps over 10 days/1/10/100 years (C only, outside tube);
+> tiny 10-day/100-year ramps inside the certified tube; two soil/root comparisons.
+> Full-system error peaks AFTER the ramp in the first three large-input cases.
+> Negative frozen eigenvalues do not imply monotone Euclidean error decay.
+> User chose original_only for soil: NO soil/root storage ODE or retention law.
+> `spac_carbon_soil_boundary.py` instead adds prescribed soil potential and
+> algebraic Manzoni root continuity, including wood feedback and root chain-rule
+> terms in the 6x6 Jacobian. Positive equilibrium condition is now quartic.
+> Soil coefficients reuse explicitly assumed prior sensitivity values, not paper
+> calibration. Root potential varies algebraically; soil stays prescribed.
+> All 222 focused/regression tests pass, 26 new. Original rational RHS/coefficients
+> and previous saved outputs unchanged. Run
+> `python examples/analyze_e4_moving_equilibrium.py --output NEW_PATH`.
+> Next: sharpen broad-branch tracking/safety guarantees; dynamic soil requires
+> a separately specified storage/retention/supply model. Do not claim Model B
+> with dynamic soil is complete or transfer Model A's certificate to soil cases.
+
 > 2026-10-20 VPD-only direction: [plan1020](docs/plan1020.md) supersedes
 > the previous auxiliary-input scope. [Model A audit and local ISS report](docs/e4_vpd_only_local_iss_20261020_ja.md)
 > completes a bounded Phase 1-2 checkpoint, not all six research phases.
