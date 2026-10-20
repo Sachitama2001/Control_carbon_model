@@ -1,5 +1,32 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-20 VPD-only direction: [plan1020](docs/plan1020.md) supersedes
+> the previous auxiliary-input scope. [Model A audit and local ISS report](docs/e4_vpd_only_local_iss_20261020_ja.md)
+> completes a bounded Phase 1-2 checkpoint, not all six research phases.
+> New `spac_carbon_vpd_iss.py` uses outward Decimal intervals to enclose the
+> true positive equilibrium, verify a quadratic metric, nonlinear full-Jacobian
+> dissipation on an ellipsoid-containing box, VPD input gain and capacity output.
+> At 2.44 kPa the certified VPD amplitude is only 6.7436e-8 kPa:
+> a nonempty local guarantee, NOT a realistic drought tolerance or basin estimate.
+> Initial states must lie in the certified ellipsoid, not merely its enclosing box.
+> Its invariance avoids psi_l=-3; no independent assimilation/psi_l input.
+> At 3.00 kPa, interval quartic Hurwitz determinant Delta3<0 certifies a RHP
+> eigenvalue, hence no local ISS about that positive equilibrium.
+> A failed larger-box test is instead unresolved, not proof of instability.
+> [Phase 1-2 evidence](artifacts/spac_carbon/rational_e4_vpd_iss_20261020/phase12_v2/):
+> three bounded VPD schedules integrated in the original six-state ODE,
+> plus one explicitly uncertified 2.44->2.445 kPa ramp; 200 years each.
+> Fixed/moving-equilibrium errors, K, potential, rates, conductances and bounds
+> are separate arrays. Trajectories/refinement are C evidence; algebraic interval
+> certificates are B. All 141 focused/regression tests pass (18 new).
+> Baseline ODE, coefficients, old outputs and TeX unchanged.
+> Audit: fixed root0 is NOT Manzoni's finite soil-root-resistance node solution;
+> CL=0 kills A/E/K but retains leaf supply floor and constant leaf capacitance.
+> CS is soil carbon, NOT a regrowth reserve. No soil/leaf-off/regrowth terms added.
+> Run `python examples/analyze_e4_vpd_local_iss.py --output NEW_PATH`.
+> Next: Phase 3 common/time-varying metric and moving-equilibrium speed bounds;
+> later select soil laws/constant supply and conservative leaf-off/regrowth models.
+
 > 2026-10-16 ISS-centered direction: [connectISS](docs/connectISS.md) now sets
 > the research framework. [Phase 1-3 mathematical intermediate report](docs/e4_rational_capacity_iss_analysis_ja.md)
 > starts from K=-M^-1u and e=C-K, not frozen roots.
