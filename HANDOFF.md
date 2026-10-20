@@ -1,5 +1,36 @@
 # Control Carbon Model — IDE Coding Agent Handoff
 
+> 2026-10-20 least-action follow-up: [first four experiments and proofs](docs/e4_least_action_lower_bounds_20261020_ja.md)
+> implements ONLY the four initial tasks in [leastaction](docs/leastaction.md).
+> Original fixed-root six-state E4, carbon pools and coefficients are unchanged.
+> `spac_carbon_potential.py` exposes M,b,A,K,P with P=K-C (opposite old e).
+> Endpoint L1 peak lower bounds use matching induced L1 matrix norm and account
+> for nonzero numerical initial potential. Reused 10-day ramp captures ~96.4%
+> of the sampled ramp-window peak, BUT uses ODE capacity endpoints (C, not a
+> VPD-only forecast). Prefix endpoints improve hold-window bounds; need history.
+> Monotone VPD does NOT imply monotone capacity: fast ramps have positive Adot,
+> including two samples while the one-year VPD ramp is still strictly rising.
+> New B certificate: exact positive equilibrium at 2.44 kPa, step to 2.54 kPa,
+> first 0.02 day/28.8 min. An outward-interval Picard-box inclusion guarantees
+> membership and Adot<0 without six-state time integration. Metzler comparison
+> yields four positive bounds on -P_i and peak L1 >=2.43478e-3 kg C/m2,
+> ~85.2% of the independent ODE value. NOT a smooth-ramp/global/death guarantee.
+> `carbon_compensation.py` solves an EXOGENOUS-capacity virtual linear problem:
+> Gramian, reachability checks, optimal action/control and energy-budget output
+> bounds. No finite pseudoinverse action for an unresolved nonzero target.
+> Gramian/independent discrete SLSQP/direct ODE agree. B=b is controllable here
+> but its terminal optimum permits negative intermediate carbon: NOT physiology.
+> Do not transfer its formula to controlled endogenous E4 or equate action with
+> natural disequilibrium/physical energy. Short-step certified lower bounds are
+> not soil carbon loss: instantaneous capacity can move while stocks barely do.
+> [Final artifacts](artifacts/spac_carbon/rational_e4_leastaction_20261020/phase1_v4/):
+> 9 NPZ, 4 figures in PNG/PDF/SVG, results and provenance; prior outputs untouched.
+> 109 focused/regression tests pass, 21 new. Run
+> `PYTHONPATH=src python examples/analyze_e4_least_action.py --output NEW_PATH`.
+> Next: broaden a priori lower bounds to smooth ramps/sign-changing responses;
+> do not claim general VPD-only bounds or multi-scenario performance yet.
+> Soil structure/storage extensions remain deferred.
+
 > 2026-10-20 moving-equilibrium follow-up: [Phase 3 report](docs/e4_moving_equilibrium_tracking_20261020_ja.md).
 > `spac_carbon_moving_iss.py` verifies ONE constant metric over a continuous
 > 2.4399-2.4401 kPa band and a nonlinear moving-equilibrium tube.
